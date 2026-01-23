@@ -1,24 +1,25 @@
+'use client';
+
 import { useState } from 'react';
-import loginBg from 'figma:asset/47826f2514ac119fc0b95a9eb5d924773ccf1cb3.png';
+import { useRouter } from 'next/navigation';
+import loginBg from '@/assets/login.png';
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
-
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    // TODO: Implement actual authentication logic here
+    router.push('/dashboard');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
       {/* 背景装饰 */}
       <div className="absolute inset-0 opacity-30">
-        <img src={loginBg} alt="" className="w-full h-full object-cover" />
+        <img src={loginBg.src} alt="" className="w-full h-full object-cover" />
       </div>
       
       <div className="relative z-10 w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">

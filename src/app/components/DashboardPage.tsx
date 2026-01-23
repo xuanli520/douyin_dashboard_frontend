@@ -1,3 +1,5 @@
+'use client';
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 

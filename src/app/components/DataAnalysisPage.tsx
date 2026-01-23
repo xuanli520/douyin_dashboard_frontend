@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { X, ChevronDown, Calendar, Search } from 'lucide-react';

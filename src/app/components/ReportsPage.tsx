@@ -1,3 +1,5 @@
+'use client';
+
 import { FileText, MoreVertical } from 'lucide-react';
 
 const reports = [
