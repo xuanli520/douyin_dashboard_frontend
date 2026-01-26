@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Save, Camera, User, Mail, Phone, Building, Shield } from 'lucide-react';
+import { Save, Camera, User, Mail, Phone, Building, Shield, Award } from 'lucide-react';
 import maleAvatar from '@/assets/male.jpg';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -22,153 +24,162 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        {/* 标题 */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">个人信息</h1>
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="fixed top-1/4 left-1/4 w-[800px] h-[800px] bg-cyan-900/10 rounded-full blur-[120px] pointer-events-none" />
+
+      <GlassCard className="max-w-4xl mx-auto p-8 relative z-10">
+        
+        {/* Header */}
+        <div className="border-b border-white/10 pb-6 mb-8 flex justify-between items-end">
+            <div>
+                 <NeonTitle icon={User}>个人信息中心</NeonTitle>
+                 <p className="text-sm text-slate-500 font-mono mt-1">Manage your personal account details</p>
+            </div>
+             <div className="px-3 py-1 rounded-full bg-cyan-950/30 border border-cyan-500/30 text-cyan-400 text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+                STATUS: ACTIVE
+             </div>
         </div>
 
-        <div className="p-6">
-          {/* 头像区域 */}
-          <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-100">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden">
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* Left Column: Avatar & Status */}
+          <div className="flex flex-col items-center gap-6 md:w-1/3">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-800 shadow-[0_0_20px_rgba(34,211,238,0.3)] group-hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-500">
                 <Image
                   src={maleAvatar}
                   alt="用户头像"
-                  width={96}
-                  height={96}
-                  className="w-full h-full object-cover"
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
-                <Camera size={14} />
+              <button className="absolute bottom-0 right-0 w-10 h-10 bg-cyan-600 rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-colors border-2 border-[#050714] shadow-lg group-hover:scale-110">
+                <Camera size={18} />
               </button>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{formData.username}</h2>
-              <p className="text-sm text-gray-500 mt-1">点击头像可更换</p>
+            
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white tracking-tight">{formData.username}</h2>
+              <p className="text-sm text-cyan-400 font-mono mt-1">{formData.position}</p>
+            </div>
+
+            <div className="w-full space-y-3">
+                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5 flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                        <Shield size={18} />
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 font-mono uppercase">Role</div>
+                        <div className="text-sm text-slate-200 font-medium">{formData.role}</div>
+                    </div>
+                </div>
+                 <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5 flex items-center gap-3">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
+                        <Award size={18} />
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 font-mono uppercase">Level</div>
+                        <div className="text-sm text-slate-200 font-medium">L7 Senior</div>
+                    </div>
+                </div>
             </div>
           </div>
 
-          {/* 表单区域 */}
-          <div className="max-w-2xl">
-            <div className="grid grid-cols-2 gap-6">
+          {/* Right Column: Form */}
+          <div className="flex-1">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 用户名 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <User size={16} className="text-gray-400" />
-                  用户名
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <User size={14} /> 用户名 (Username)
                 </label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-200 transition-all"
                   />
                 ) : (
-                  <p className="px-3 py-2 text-gray-900">{formData.username}</p>
+                  <div className="px-4 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg text-slate-300 font-mono">
+                    {formData.username}
+                  </div>
                 )}
               </div>
 
               {/* 邮箱 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <Mail size={16} className="text-gray-400" />
-                  邮箱
+              <div className="space-y-2">
+                 <label className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Mail size={14} /> 邮箱 (Email)
                 </label>
                 {isEditing ? (
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-200 transition-all"
                   />
                 ) : (
-                  <p className="px-3 py-2 text-gray-900">{formData.email}</p>
+                   <div className="px-4 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg text-slate-300 font-mono">
+                    {formData.email}
+                  </div>
                 )}
               </div>
 
               {/* 手机号 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <Phone size={16} className="text-gray-400" />
-                  手机号
+              <div className="space-y-2">
+                 <label className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Phone size={14} /> 手机号 (Phone)
                 </label>
                 {isEditing ? (
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-200 transition-all"
                   />
                 ) : (
-                  <p className="px-3 py-2 text-gray-900">{formData.phone}</p>
+                   <div className="px-4 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg text-slate-300 font-mono">
+                    {formData.phone}
+                  </div>
                 )}
               </div>
 
               {/* 部门 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <Building size={16} className="text-gray-400" />
-                  部门
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Building size={14} /> 部门 (Department)
                 </label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-200 transition-all"
                   />
                 ) : (
-                  <p className="px-3 py-2 text-gray-900">{formData.department}</p>
-                )}
-              </div>
-
-              {/* 角色 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <Shield size={16} className="text-gray-400" />
-                  角色
-                </label>
-                <p className="px-3 py-2 text-gray-900">{formData.role}</p>
-              </div>
-
-              {/* 职位 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <User size={16} className="text-gray-400" />
-                  职位
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                  />
-                ) : (
-                  <p className="px-3 py-2 text-gray-900">{formData.position}</p>
+                   <div className="px-4 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg text-slate-300 font-mono">
+                    {formData.department}
+                  </div>
                 )}
               </div>
             </div>
 
             {/* 操作按钮 */}
-            <div className="mt-8 pt-6 border-t border-gray-100 flex items-center gap-4">
+            <div className="mt-10 pt-6 border-t border-white/10 flex items-center gap-4">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] font-medium"
                   >
-                    <Save size={16} />
-                    保存
+                    <Save size={18} />
+                    保存更改
                   </button>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2.5 text-slate-400 border border-slate-600 rounded-lg hover:border-slate-400 hover:text-slate-200 transition-colors"
                   >
                     取消
                   </button>
@@ -176,7 +187,7 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2.5 bg-white/[0.05] border border-white/10 text-cyan-400 rounded-lg hover:bg-white/[0.1] hover:border-cyan-500/50 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] font-medium"
                 >
                   编辑资料
                 </button>
@@ -184,7 +195,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, Database, RefreshCw, Server, Plus } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const dataSources = [
   {
@@ -26,85 +28,92 @@ export default function DataSourcePage() {
   const [searchText, setSearchText] = useState('');
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        {/* 搜索和筛选栏 */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="搜索"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="pl-10 pr-4 py-2 w-[300px] border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-              />
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6">
+      
+      <GlassCard className="min-h-[600px] flex flex-col">
+        {/* Header & Controls */}
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <NeonTitle icon={Database}>数据源管理</NeonTitle>
+          
+            <div className="flex items-center gap-3">
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
+                    <input
+                        type="text"
+                        placeholder="搜索数据源..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="pl-10 pr-4 py-2 w-[240px] bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-200 placeholder:text-slate-600 transition-all"
+                    />
+                </div>
+
+                <select className="px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50">
+                    <option>全部类型</option>
+                    <option>API</option>
+                    <option>数据库</option>
+                </select>
+
+                 <select className="px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50">
+                    <option>全部状态</option>
+                    <option>正常</option>
+                    <option>异常</option>
+                </select>
+
+                <button className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group">
+                    <Plus size={16} className="group-hover:rotate-90 transition-transform"/>
+                    添加数据源
+                </button>
             </div>
-
-            <select className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50">
-              <option>类型</option>
-              <option>API</option>
-              <option>数据库</option>
-            </select>
-
-            <select className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50">
-              <option>类型</option>
-            </select>
-
-            <select className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50">
-              <option>状态</option>
-              <option>正常</option>
-              <option>异常</option>
-            </select>
-
-            <select className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50">
-              <option>状态</option>
-            </select>
-          </div>
-
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            添加数据源
-          </button>
         </div>
 
-        {/* 数据表格 */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">数据源名称</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">类型</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">频率</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">最后更新</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">状态</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">操作</th>
+        {/* Data Table */}
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5">
+                {['数据源名称', '类型', '同步频率', '最后更新时间', '状态', '操作'].map((h) => (
+                    <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
+                        {h}
+                    </th>
+                ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {dataSources.map((source) => (
-                <tr key={source.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{source.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{source.type}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{source.frequency}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{source.lastUpdate}</td>
+                <tr key={source.id} className="group hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${source.type === 'API' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                              {source.type === 'API' ? <Server size={18} /> : <Database size={18} />}
+                          </div>
+                          <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{source.name}</span>
+                      </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-400 font-mono">{source.type}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400 font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <RefreshCw size={12} className="text-slate-500" />
+                        {source.frequency}
+                      </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-400 font-mono">{source.lastUpdate}</td>
                   <td className="px-6 py-4">
                     {source.status === 'normal' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 text-sm rounded-full">
-                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full" />
-                        正常
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-mono rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                        RUNNING
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 text-sm rounded-full">
-                        <span className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-                        异常
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-rose-500/10 text-rose-400 text-xs font-mono rounded border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
+                        <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse" />
+                        ERROR
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button className="text-sm text-blue-600 hover:text-blue-700">编辑</button>
-                      <button className="text-sm text-red-600 hover:text-red-700">删除</button>
+                    <div className="flex items-center gap-4 text-sm font-mono">
+                      <button className="text-cyan-400 hover:text-cyan-300 hover:underline decoration-cyan-500/50 underline-offset-4">配置</button>
+                      <button className="text-rose-400 hover:text-rose-300 hover:underline decoration-rose-500/50 underline-offset-4">删除</button>
                     </div>
                   </td>
                 </tr>
@@ -113,22 +122,15 @@ export default function DataSourcePage() {
           </table>
         </div>
 
-        {/* 分页 */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
-          <span className="text-sm text-gray-600 mr-4">1 页 一 页</span>
-          <button className="p-2 hover:bg-gray-100 rounded disabled:opacity-50" disabled>
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded min-w-[32px]">1</button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        {/* Pagination */}
+        <div className="p-4 border-t border-white/10 flex justify-end">
+            <div className="flex gap-2">
+                 <button className="px-3 py-1 text-xs text-slate-500 hover:text-slate-300 disabled:opacity-50">Previous</button>
+                 <button className="px-3 py-1 text-xs text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 rounded">1</button>
+                 <button className="px-3 py-1 text-xs text-slate-500 hover:text-slate-300">Next</button>
+            </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

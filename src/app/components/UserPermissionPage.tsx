@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Users, Shield, Check, MoreVertical } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const users = [
-  { id: 1, name: '张三', email: 'reav@', role: '管理员', status: '已激活' },
-  { id: 2, name: '张三', email: 'john@', role: '运营', status: '已激活' },
-  { id: 3, name: '张三', email: 'mian@', role: '分析师', status: '已激活' },
-  { id: 4, name: '张四', email: 'mang@', role: '分析师', status: '已激活' },
-  { id: 5, name: '张五', email: 'imaim@', role: '运营', status: '已激活' },
-  { id: 6, name: '张九', email: 'mieh@', role: '运营', status: '已激活' },
-  { id: 7, name: '张三', email: 'jostnrao@gmail.com', role: '管理员', status: '-' },
+  { id: 1, name: 'Alex Chen', email: 'alex@tech.co', role: '管理员 (Admin)', status: '已激活' },
+  { id: 2, name: 'Sarah Wu', email: 'sarah@ops.co', role: '运营 (Ops)', status: '已激活' },
+  { id: 3, name: 'Mike Ross', email: 'mike@data.co', role: '分析师 (Analyst)', status: '已激活' },
+  { id: 4, name: 'Jenny Lin', email: 'jenny@data.co', role: '分析师 (Analyst)', status: '已激活' },
+  { id: 5, name: 'David Kim', email: 'david@ops.co', role: '运营 (Ops)', status: '已激活' },
+  { id: 6, name: 'Tom Hardy', email: 'tom@ops.co', role: '运营 (Ops)', status: '已激活' },
+  { id: 7, name: 'Guest User', email: 'guest@temp.co', role: '访客 (Guest)', status: '禁用' },
 ];
 
 export default function UserPermissionPage() {
@@ -24,75 +26,87 @@ export default function UserPermissionPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        {/* 标题和搜索栏 */}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900 mb-4">用户管理</h1>
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 relative">
+      <GlassCard className="min-h-[80vh] flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <NeonTitle icon={Users}>用户权限管理 (IAM)</NeonTitle>
           
-          <div className="flex items-center justify-between">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="搜索"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="pl-10 pr-4 py-2 w-[300px] border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            <div className="flex items-center gap-3">
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="pl-10 pr-4 py-2 w-[300px] bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-200 transition-all"
+                    />
+                </div>
 
-            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              用户权限
-            </button>
-          </div>
+                <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/50 rounded-lg transition-all shadow-[0_0_15px_rgba(99,102,241,0.2)] text-sm font-medium">
+                  权限策略
+                </button>
+            </div>
         </div>
 
-        {/* 用户表格 */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 w-12">
-                  <input type="checkbox" className="rounded border-gray-300" />
+        {/* User Table */}
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5">
+                <th className="px-6 py-4 w-12">
+                   <input type="checkbox" className="rounded border-white/10 bg-slate-800 text-cyan-500 focus:ring-offset-0 focus:ring-0" />
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">用户</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">邮件</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">角色</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">状态</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">操作</th>
+                {['用户 (User)', '邮箱 (Email)', '角色 (Role)', '状态 (Status)', '操作 (Action)'].map(h => (
+                     <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
+                        {h}
+                     </th>
+                ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {users.map((user) => (
-                <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={user.id} className="group hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
-                    <input type="checkbox" className="rounded border-gray-300" />
+                     <input type="checkbox" className="rounded border-white/10 bg-slate-800 text-cyan-500 focus:ring-offset-0 focus:ring-0" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-300 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-colors">
                         {user.name.charAt(0)}
                       </div>
-                      <span className="text-sm text-gray-900">{user.name}</span>
+                      <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{user.name}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{user.role}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400 font-mono">{user.email}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400">
+                      <div className="flex items-center gap-2">
+                          <Shield size={12} className="text-indigo-400"/>
+                          {user.role}
+                      </div>
+                  </td>
                   <td className="px-6 py-4">
-                    <span className={`text-sm ${user.status === '已激活' ? 'text-gray-700' : 'text-gray-500'}`}>
-                      {user.status}
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono border ${
+                        user.status === '已激活' 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                        : 'bg-slate-700/50 text-slate-500 border-slate-600'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${user.status === '已激活' ? 'bg-emerald-500' : 'bg-slate-500'}`} />
+                      {user.status === '已激活' ? 'ACTIVE' : 'DISABLED'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => handleEditPermission(user)}
-                        className="text-sm text-blue-600 hover:text-blue-700"
+                        className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline decoration-cyan-500/30 underline-offset-4"
                       >
-                        编辑
+                        EDIT_PERMS
                       </button>
-                      <button className="text-sm text-red-600 hover:text-red-700">删除</button>
+                      <button className="text-slate-500 hover:text-white transition-colors">
+                          <MoreVertical size={16} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -100,139 +114,79 @@ export default function UserPermissionPage() {
             </tbody>
           </table>
         </div>
+      </GlassCard>
 
-        {/* 分页 */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
-          <span className="text-sm text-gray-600 mr-4">共 30 页</span>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded min-w-[32px]">1</button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* 权限编辑弹窗 */}
+      {/* Permission Modal */}
       {showPermissionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-[500px] max-h-[80vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">编辑权限 - 张三</h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <GlassCard className="w-full max-w-lg max-h-[90vh] flex flex-col p-0 border border-cyan-500/20 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+              <div>
+                   <h2 className="text-lg font-bold text-white">权限配置 (Permissions)</h2>
+                   <p className="text-xs text-slate-500 font-mono">User: {selectedUser?.name}</p>
+              </div>
               <button 
                 onClick={() => setShowPermissionModal(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(80vh-140px)]">
-              {/* 菜单权限 */}
+            <div className="p-6 space-y-8 overflow-y-auto">
+              {/* Menu Permissions */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">菜单权限</h3>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                    <span className="text-sm text-gray-700">首页</span>
-                  </label>
-                  
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                    <span className="text-sm text-gray-700">数据分析</span>
-                  </label>
-
-                  <div className="ml-6 space-y-2">
-                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                      <span className="text-sm text-gray-700">数据分析</span>
-                    </label>
-                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                      <span className="text-sm text-gray-700">库存盘点量</span>
-                    </label>
-                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input type="checkbox" className="rounded border-gray-300" />
-                      <span className="text-sm text-gray-700">下属组织筛查</span>
-                    </label>
-                  </div>
-
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="checkbox" className="rounded border-gray-300" />
-                    <span className="text-sm text-gray-700">运营中心</span>
-                  </label>
-                  
-                  <div className="ml-6">
-                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input type="checkbox" className="rounded border-gray-300" />
-                      <span className="text-sm text-gray-700">运营中心</span>
-                    </label>
-                  </div>
-
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="checkbox" className="rounded border-gray-300" />
-                    <span className="text-sm text-gray-700">系统设置</span>
-                  </label>
-
-                  <div className="ml-6">
-                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                      <input type="checkbox" className="rounded border-gray-300" />
-                      <span className="text-sm text-gray-700">系统设置</span>
-                    </label>
-                  </div>
+                <h3 className="text-xs font-mono text-cyan-400 uppercase mb-4 flex items-center gap-2">
+                    <Shield size={14} /> Menu Access
+                </h3>
+                <div className="space-y-1">
+                  {['Dashboard', 'Data Analysis', 'Operations', 'Settings'].map((item, i) => (
+                      <label key={i} className="flex items-center gap-3 p-3 hover:bg-white/[0.03] rounded-lg cursor-pointer group transition-colors">
+                        <div className="relative flex items-center">
+                            <input type="checkbox" className="peer w-4 h-4 appearance-none rounded border border-slate-600 bg-slate-900 checked:bg-cyan-600 checked:border-cyan-500 transition-colors" defaultChecked />
+                            <Check size={10} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                        </div>
+                        <span className="text-sm text-slate-300 group-hover:text-white transition-colors">{item}</span>
+                      </label>
+                  ))}
                 </div>
               </div>
 
-              {/* 数据权限 */}
+              {/* Data Scope */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">数据权限</h3>
+                <h3 className="text-xs font-mono text-cyan-400 uppercase mb-4 flex items-center gap-2">
+                    <Users size={14} /> Data Scope
+                </h3>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="radio" name="dataPermission" className="border-gray-300" defaultChecked />
-                    <span className="text-sm text-gray-700">全部数据权限</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="radio" name="dataPermission" className="border-gray-300" />
-                    <span className="text-sm text-gray-700">本部门数据</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                    <input type="radio" name="dataPermission" className="border-gray-300" />
-                    <span className="text-sm text-gray-700">个人数据</span>
-                  </label>
+                    {[
+                        { label: 'All Data (Global)', val: 'all' },
+                        { label: 'Department Only', val: 'dept' },
+                        { label: 'Personal Only', val: 'self' }
+                    ].map((opt, i) => (
+                        <label key={i} className="flex items-center gap-3 p-3 bg-slate-900/50 border border-white/5 rounded-lg cursor-pointer hover:border-cyan-500/30 transition-all">
+                             <input type="radio" name="dataScope" className="text-cyan-600 bg-slate-900 border-slate-600 focus:ring-cyan-500 focus:ring-offset-0" defaultChecked={i===0} />
+                             <span className="text-sm text-slate-300">{opt.label}</span>
+                        </label>
+                    ))}
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="px-6 py-5 border-t border-white/10 flex items-center justify-end gap-3 bg-white/[0.02]">
               <button 
                 onClick={() => setShowPermissionModal(false)}
-                className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
               >
-                取消
+                Cancel
               </button>
               <button 
                 onClick={() => setShowPermissionModal(false)}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-6 py-2 text-sm bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)] font-medium transition-all"
               >
-                保存
+                Save Changes
               </button>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
     </div>

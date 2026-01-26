@@ -1,6 +1,8 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Zap, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const alerts = [
   { 
@@ -70,88 +72,104 @@ const alerts = [
 
 export default function RiskAlertPage() {
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6">
-          <h1 className="text-xl font-semibold text-gray-900 mb-6">风险预警中心</h1>
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6">
+      
+      <GlassCard className="min-h-[80vh] flex flex-col p-0">
+        <div className="p-6 border-b border-white/10 flex justify-between items-center">
+             <NeonTitle icon={ShieldAlert}>风险预警中心 (Risk Command)</NeonTitle>
+             <div className="flex gap-2 text-xs font-mono">
+                 <span className="text-rose-400 animate-pulse">● LIVE MONITORING</span>
+             </div>
+        </div>
 
-          <div className="grid grid-cols-12 gap-6">
-            {/* 预警等级侧边栏 */}
-            <div className="col-span-2 space-y-4">
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <div className="text-4xl font-bold text-red-600 mb-1">P0</div>
-                <div className="text-sm text-gray-700">P0 严重预警</div>
-              </div>
+        <div className="flex flex-1">
+            {/* Sidebar Stats */}
+            <div className="w-64 border-r border-white/10 p-6 space-y-6">
+                 <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <Zap size={40} className="text-rose-500" />
+                    </div>
+                    <div className="text-4xl font-bold text-rose-500 mb-1 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)] font-mono">1</div>
+                    <div className="text-xs text-rose-300 uppercase tracking-wider font-medium">P0 严重预警</div>
+                </div>
 
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                <div className="text-4xl font-bold text-orange-600 mb-1">P1</div>
-                <div className="text-sm text-gray-700">P1 重要预警</div>
-              </div>
+                <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <AlertTriangle size={40} className="text-orange-500" />
+                    </div>
+                    <div className="text-4xl font-bold text-orange-500 mb-1 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)] font-mono">6</div>
+                    <div className="text-xs text-orange-300 uppercase tracking-wider font-medium">P1 重要预警</div>
+                </div>
+
+                <div className="mt-8">
+                    <h4 className="text-xs font-mono text-slate-500 uppercase mb-4">Quick Filters</h4>
+                    <div className="space-y-2">
+                        <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/5">全部预警</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg transition-colors">待处理 (3)</button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors border border-transparent hover:border-cyan-500/20">处理中 (2)</button>
+                    </div>
+                </div>
             </div>
 
-            {/* 预警列表 */}
-            <div className="col-span-10">
+            {/* Alert List */}
+            <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-3">
                 {alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                    <div className={`w-1 h-16 rounded-full ${
-                      alert.color === 'red' ? 'bg-red-500' : 'bg-orange-500'
+                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-slate-900/30 border border-white/5 hover:border-cyan-500/30 rounded-xl hover:bg-slate-900/50 transition-all group relative overflow-hidden">
+                    {/* Status Indicator Bar */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                        alert.color === 'red' ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-orange-500 shadow-[0_0_10px_#f97316]'
                     }`} />
 
-                    <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                      <div className="col-span-4">
-                        <div className="font-medium text-gray-900 mb-1">{alert.title}</div>
-                        <div className="text-xs text-gray-500">
-                          发生时间：{alert.time} &nbsp; 时长：{alert.duration}
+                    <div className="pl-2 flex-1 grid grid-cols-12 gap-4 items-center relative z-10">
+                      <div className="col-span-5">
+                        <div className="flex items-center gap-3 mb-1">
+                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                                 alert.color === 'red' ? 'bg-rose-500 text-white' : 'bg-orange-500 text-white'
+                             }`}>
+                                 {alert.level}
+                             </span>
+                             <span className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">{alert.title}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono flex items-center gap-3">
+                          <span className="flex items-center gap-1"><Clock size={10}/> {alert.time}</span>
+                          <span>Duration: {alert.duration}</span>
                         </div>
                       </div>
 
                       <div className="col-span-2">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-sm ${
-                          alert.status === '待处理' ? 'bg-yellow-100 text-yellow-700' :
-                          alert.status === '处理中' ? 'bg-blue-100 text-blue-700' :
-                          'bg-green-100 text-green-700'
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${
+                          alert.status === '待处理' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                          alert.status === '处理中' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 animate-pulse' :
+                          'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         }`}>
+                          {alert.status === '待处理' && <AlertTriangle size={10} />}
+                          {alert.status === '处理中' && <Zap size={10} />}
+                          {alert.status === '已解决' && <CheckCircle size={10} />}
                           {alert.status}
                         </span>
                       </div>
 
-                      <div className="col-span-6 flex items-center justify-end gap-2">
-                        <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                      <div className="col-span-5 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
+                        <button className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 border border-cyan-500/30 text-xs rounded transition-colors">
                           指派
                         </button>
-                        {alert.status === '已解决' ? (
-                          <>
-                            <button className="px-4 py-2 text-gray-700 border border-gray-300 text-sm rounded hover:bg-gray-50">
-                              忽略
-                            </button>
-                            <button className="px-4 py-2 text-gray-700 border border-gray-300 text-sm rounded hover:bg-gray-50">
+                        {alert.status !== '已解决' && (
+                             <button className="px-3 py-1.5 bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 border border-white/10 hover:border-emerald-500/30 text-xs rounded transition-colors">
                               标记解决
                             </button>
-                          </>
-                        ) : alert.status === '处理中' ? (
-                          <>
-                            <button className="px-4 py-2 text-gray-700 border border-gray-300 text-sm rounded hover:bg-gray-50">
-                              忽略
-                            </button>
-                            <button className="px-4 py-2 text-gray-700 border border-gray-300 text-sm rounded hover:bg-gray-50">
-                              标记解决
-                            </button>
-                          </>
-                        ) : (
-                          <button className="px-4 py-2 text-gray-700 border border-gray-300 text-sm rounded hover:bg-gray-50">
-                            忽略
-                          </button>
                         )}
+                         <button className="px-3 py-1.5 hover:bg-white/10 text-slate-500 hover:text-slate-300 rounded transition-colors">
+                             <XCircle size={16} />
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

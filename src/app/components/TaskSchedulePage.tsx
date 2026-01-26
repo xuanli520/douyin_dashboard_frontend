@@ -1,73 +1,64 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Edit, Copy, X } from 'lucide-react';
+import { Play, Edit, Copy, X, Terminal, Clock, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const tasks = [
   { 
     id: 1,
-    name: '任务调度管理',
+    name: '数据同步任务 (Data Sync)',
     lastStatus: '成功',
     lastRun: '2023-17-03 18:00:38',
     duration: '04ms'
   },
   { 
     id: 2,
-    name: '任务调度管理',
+    name: '库存校准 (Inventory Check)',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:03:39',
     duration: '96ms'
   },
   { 
     id: 3,
-    name: '任务调度管理',
+    name: '报表生成 (Report Gen)',
     lastStatus: '失败',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
   },
   { 
     id: 4,
-    name: '任务调度管理',
+    name: '用户行为分析 (User Analytics)',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:30',
     duration: '03ms'
   },
   { 
     id: 5,
-    name: '任务调度管理',
+    name: '日志清理 (Log Cleanup)',
     lastStatus: '失败',
     lastRun: '2023-17-08 14:50:39',
     duration: '03ms'
   },
   { 
     id: 6,
-    name: '任务调度管理',
+    name: '系统备份 (Backup)',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
   },
 ];
 
-const logContent = `1 terminal execution logs
-[2022-01-13 12:26:38:02] Application log.tim
-ts holesa
-[2022-01-13 12:26:38:02] Application from oa
-ion:trusted: Startruning successfully
-[2022-01-13 12:38:35:03] Application log/ons
-tex.log[2770].Sdnetthwin-enstmave applicatio
-on [minitates] Enstraying successfully
-[2022-01-12 12:38:18:02] Application log/ons
-tex.log[2378].Cnbeumeened: Varieables logs we
-re successful.
-[2022-01-12 12:38:38:02] Application log/ons
-tex.log[2970].Gneumeened: Varieables logs wor
-nd successful.
-[2022-01-12 12:38:35:03] Application log/ons
-tex.log[2778].Gneumeened: varieables logs wor
-ed successful.
-[2022-01-12 12:38:56:01] Application log/ons
-tex.log[2378].Gneuweened: varieables logs wer
-d successful.`;
+const logContent = `> [SYSTEM] Initializing process 2770...
+> [SYSTEM] Connecting to database shard-01... OK
+> [WARN] Latency spike detected (120ms)
+> [INFO] Syncing batch #44920...
+> [ERROR] Connection timeout at 12:38:35:03
+> [RETRY] Attempting retry 1/3...
+> [INFO] Connection re-established
+> [SUCCESS] Batch #44920 completed
+> [SYSTEM] Process terminated with exit code 0`;
 
 export default function TaskSchedulePage() {
   const [showLog, setShowLog] = useState(false);
@@ -79,56 +70,75 @@ export default function TaskSchedulePage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">后台任务管理</h1>
-          <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-            + 添加任务
-          </button>
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 relative">
+      
+      <GlassCard className="min-h-[80vh] flex flex-col">
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+           <NeonTitle icon={Clock}>任务调度中心 (Cron Command)</NeonTitle>
+          
+           <div className="flex gap-3">
+              <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={14} />
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-200"
+                    />
+                </div>
+              <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
+                <Plus size={14} />
+                Create Task
+              </button>
+           </div>
         </div>
 
         {/* 任务表格 */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">任务名称</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">上次运行状态</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">下次运行时间</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">持续时间</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">操作</th>
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5">
+                {['任务名称', '运行状态', '上次运行', '耗时', '操作'].map((h) => (
+                    <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
+                        {h}
+                    </th>
+                ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {tasks.map((task) => (
-                <tr key={task.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{task.name}</td>
+                <tr key={task.id} className="group hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-1 rounded text-sm ${
+                      <div className="flex items-center gap-3">
+                          <Activity size={16} className="text-slate-600 group-hover:text-cyan-400 transition-colors" />
+                          <span className="text-sm font-medium text-slate-200 group-hover:text-white font-mono">{task.name}</span>
+                      </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${
                       task.lastStatus === '成功' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
                     }`}>
-                      {task.lastStatus}
+                       {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                      {task.lastStatus === '成功' ? 'SUCCESS' : 'FAILED'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{task.lastRun}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{task.duration}</td>
+                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{task.lastRun}</td>
+                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{task.duration}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => handleViewLog(task)}
-                        className="text-blue-600 hover:text-blue-700"
-                        title="查看日志"
+                        className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-400 rounded transition-colors"
+                        title="View Logs"
                       >
-                        <Play size={16} />
+                        <Terminal size={14} />
                       </button>
-                      <button className="text-blue-600 hover:text-blue-700" title="编辑">
-                        <Edit size={16} />
+                      <button className="p-1.5 hover:bg-white/10 text-slate-500 hover:text-slate-300 rounded transition-colors" title="Edit">
+                        <Edit size={14} />
                       </button>
-                      <button className="text-blue-600 hover:text-blue-700" title="复制">
-                        <Copy size={16} />
+                      <button className="p-1.5 hover:bg-white/10 text-slate-500 hover:text-slate-300 rounded transition-colors" title="Clone">
+                        <Copy size={14} />
                       </button>
                     </div>
                   </td>
@@ -137,26 +147,38 @@ export default function TaskSchedulePage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </GlassCard>
 
-      {/* 执行日志侧边栏 */}
+      {/* Terminal Log Modal */}
       {showLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-end">
-          <div className="w-[600px] bg-white h-full shadow-2xl flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">执行日志</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={() => setShowLog(false)}>
+          <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            {/* Terminal Header */}
+            <div className="px-4 py-2 bg-[#1a1a1a] border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
+                  </div>
+                  <span className="ml-3 text-xs text-slate-400 font-mono">root@system:~/logs/{selectedTask?.id}.log</span>
+              </div>
               <button 
                 onClick={() => setShowLog(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="text-slate-500 hover:text-white transition-colors"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={16} />
               </button>
             </div>
 
-            <div className="flex-1 p-6 overflow-auto">
-              <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-xs leading-relaxed whitespace-pre-wrap">
-                {logContent}
-              </div>
+            {/* Terminal Content */}
+            <div className="flex-1 p-6 overflow-auto font-mono text-xs leading-relaxed selection:bg-green-500/30">
+              {logContent.split('\n').map((line, i) => (
+                  <div key={i} className={`${line.includes('[ERROR]') ? 'text-red-400' : line.includes('[WARN]') ? 'text-yellow-400' : 'text-emerald-500'}`}>
+                      {line}
+                  </div>
+              ))}
+              <div className="text-emerald-500 animate-pulse mt-2">_</div>
             </div>
           </div>
         </div>

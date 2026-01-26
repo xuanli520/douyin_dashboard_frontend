@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Bell, Lock, Palette, Globe, Database, Shield, Save } from 'lucide-react';
+import { Settings, Bell, Lock, Palette, Save, Moon, Sun, Monitor } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 export default function SystemSettingsPage() {
   const [settings, setSettings] = useState({
@@ -23,169 +25,154 @@ export default function SystemSettingsPage() {
     // TODO: 保存设置到后端
   };
 
+  const Toggle = ({ checked, onChange }: { checked: boolean, onChange: (checked: boolean) => void }) => (
+    <button 
+        onClick={() => onChange(!checked)}
+        className={`w-12 h-6 rounded-full relative transition-all duration-300 ${checked ? 'bg-cyan-600 shadow-[0_0_10px_rgba(8,145,178,0.5)]' : 'bg-slate-700'}`}
+    >
+        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${checked ? 'translate-x-6' : 'translate-x-0'}`} />
+    </button>
+  );
+
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-sm">
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6">
+      <GlassCard className="max-w-4xl mx-auto p-8">
         {/* 标题 */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">系统设置</h1>
+        <div className="mb-8 border-b border-white/10 pb-6 flex items-center gap-4">
+           <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                <Settings size={24} />
+           </div>
+           <div>
+               <h1 className="text-xl font-bold text-white tracking-tight">系统设置 (System Config)</h1>
+               <p className="text-sm text-slate-500 font-mono mt-1">Configure global parameters and user preferences</p>
+           </div>
         </div>
 
-        <div className="p-6 space-y-8">
+        <div className="space-y-10">
           {/* 通知设置 */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Bell className="text-blue-600" size={20} />
-              <h2 className="text-lg font-medium text-gray-900">通知设置</h2>
-            </div>
-            <div className="space-y-4 pl-8">
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <NeonTitle icon={Bell}>通知设置 (Notifications)</NeonTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">邮件通知</p>
-                  <p className="text-sm text-gray-500">接收系统邮件通知</p>
+                  <p className="text-sm font-medium text-slate-200">邮件通知</p>
+                  <p className="text-xs text-slate-500 mt-1">Receive daily reports via email</p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.emailNotification}
-                  onChange={(e) => setSettings({ ...settings, emailNotification: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </label>
+                <Toggle checked={settings.emailNotification} onChange={(c) => setSettings({ ...settings, emailNotification: c })} />
+              </div>
 
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">推送通知</p>
-                  <p className="text-sm text-gray-500">接收浏览器推送通知</p>
+                  <p className="text-sm font-medium text-slate-200">推送通知</p>
+                  <p className="text-xs text-slate-500 mt-1">Browser push notifications</p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.pushNotification}
-                  onChange={(e) => setSettings({ ...settings, pushNotification: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </label>
+                <Toggle checked={settings.pushNotification} onChange={(c) => setSettings({ ...settings, pushNotification: c })} />
+              </div>
 
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">风险预警</p>
-                  <p className="text-sm text-gray-500">接收风险预警通知</p>
+                  <p className="text-sm font-medium text-slate-200">风险预警</p>
+                  <p className="text-xs text-slate-500 mt-1">Instant alerts for P0/P1 risks</p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.riskAlert}
-                  onChange={(e) => setSettings({ ...settings, riskAlert: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </label>
+                <Toggle checked={settings.riskAlert} onChange={(c) => setSettings({ ...settings, riskAlert: c })} />
+              </div>
 
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">任务提醒</p>
-                  <p className="text-sm text-gray-500">接收任务调度提醒</p>
+                  <p className="text-sm font-medium text-slate-200">任务提醒</p>
+                  <p className="text-xs text-slate-500 mt-1">Schedule task completion alerts</p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.taskReminder}
-                  onChange={(e) => setSettings({ ...settings, taskReminder: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </label>
+                <Toggle checked={settings.taskReminder} onChange={(c) => setSettings({ ...settings, taskReminder: c })} />
+              </div>
             </div>
           </div>
 
           {/* 安全设置 */}
-          <div className="border-t border-gray-100 pt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Lock className="text-blue-600" size={20} />
-              <h2 className="text-lg font-medium text-gray-900">安全设置</h2>
-            </div>
-            <div className="space-y-4 pl-8">
-              <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div>
+            <NeonTitle icon={Lock}>安全设置 (Security)</NeonTitle>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-xl">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">双因素认证</p>
-                  <p className="text-sm text-gray-500">登录时需要手机验证码</p>
+                  <p className="text-sm font-medium text-slate-200">双因素认证 (2FA)</p>
+                  <p className="text-xs text-slate-500 mt-1">Require mobile verification for login</p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.twoFactorAuth}
-                  onChange={(e) => setSettings({ ...settings, twoFactorAuth: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </label>
+                <Toggle checked={settings.twoFactorAuth} onChange={(c) => setSettings({ ...settings, twoFactorAuth: c })} />
+              </div>
 
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-900 mb-2">会话超时时间</p>
+              <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl flex items-center justify-between">
+                 <div>
+                    <p className="text-sm font-medium text-slate-200">会话超时时间</p>
+                    <p className="text-xs text-slate-500 mt-1">Auto-logout duration</p>
+                 </div>
                 <select
                   value={settings.sessionTimeout}
                   onChange={(e) => setSettings({ ...settings, sessionTimeout: e.target.value })}
-                  className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="px-4 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50"
                 >
-                  <option value="15">15 分钟</option>
-                  <option value="30">30 分钟</option>
-                  <option value="60">1 小时</option>
-                  <option value="120">2 小时</option>
+                  <option value="15">15 Minutes</option>
+                  <option value="30">30 Minutes</option>
+                  <option value="60">1 Hour</option>
+                  <option value="120">2 Hours</option>
                 </select>
               </div>
             </div>
           </div>
 
           {/* 外观设置 */}
-          <div className="border-t border-gray-100 pt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Palette className="text-blue-600" size={20} />
-              <h2 className="text-lg font-medium text-gray-900">外观设置</h2>
-            </div>
-            <div className="space-y-4 pl-8">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-900 mb-2">主题</p>
-                <div className="flex gap-3">
+          <div>
+             <NeonTitle icon={Palette}>外观设置 (Appearance)</NeonTitle>
+             <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
+                <p className="text-sm font-medium text-slate-200 mb-4">界面主题</p>
+                <div className="grid grid-cols-3 gap-4">
                   <button
                     onClick={() => setSettings({ ...settings, theme: 'light' })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`flex flex-col items-center gap-3 p-4 rounded-xl border transition-all ${
                       settings.theme === 'light'
-                        ? 'border-blue-500 bg-blue-50 text-blue-600'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400'
+                        : 'bg-slate-900/50 border-white/5 text-slate-500 hover:bg-white/5'
                     }`}
                   >
-                    浅色
+                    <Sun size={24} />
+                    <span className="text-xs font-mono">LIGHT</span>
                   </button>
                   <button
                     onClick={() => setSettings({ ...settings, theme: 'dark' })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`flex flex-col items-center gap-3 p-4 rounded-xl border transition-all ${
                       settings.theme === 'dark'
-                        ? 'border-blue-500 bg-blue-50 text-blue-600'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+                        : 'bg-slate-900/50 border-white/5 text-slate-500 hover:bg-white/5'
                     }`}
                   >
-                    深色
+                    <Moon size={24} />
+                    <span className="text-xs font-mono">DARK (Cyber)</span>
                   </button>
                   <button
                     onClick={() => setSettings({ ...settings, theme: 'system' })}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`flex flex-col items-center gap-3 p-4 rounded-xl border transition-all ${
                       settings.theme === 'system'
-                        ? 'border-blue-500 bg-blue-50 text-blue-600'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400'
+                        : 'bg-slate-900/50 border-white/5 text-slate-500 hover:bg-white/5'
                     }`}
                   >
-                    跟随系统
+                    <Monitor size={24} />
+                    <span className="text-xs font-mono">AUTO</span>
                   </button>
                 </div>
               </div>
-            </div>
           </div>
 
           {/* 保存按钮 */}
-          <div className="border-t border-gray-100 pt-8">
+          <div className="pt-6 border-t border-white/10 flex justify-end">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-8 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] font-bold tracking-wide"
             >
-              <Save size={16} />
-              保存设置
+              <Save size={18} />
+              保存当前配置
             </button>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { X, ChevronDown, Calendar, Search } from 'lucide-react';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { X, ChevronDown, Calendar, Filter, BarChart2 } from 'lucide-react';
+import { GlassCard } from '@/app/components/ui/glass-card';
+import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const chartData = [
   { month: '1月', sales: 220, profit: 150, profitRate: 35 },
@@ -23,7 +25,7 @@ const tableData = [
   {
     date: '2022-03-04',
     store: '店铺总计数店',
-    category: '商品类目',
+    category: '美妆护肤',
     sales: '¥1,900',
     salesRate: '23.82%',
     profitRate: '7.50%',
@@ -34,7 +36,7 @@ const tableData = [
   {
     date: '2023-03-18',
     store: '店铺总计数店',
-    category: '商品类目',
+    category: '数码3C',
     sales: '¥8,500',
     salesRate: '23.82%',
     profitRate: '6.50%',
@@ -43,6 +45,26 @@ const tableData = [
     count: '¥1,175.00'
   },
 ];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#050714]/90 border border-cyan-500/30 p-3 rounded-lg backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+        <p className="text-cyan-50 font-mono text-xs mb-1 border-b border-white/10 pb-1">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2 text-xs py-1">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="text-slate-300">{entry.name === 'sales' ? '销售额' : entry.name === 'profit' ? '毛利' : '毛利率'}:</span>
+            <span className="font-bold font-mono" style={{ color: entry.color }}>
+              {entry.name === 'profitRate' ? `${entry.value}%` : `¥${entry.value}`}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function DataAnalysisPage() {
   const [filters, setFilters] = useState({
@@ -58,170 +80,192 @@ export default function DataAnalysisPage() {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6 relative overflow-hidden">
+       {/* Background Ambience */}
+      <div className="fixed top-20 right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[100px] pointer-events-none" />
+      
       {/* 筛选区域 */}
-      <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded">
-            <Calendar size={16} className="text-gray-500" />
-            <span className="text-sm">DateRange...</span>
-            <span className="text-sm text-gray-600">2022-07-28</span>
+      <GlassCard className="p-6">
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Date Picker */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors group">
+            <Calendar size={14} className="text-cyan-400" />
+            <span className="text-xs font-mono text-cyan-100">2022-07-28</span>
+            <ChevronDown size={14} className="text-slate-500 group-hover:text-cyan-400" />
           </div>
 
+          {/* Label: Stores */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">店铺</span>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded">
-              <span className="text-sm">店铺1</span>
-              <X size={14} className="text-gray-500 cursor-pointer" />
+            <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">店铺</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-500/20 rounded-full">
+              <span className="text-xs text-cyan-300">店铺1</span>
+              <X size={12} className="text-cyan-500/50 hover:text-cyan-400 cursor-pointer" />
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded">
-              <span className="text-sm">店铺2</span>
-              <X size={14} className="text-gray-500 cursor-pointer" />
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-500/20 rounded-full">
+              <span className="text-xs text-cyan-300">店铺2</span>
+              <X size={12} className="text-cyan-500/50 hover:text-cyan-400 cursor-pointer" />
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
-              多选... <ChevronDown size={14} />
+             <button className="p-1.5 bg-white/5 rounded-full hover:bg-white/10 border border-white/5">
+                <ChevronDown size={12} className="text-slate-400" />
             </button>
           </div>
 
+           {/* Label: Categories */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">商品类目</span>
-            <span className="text-sm text-gray-700">商品类目</span>
-            <span className="text-sm text-gray-700">商品类目</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
-              课戴证录 <ChevronDown size={14} />
+            <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">指标</span>
+            {filters.categories.map((category) => (
+              <div key={category} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-950/30 border border-indigo-500/20 rounded-full">
+                <span className="text-xs text-indigo-300">{category}</span>
+                <button onClick={() => removeFilter('categories', category)}>
+                  <X size={12} className="text-indigo-500/50 hover:text-indigo-400" />
+                </button>
+              </div>
+            ))}
+             <button className="flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-slate-600 rounded-full text-slate-400 hover:text-white hover:border-slate-400 transition-colors">
+              + 添加指标
             </button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {filters.categories.map((category) => (
-            <div key={category} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded">
-              <span className="text-sm">{category}</span>
-              <button onClick={() => removeFilter('categories', category)}>
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      </GlassCard>
 
       {/* 图表区域 */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">互性剃须刀毛利率</h2>
-          <div className="flex items-center gap-4">
+      <GlassCard className="p-6">
+        <div className="flex items-center justify-between mb-8">
+          <NeonTitle icon={BarChart2}>核心指标趋势</NeonTitle>
+          
+          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-600 rounded" />
-              <span className="text-sm text-gray-700">销售额</span>
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
+              <span className="text-xs text-slate-400 font-mono">销售额</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-emerald-500 rounded" />
-              <span className="text-sm text-gray-700">毛利率</span>
+              <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]" />
+              <span className="text-xs text-slate-400 font-mono">毛利</span>
             </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+              <span className="text-xs text-slate-400 font-mono">毛利率</span>
+            </div>
+             <div className="h-4 w-[1px] bg-white/10 mx-2"/>
+             <button className="px-3 py-1 text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+                导出报表
+            </button>
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={320}>
-          <ComposedChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" stroke="#999" fontSize={12} />
-            <YAxis yAxisId="left" stroke="#999" fontSize={12} />
-            <YAxis yAxisId="right" orientation="right" stroke="#999" fontSize={12} />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  return (
-                    <div className="bg-white p-3 shadow-lg rounded border border-gray-200 text-sm">
-                      <div className="font-medium mb-1">2022-05-18</div>
-                      <div className="text-gray-700">销售额: ¥{payload[0].value?.toLocaleString()}</div>
-                      <div className="text-gray-700">毛利率: {payload[1].value}%</div>
-                      <div className="text-gray-700">商品类目: 12.93%</div>
-                      <div className="text-gray-700">毛利率: 17.45%</div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Bar yAxisId="left" dataKey="sales" fill="#3b82f6" barSize={30} />
-            <Bar yAxisId="left" dataKey="profit" fill="#10b981" barSize={30} />
-            <Line yAxisId="right" type="monotone" dataKey="profitRate" stroke="#3b82f6" strokeWidth={2} />
-          </ComposedChart>
-        </ResponsiveContainer>
-
-        <div className="flex justify-between items-center mt-6">
-          <div className="flex gap-3">
-            <button className="px-4 py-1.5 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
-              线
-            </button>
-            <button className="px-4 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
-              柱
-            </button>
-            <button className="px-4 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
-              表
-            </button>
-          </div>
-          <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-            导出 Excel
-          </button>
+        <div className="w-full h-[350px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+              <XAxis 
+                dataKey="month" 
+                stroke="#475569"
+                tick={{fill: '#64748b', fontSize: 10, fontFamily: 'monospace'}}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                yAxisId="left" 
+                stroke="#475569" 
+                tick={{fill: '#64748b', fontSize: 10, fontFamily: 'monospace'}}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                stroke="#475569" 
+                tick={{fill: '#64748b', fontSize: 10, fontFamily: 'monospace'}}
+                axisLine={false}
+                tickLine={false}
+                unit="%"
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar 
+                yAxisId="left" 
+                dataKey="sales" 
+                fill="#22d3ee" 
+                barSize={20} 
+                radius={[4, 4, 0, 0]}
+                style={{ filter: 'drop-shadow(0px 0px 4px rgba(34, 211, 238, 0.3))' }}
+              />
+              <Bar 
+                yAxisId="left" 
+                dataKey="profit" 
+                fill="#6366f1" 
+                barSize={20} 
+                radius={[4, 4, 0, 0]}
+                style={{ filter: 'drop-shadow(0px 0px 4px rgba(99, 102, 241, 0.3))' }}
+              />
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="profitRate" 
+                stroke="#34d399" 
+                strokeWidth={2}
+                dot={{r: 4, fill: '#050714', stroke: '#34d399', strokeWidth: 2}}
+                activeDot={{r: 6, fill: '#34d399', stroke: '#fff'}}
+                style={{ filter: 'drop-shadow(0px 0px 4px rgba(52, 211, 153, 0.5))' }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
-      </div>
+      </GlassCard>
 
       {/* 数据表格 */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <GlassCard className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">日期</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">店铺</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">商品类目</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">销售额</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">毛利率</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">毛利率</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">移动拉率</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">商品用户</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">数值</th>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-white/10">
+                {['日期', '店铺', '商品类目', '销售额', '销售占比', '毛利率', '动销率', '客单价', '复购金额'].map((header) => (
+                  <th key={header} className="px-6 py-4 text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {tableData.map((row, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.date}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.store}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.category}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.sales}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.salesRate}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.profitRate}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.moveRate}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.productUser}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.count}</td>
+                <tr key={index} className="group hover:bg-white/[0.02] transition-colors relative">
+                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.date}</td>
+                  <td className="px-6 py-4 text-sm text-slate-300">{row.store}</td>
+                  <td className="px-6 py-4 text-sm text-slate-300">
+                    <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs border border-slate-700">
+                        {row.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-mono font-bold text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">
+                    {row.sales}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.salesRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-emerald-400">{row.profitRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.moveRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.productUser}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.count}</td>
+                  
+                  {/* Hover Scan Effect Line */}
+                   <td className="absolute inset-0 border-y border-transparent pointer-events-none group-hover:border-cyan-500/20 group-hover:shadow-[inset_0_0_20px_rgba(34,211,238,0.05)] transition-all duration-300" aria-hidden="true" />
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-center gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded">1</button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        {/* Pagination */}
+        <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+           <span className="text-xs text-slate-500 font-mono">Showing 1 to 2 of 2 entries</span>
+           <div className="flex gap-2">
+              <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors disabled:opacity-30">
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button className="px-3 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-lg text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</button>
+               <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }
