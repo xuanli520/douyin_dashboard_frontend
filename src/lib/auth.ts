@@ -53,6 +53,7 @@ const AUTH_API = '/auth';
 // 存储键
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
+const AUTH_TOKEN_COOKIE = 'auth_token';
 
 // ============ Token 管理 ============
 
@@ -133,6 +134,10 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
   );
 
   storeTokens(response);
+
+  // 设置 auth_token cookie 供 middleware 验证（24小时过期）
+  setCookie(AUTH_TOKEN_COOKIE, response.access_token, 60 * 60 * 24);
+
   return response;
 }
 
@@ -169,6 +174,7 @@ export async function logout(): Promise<void> {
     }
   }
   clearTokens();
+  deleteCookie(AUTH_TOKEN_COOKIE);
 }
 
 /**

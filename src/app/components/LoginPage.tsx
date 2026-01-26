@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
@@ -36,6 +36,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const formRef = useRef(null);
   const isInView = useInView(formRef, { once: true, amount: 0.3 });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // 鼠标视差效果逻辑
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -55,7 +56,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       if (onLogin) {
         onLogin();
       } else {
-        router.push('/dashboard');
+        const redirectPath = searchParams.get('redirect') || '/dashboard';
+        router.push(redirectPath);
       }
     } catch (err) {
       setError(handleAuthError(err));
