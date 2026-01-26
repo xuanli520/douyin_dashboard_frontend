@@ -1,5 +1,6 @@
 import '../styles/index.css';
 import type { Metadata } from 'next';
+import { ThemeProvider } from "./providers"
 
 export const metadata: Metadata = {
   title: 'Douyin Frontend',
@@ -12,8 +13,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
-      <body>{children}</body>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

@@ -21,15 +21,15 @@ const downloadFiles = [
 
 export default function ReportsPage() {
   return (
-    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6">
+    <div className="min-h-screen bg-transparent text-foreground p-6 space-y-6">
       
       {/* 标签页 */}
-      <div className="mb-6 border-b border-white/10">
+      <div className="mb-6 border-b border-slate-200 dark:border-white/10">
         <div className="flex gap-8">
-          <button className="pb-3 text-sm font-mono font-medium text-cyan-400 border-b-2 border-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+          <button className="pb-3 text-sm font-mono font-medium text-cyan-600 dark:text-cyan-400 border-b-2 border-cyan-500 dark:border-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
             定期报表 (Regular)
           </button>
-          <button className="pb-3 text-sm font-mono font-medium text-slate-500 hover:text-slate-300 transition-colors">
+          <button className="pb-3 text-sm font-mono font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 transition-colors">
             自定义导出 (Custom)
           </button>
         </div>
@@ -40,30 +40,30 @@ export default function ReportsPage() {
         <div className="xl:col-span-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reports.map((report) => (
-              <GlassCard key={report.id} className="p-6 hover:bg-[#0f172a]/60 transition-all group border-l-2 border-l-transparent hover:border-l-cyan-400">
+              <GlassCard key={report.id} className="p-6 hover:bg-white/80 dark:hover:bg-[#0f172a]/60 transition-all group border-l-2 border-l-transparent hover:border-l-cyan-400">
                 <div className="flex flex-col items-center text-center relative z-10">
                   <div className="w-16 h-20 mb-4 flex items-center justify-center relative">
                     {/* Glowing Backdrop for Icon */}
                     <div className={`absolute inset-0 blur-[30px] opacity-20 ${report.type === 'pdf' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                     
                     {report.type === 'pdf' ? (
-                      <div className="w-12 h-16 bg-rose-500/20 border border-rose-500/50 rounded flex items-center justify-center text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
+                      <div className="w-12 h-16 bg-rose-500/20 border border-rose-500/50 rounded flex items-center justify-center text-rose-500 dark:text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
                         <FileText size={24} />
                       </div>
                     ) : (
-                      <div className="w-12 h-16 bg-emerald-500/20 border border-emerald-500/50 rounded flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                      <div className="w-12 h-16 bg-emerald-500/20 border border-emerald-500/50 rounded flex items-center justify-center text-emerald-500 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                         <FileSpreadsheet size={24} />
                       </div>
                     )}
                   </div>
                   
-                  <h3 className="text-sm font-medium text-slate-200 mb-2 group-hover:text-cyan-400 transition-colors">{report.name}</h3>
+                  <h3 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{report.name}</h3>
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-4 font-mono">
                     <Clock size={12} />
                     {report.date}
                   </div>
                   
-                  <button className="px-6 py-2 bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-500/50 text-slate-300 hover:text-cyan-400 text-xs font-mono rounded-full transition-all flex items-center gap-2">
+                  <button className="px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-cyan-500/20 border border-slate-200 dark:border-white/10 hover:border-cyan-500/50 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 text-xs font-mono rounded-full transition-all flex items-center gap-2">
                     <Download size={14} />
                     Download
                   </button>
@@ -75,29 +75,29 @@ export default function ReportsPage() {
 
         {/* 文件下载中心 */}
         <GlassCard className="h-fit">
-          <div className="p-6 border-b border-white/10">
+          <div className="p-6 border-b border-slate-200 dark:border-white/10">
              <NeonTitle icon={Download}>文件下载中心</NeonTitle>
           </div>
 
-          <div className="divide-y divide-white/5">
-            <div className="px-6 py-3 bg-white/[0.02] grid grid-cols-3 gap-4 text-[10px] font-mono font-medium text-slate-500 uppercase tracking-wider">
+          <div className="divide-y divide-slate-100 dark:divide-white/5">
+            <div className="px-6 py-3 bg-slate-50 dark:bg-white/[0.02] grid grid-cols-3 gap-4 text-[10px] font-mono font-medium text-slate-500 uppercase tracking-wider">
               <div>Filename</div>
               <div>Size</div>
               <div className="text-right">Status</div>
             </div>
 
             {downloadFiles.map((file, index) => (
-              <div key={index} className="px-6 py-4 grid grid-cols-3 gap-4 text-xs hover:bg-white/[0.04] transition-colors group">
-                <div className="text-slate-300 truncate flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-600 group-hover:bg-cyan-400 transition-colors" />
+              <div key={index} className="px-6 py-4 grid grid-cols-3 gap-4 text-xs hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors group">
+                <div className="text-slate-600 dark:text-slate-300 truncate flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 group-hover:bg-cyan-400 transition-colors" />
                     {file.name}
                 </div>
                 <div className="text-slate-500 font-mono">{file.size}</div>
                 <div className="flex items-center justify-end gap-3">
                   <span className={`font-mono text-[10px] px-2 py-0.5 rounded ${
-                    file.status === '生成中' ? 'text-yellow-400 bg-yellow-950/30' :
-                    file.status === '已完成' ? 'text-emerald-400 bg-emerald-950/30' :
-                    'text-slate-500 bg-slate-800/50'
+                    file.status === '生成中' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-950/30' :
+                    file.status === '已完成' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-950/30' :
+                    'text-slate-500 bg-slate-200/50 dark:bg-slate-800/50'
                   }`}>
                     {file.status}
                   </span>
@@ -106,8 +106,8 @@ export default function ReportsPage() {
             ))}
           </div>
           
-           <div className="p-4 border-t border-white/10 text-center">
-                <button className="text-xs text-slate-500 hover:text-cyan-400 font-mono transition-colors">View All History &rarr;</button>
+           <div className="p-4 border-t border-slate-200 dark:border-white/10 text-center">
+                <button className="text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 font-mono transition-colors">View All History &rarr;</button>
            </div>
         </GlassCard>
       </div>

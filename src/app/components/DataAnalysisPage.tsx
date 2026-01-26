@@ -49,12 +49,12 @@ const tableData = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#050714]/90 border border-cyan-500/30 p-3 rounded-lg backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-        <p className="text-cyan-50 font-mono text-xs mb-1 border-b border-white/10 pb-1">{label}</p>
+      <div className="bg-white/95 dark:bg-[#050714]/90 border border-slate-200 dark:border-cyan-500/30 p-3 rounded-lg backdrop-blur-md shadow-lg dark:shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+        <p className="text-slate-900 dark:text-cyan-50 font-mono text-xs mb-1 border-b border-slate-200 dark:border-white/10 pb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-xs py-1">
             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-slate-300">{entry.name === 'sales' ? '销售额' : entry.name === 'profit' ? '毛利' : '毛利率'}:</span>
+            <span className="text-slate-600 dark:text-slate-300">{entry.name === 'sales' ? '销售额' : entry.name === 'profit' ? '毛利' : '毛利率'}:</span>
             <span className="font-bold font-mono" style={{ color: entry.color }}>
               {entry.name === 'profitRate' ? `${entry.value}%` : `¥${entry.value}`}
             </span>
@@ -80,7 +80,7 @@ export default function DataAnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 space-y-6 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent text-foreground p-6 space-y-6 relative overflow-hidden">
        {/* Background Ambience */}
       <div className="fixed top-20 right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[100px] pointer-events-none" />
       
@@ -88,40 +88,40 @@ export default function DataAnalysisPage() {
       <GlassCard className="p-6">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Date Picker */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors group">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-slate-200 dark:border-white/10 rounded-full hover:bg-white/10 transition-colors group">
             <Calendar size={14} className="text-cyan-400" />
-            <span className="text-xs font-mono text-cyan-100">2022-07-28</span>
+            <span className="text-xs font-mono text-slate-700 dark:text-cyan-100">2022-07-28</span>
             <ChevronDown size={14} className="text-slate-500 group-hover:text-cyan-400" />
           </div>
 
           {/* Label: Stores */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">店铺</span>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-500/20 rounded-full">
-              <span className="text-xs text-cyan-300">店铺1</span>
-              <X size={12} className="text-cyan-500/50 hover:text-cyan-400 cursor-pointer" />
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider">店铺</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-cyan-950/30 border border-slate-200 dark:border-cyan-500/20 rounded-full">
+              <span className="text-xs text-slate-700 dark:text-cyan-300">店铺1</span>
+              <X size={12} className="text-slate-400 dark:text-cyan-500/50 hover:text-slate-600 dark:hover:text-cyan-400 cursor-pointer" />
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-500/20 rounded-full">
-              <span className="text-xs text-cyan-300">店铺2</span>
-              <X size={12} className="text-cyan-500/50 hover:text-cyan-400 cursor-pointer" />
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-cyan-950/30 border border-slate-200 dark:border-cyan-500/20 rounded-full">
+              <span className="text-xs text-slate-700 dark:text-cyan-300">店铺2</span>
+              <X size={12} className="text-slate-400 dark:text-cyan-500/50 hover:text-slate-600 dark:hover:text-cyan-400 cursor-pointer" />
             </div>
-             <button className="p-1.5 bg-white/5 rounded-full hover:bg-white/10 border border-white/5">
-                <ChevronDown size={12} className="text-slate-400" />
+             <button className="p-1.5 bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5">
+                <ChevronDown size={12} className="text-slate-500 dark:text-slate-400" />
             </button>
           </div>
 
            {/* Label: Categories */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">指标</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider">指标</span>
             {filters.categories.map((category) => (
-              <div key={category} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-950/30 border border-indigo-500/20 rounded-full">
-                <span className="text-xs text-indigo-300">{category}</span>
+              <div key={category} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/20 rounded-full">
+                <span className="text-xs text-indigo-700 dark:text-indigo-300">{category}</span>
                 <button onClick={() => removeFilter('categories', category)}>
-                  <X size={12} className="text-indigo-500/50 hover:text-indigo-400" />
+                  <X size={12} className="text-indigo-400 dark:text-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400" />
                 </button>
               </div>
             ))}
-             <button className="flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-slate-600 rounded-full text-slate-400 hover:text-white hover:border-slate-400 transition-colors">
+             <button className="flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-slate-400 dark:border-slate-600 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-600 dark:hover:border-slate-400 transition-colors">
               + 添加指标
             </button>
           </div>
@@ -136,18 +136,18 @@ export default function DataAnalysisPage() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
-              <span className="text-xs text-slate-400 font-mono">销售额</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">销售额</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]" />
-              <span className="text-xs text-slate-400 font-mono">毛利</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">毛利</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              <span className="text-xs text-slate-400 font-mono">毛利率</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">毛利率</span>
             </div>
-             <div className="h-4 w-[1px] bg-white/10 mx-2"/>
-             <button className="px-3 py-1 text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+             <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 mx-2"/>
+             <button className="px-3 py-1 text-[10px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded hover:bg-cyan-500/20 transition-all shadow-[0_0_10px_rgba(34,211,238,0.1)]">
                 导出报表
             </button>
           </div>
@@ -217,32 +217,32 @@ export default function DataAnalysisPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-slate-200 dark:border-white/10">
                 {['日期', '店铺', '商品类目', '销售额', '销售占比', '毛利率', '动销率', '客单价', '复购金额'].map((header) => (
-                  <th key={header} className="px-6 py-4 text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
+                  <th key={header} className="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">
                     {header}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {tableData.map((row, index) => (
-                <tr key={index} className="group hover:bg-white/[0.02] transition-colors relative">
-                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.date}</td>
-                  <td className="px-6 py-4 text-sm text-slate-300">{row.store}</td>
-                  <td className="px-6 py-4 text-sm text-slate-300">
-                    <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs border border-slate-700">
+                <tr key={index} className="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors relative">
+                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.date}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.store}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                    <span className="px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs border border-slate-300 dark:border-slate-700">
                         {row.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-mono font-bold text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">
+                  <td className="px-6 py-4 text-sm font-mono font-bold text-cyan-600 dark:text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">
                     {row.sales}
                   </td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.salesRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-emerald-400">{row.profitRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.moveRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.productUser}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-300">{row.count}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.salesRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-emerald-600 dark:text-emerald-400">{row.profitRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.moveRate}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.productUser}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.count}</td>
                   
                   {/* Hover Scan Effect Line */}
                    <td className="absolute inset-0 border-y border-transparent pointer-events-none group-hover:border-cyan-500/20 group-hover:shadow-[inset_0_0_20px_rgba(34,211,238,0.05)] transition-all duration-300" aria-hidden="true" />
@@ -253,14 +253,14 @@ export default function DataAnalysisPage() {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
            <span className="text-xs text-slate-500 font-mono">Showing 1 to 2 of 2 entries</span>
            <div className="flex gap-2">
-              <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors disabled:opacity-30">
+              <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-30">
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <button className="px-3 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-lg text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</button>
-               <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+              <button className="px-3 py-1 bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</button>
+               <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
            </div>

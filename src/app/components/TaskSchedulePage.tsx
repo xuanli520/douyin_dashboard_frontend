@@ -6,42 +6,42 @@ import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 
 const tasks = [
-  { 
+  {
     id: 1,
     name: '数据同步任务 (Data Sync)',
     lastStatus: '成功',
     lastRun: '2023-17-03 18:00:38',
     duration: '04ms'
   },
-  { 
+  {
     id: 2,
     name: '库存校准 (Inventory Check)',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:03:39',
     duration: '96ms'
   },
-  { 
+  {
     id: 3,
     name: '报表生成 (Report Gen)',
     lastStatus: '失败',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
   },
-  { 
+  {
     id: 4,
     name: '用户行为分析 (User Analytics)',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:30',
     duration: '03ms'
   },
-  { 
+  {
     id: 5,
     name: '日志清理 (Log Cleanup)',
     lastStatus: '失败',
     lastRun: '2023-17-08 14:50:39',
     duration: '03ms'
   },
-  { 
+  {
     id: 6,
     name: '系统备份 (Backup)',
     lastStatus: '成功',
@@ -70,10 +70,10 @@ export default function TaskSchedulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050714] text-slate-200 p-6 relative">
+    <div className="min-h-screen bg-transparent text-foreground p-6 relative">
       
       <GlassCard className="min-h-[80vh] flex flex-col">
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
            <NeonTitle icon={Clock}>任务调度中心 (Cron Command)</NeonTitle>
           
            <div className="flex gap-3">
@@ -82,10 +82,10 @@ export default function TaskSchedulePage() {
                     <input
                         type="text"
                         placeholder="Search tasks..."
-                        className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-200"
+                        className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-700 dark:text-slate-200"
                     />
                 </div>
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
+              <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
                 <Plus size={14} />
                 Create Task
               </button>
@@ -96,7 +96,7 @@ export default function TaskSchedulePage() {
         <div className="flex-1 overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/5">
+              <tr className="border-b border-slate-100 dark:border-white/5">
                 {['任务名称', '运行状态', '上次运行', '耗时', '操作'].map((h) => (
                     <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
                         {h}
@@ -104,40 +104,40 @@ export default function TaskSchedulePage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {tasks.map((task) => (
-                <tr key={task.id} className="group hover:bg-white/[0.02] transition-colors">
+                <tr key={task.id} className="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                          <Activity size={16} className="text-slate-600 group-hover:text-cyan-400 transition-colors" />
-                          <span className="text-sm font-medium text-slate-200 group-hover:text-white font-mono">{task.name}</span>
+                          <Activity size={16} className="text-slate-600 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors" />
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white font-mono">{task.name}</span>
                       </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${ 
                       task.lastStatus === '成功' 
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
-                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
                     }`}>
                        {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                       {task.lastStatus === '成功' ? 'SUCCESS' : 'FAILED'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{task.lastRun}</td>
-                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{task.duration}</td>
+                  <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-mono">{task.lastRun}</td>
+                  <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-mono">{task.duration}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => handleViewLog(task)}
-                        className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-400 rounded transition-colors"
+                        className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 rounded transition-colors"
                         title="View Logs"
                       >
                         <Terminal size={14} />
                       </button>
-                      <button className="p-1.5 hover:bg-white/10 text-slate-500 hover:text-slate-300 rounded transition-colors" title="Edit">
+                      <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Edit">
                         <Edit size={14} />
                       </button>
-                      <button className="p-1.5 hover:bg-white/10 text-slate-500 hover:text-slate-300 rounded transition-colors" title="Clone">
+                      <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Clone">
                         <Copy size={14} />
                       </button>
                     </div>
