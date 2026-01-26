@@ -97,8 +97,7 @@ export function Sidebar() {
             <button
               onClick={() => {
                 setShowUserMenu(false);
-                // 跳转到用户信息页面
-                router.push('/user-permission');
+                router.push('/profile');
               }}
               className="w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
             >
@@ -108,7 +107,7 @@ export function Sidebar() {
             <button
               onClick={() => {
                 setShowUserMenu(false);
-                router.push('/user-permission');
+                router.push('/system-settings');
               }}
               className="w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
             >
