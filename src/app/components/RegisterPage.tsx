@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Loader2, UserPlus } from 'lucide-react';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
-import { login, handleAuthError } from '@/lib/auth';
-import RegisterPage from './RegisterPage';
+import { register, handleAuthError } from '@/lib/auth';
 
-interface LoginPageProps {
-  onLogin?: () => void;
+interface RegisterPageProps {
+  onSwitchToLogin?: () => void;
+  onRegisterSuccess?: () => void;
 }
 
 // 预生成的粒子配置 (避免 SSR/客户端 hydration 不匹配)
@@ -24,11 +24,13 @@ const PARTICLES = Array.from({ length: 15 }).map((_, i) => ({
   delay: Math.random() * 5,
 }));
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: RegisterPageProps) {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +50,25 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (password !== passwordConfirm) {
+      setError('两次输入的密码不一致');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('密码长度至少为6位');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login({ username, password });
-      if (onLogin) {
-        onLogin();
+      await register({ username, email, password, password_confirm: passwordConfirm });
+      if (onRegisterSuccess) {
+        onRegisterSuccess();
       } else {
-        router.push('/dashboard');
+        router.push('/login');
       }
     } catch (err) {
       setError(handleAuthError(err));
@@ -63,14 +76,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       setLoading(false);
     }
   };
-
-  if (isRegisterMode) {
-    return (
-      <RegisterPage
-        onSwitchToLogin={() => setIsRegisterMode(false)}
-      />
-    );
-  }
 
   return (
     <div
@@ -175,7 +180,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
         </motion.div>
 
-        {/* 右侧：登录卡片 */}
+        {/* 右侧：注册卡片 */}
         <motion.div
           ref={formRef}
           initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
@@ -195,8 +200,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
 
             <div className="mb-10 text-left">
-              <h1 className="text-3xl text-white font-medium tracking-wide mb-2">欢迎回来</h1>
-              <p className="text-slate-400 text-sm font-light">请输入您的身份密钥以访问系统</p>
+              <h1 className="text-3xl text-white font-medium tracking-wide mb-2">创建账户</h1>
+              <p className="text-slate-400 text-sm font-light">加入猪鱼数据企业神经网络</p>
             </div>
 
             {/* 错误提示 */}
@@ -211,21 +216,36 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-5">
                 {/* 用户名 */}
                 <div className="group relative">
-                  <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Identity / Email</label>
+                  <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Identity / Username</label>
                   <input
-                    type="email"
+                    type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light"
-                    placeholder="name@enterprise.com"
+                    placeholder="选择一个用户名"
                     disabled={loading}
                     required
                   />
                   <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-cyan-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
+                </div>
+
+                {/* 邮箱 */}
+                <div className="group relative">
+                  <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Email / Contact</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light"
+                    placeholder="your@email.com"
+                    disabled={loading}
+                    required
+                  />
+                  <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-purple-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
                 </div>
 
                 {/* 密码 */}
@@ -240,7 +260,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       placeholder="••••••••"
                       disabled={loading}
                       required
-                      minLength={1}
+                      minLength={6}
                     />
                     <button
                       type="button"
@@ -252,14 +272,30 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   </div>
                   <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-pink-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-                <label className="flex items-center cursor-pointer hover:text-cyan-200 transition-colors">
-                  <input type="checkbox" className="mr-2 rounded border-white/10 bg-white/5 checked:bg-cyan-500" />
-                  <span>记住设备</span>
-                </label>
-                <a href="#" className="hover:text-cyan-200 transition-colors border-b border-transparent hover:border-cyan-200/30 pb-0.5">忘记密钥?</a>
+                {/* 确认密码 */}
+                <div className="group relative">
+                  <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Confirm / Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswordConfirm ? 'text' : 'password'}
+                      value={passwordConfirm}
+                      onChange={(e) => setPasswordConfirm(e.target.value)}
+                      className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 pr-12 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light tracking-widest"
+                      placeholder="••••••••"
+                      disabled={loading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-200 transition-colors"
+                    >
+                      {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-emerald-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
+                </div>
               </div>
 
               <motion.button
@@ -267,40 +303,35 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 whileTap={{ scale: loading ? 1 : 0.99 }}
                 type="submit"
                 disabled={loading}
-                className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 p-[1px]"
+                className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 p-[1px]"
               >
                 <div className="relative bg-[#0b1221] group-hover:bg-opacity-90 transition-all rounded-[11px] py-4 flex items-center justify-center gap-2">
                   {loading ? (
-                    <Loader2 size={18} className="animate-spin text-cyan-400" />
+                    <Loader2 size={18} className="animate-spin text-purple-400" />
                   ) : (
                     <>
                       <span className="relative z-10 flex items-center justify-center gap-2 text-white font-medium tracking-widest uppercase text-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                        接入系统
+                        <UserPlus size={16} />
+                        创建账户
                       </span>
                     </>
                   )}
                 </div>
                 {!loading && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-cyan-500 to-purple-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500" />
                 )}
               </motion.button>
 
-              {/* 注册按钮 */}
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                type="button"
-                onClick={() => setIsRegisterMode(true)}
-                disabled={loading}
-                className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-purple-600/80 to-indigo-600/80 p-[1px] mt-4"
-              >
-                <div className="relative bg-[#0b1221]/50 group-hover:bg-opacity-90 transition-all rounded-[11px] py-3 flex items-center justify-center gap-2">
-                  <span className="relative z-10 flex items-center justify-center gap-2 text-white font-medium tracking-widest uppercase text-sm">
-                    创建新账户
-                  </span>
-                </div>
-              </motion.button>
+              {/* 切换到登录 */}
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="text-sm text-slate-400 hover:text-cyan-200 transition-colors"
+                >
+                  已有账户？<span className="text-cyan-400">立即登录</span>
+                </button>
+              </div>
             </form>
 
             <div className="mt-8 flex items-center gap-4 text-xs text-slate-500 justify-center font-mono">
