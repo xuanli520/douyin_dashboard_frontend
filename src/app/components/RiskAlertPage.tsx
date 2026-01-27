@@ -116,9 +116,9 @@ export default function RiskAlertPage() {
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-3">
                 {alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 hover:border-cyan-500/50 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all group relative overflow-hidden shadow-sm dark:shadow-none backdrop-blur-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 hover:border-cyan-500/30 rounded-xl transition-all group relative overflow-hidden shadow-sm hover:shadow-md dark:shadow-none backdrop-blur-sm">
                     {/* Subtle Gradient Hover Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-50/30 to-transparent dark:via-cyan-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                     <div className="flex-1 grid grid-cols-12 gap-4 items-center relative z-10">
                       <div className="col-span-5">
@@ -133,14 +133,14 @@ export default function RiskAlertPage() {
                       </div>
 
                       <div className="col-span-2">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${
+                        <span className={`inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium border ${
                           alert.status === '待处理' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
                           alert.status === '处理中' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20 animate-pulse' :
                           'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                         }`}>
-                          {alert.status === '待处理' && <AlertTriangle size={10} />}
-                          {alert.status === '处理中' && <Zap size={10} />}
-                          {alert.status === '已解决' && <CheckCircle size={10} />}
+                          {alert.status === '待处理' && <AlertTriangle size={14} />}
+                          {alert.status === '处理中' && <Zap size={14} />}
+                          {alert.status === '已解决' && <CheckCircle size={14} />}
                           {alert.status}
                         </span>
                       </div>
