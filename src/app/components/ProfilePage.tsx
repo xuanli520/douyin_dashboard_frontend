@@ -9,12 +9,12 @@ import { NeonTitle } from '@/app/components/ui/neon-title';
 import { useUserStore } from '@/stores/userStore';
 import * as userService from '@/services/userService';
 
+import { toast } from 'sonner';
+
 export default function ProfilePage() {
   const { currentUser, fetchCurrentUser, isSuperuser } = useUserStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -61,8 +61,6 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     setIsLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const updateData: { username: string; email: string; phone?: string; gender?: string; department?: string } = {
@@ -76,13 +74,10 @@ export default function ProfilePage() {
       await userService.updateCurrentUser(updateData);
 
       await fetchCurrentUser();
-      setSuccess('保存成功');
+      toast.success('保存成功');
       setIsEditing(false);
-
-      // 3秒后清除成功消息
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.message || '保存失败，请重试');
+      toast.error(err.message || '保存失败，请重试');
     } finally {
       setIsLoading(false);
     }
@@ -105,20 +100,6 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-transparent text-foreground p-6 relative overflow-hidden">
       {/* Background Decor */}
       <div className="fixed top-1/4 left-1/4 w-[800px] h-[800px] bg-cyan-900/10 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Success Message */}
-      {success && (
-        <div className="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm shadow-lg animate-fade-in">
-          {success}
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm shadow-lg animate-fade-in">
-          {error}
-        </div>
-      )}
 
       <GlassCard className="max-w-4xl mx-auto p-8 relative z-10">
 

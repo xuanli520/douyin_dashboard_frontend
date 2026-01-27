@@ -114,6 +114,9 @@ export function clearTokens(): void {
 export function storeTokens(data: TokenResponse): void {
   setAccessToken(data.access_token);
   // refresh_token 由后端设置在 HttpOnly Cookie 中
+  if (data.refresh_token) {
+    setCookie(REFRESH_TOKEN_COOKIE, data.refresh_token);
+  }
 }
 
 /**

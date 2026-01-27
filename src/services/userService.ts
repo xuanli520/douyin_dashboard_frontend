@@ -1,6 +1,7 @@
 // 用户 API 服务层
 import { authGet, authPost, authPatch, authDel } from '@/lib/api-client';
 import { getAccessToken, setAccessToken, getRefreshToken } from '@/lib/auth';
+import { setCookie } from '@/lib/cookies';
 import type { User, UserCreate, UserUpdate, UserUpdateMe, TokenResponse, LoginParams } from '@/types/user';
 
 const AUTH_API = '/auth';
@@ -8,6 +9,9 @@ const AUTH_API = '/auth';
 // 登录成功后设置 token
 export function setTokens(response: TokenResponse): void {
   setAccessToken(response.access_token);
+  if (response.refresh_token) {
+    setCookie('refresh_token', response.refresh_token);
+  }
 }
 
 // 清除 token

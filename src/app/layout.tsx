@@ -2,6 +2,7 @@ import '../styles/index.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from "./providers"
 import { UserProvider } from '@/stores/userStore';
+import { Toaster } from '@/app/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'Douyin Frontend',
@@ -25,6 +26,7 @@ export default function RootLayout({
           <UserProvider>
             {children}
           </UserProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
