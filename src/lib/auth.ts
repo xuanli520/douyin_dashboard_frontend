@@ -1,5 +1,5 @@
 // 认证 API 模块
-import { post, get, del } from './api';
+import { post, get, del, patch } from './api';
 import { setCookie, deleteCookie, getCookie } from './cookies';
 
 // 认证相关类型
@@ -21,6 +21,7 @@ export interface User {
 export interface LoginParams {
   username: string;
   password: string;
+  captchaVerifyParam?: string;
 }
 
 export interface RegisterParams {
@@ -122,6 +123,9 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
   formData.append('grant_type', 'password');
   formData.append('username', params.username);
   formData.append('password', params.password);
+  if (params.captchaVerifyParam) {
+    formData.append('captcha_verify_param', params.captchaVerifyParam);
+  }
 
   const response = await post<TokenResponse>(
     `${AUTH_API}/jwt/login`,
@@ -194,6 +198,38 @@ export async function getCurrentUser(): Promise<User> {
   }
 
   return get<User>(`${AUTH_API}/users/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+/**
+ * 更新当前用户信息
+ */
+export async function updateCurrentUser(data: Partial<User> & { password?: string }): Promise<User> {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  return patch<User>(`${AUTH_API}/users/me`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+/**
+ * 更新用户信息 (通过ID)
+ */
+export async function updateUser(userId: number, data: Partial<User> & { password?: string }): Promise<User> {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  return patch<User>(`${AUTH_API}/users/${userId}`, data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

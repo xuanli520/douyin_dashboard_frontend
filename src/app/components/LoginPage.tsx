@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
@@ -32,11 +32,39 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaInstance, setCaptchaInstance] = useState<AliyunCaptchaInstance | null>(null);
 
   const formRef = useRef(null);
   const isInView = useInView(formRef, { once: true, amount: 0.3 });
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.initAliyunCaptcha) {
+        window.initAliyunCaptcha({
+          SceneId: '71tobb9u',
+          prefix: '1fs7dl',
+          mode: 'popup',
+          element: '#captcha-element',
+          immediate: false,
+          region: 'cn',
+          lang: 'cn',
+          getInstance: (instance) => {
+            setCaptchaInstance(instance);
+          },
+        });
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
 
   // 鼠标视差效果逻辑
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -46,13 +74,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setMousePosition({ x: moveX, y: moveY });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLoginLogic = async (verifyParam?: string) => {
     setError(null);
     setLoading(true);
 
     try {
-      await login({ username, password });
+      await login({ username, password, captchaVerifyParam: verifyParam });
       if (onLogin) {
         onLogin();
       } else {
@@ -61,8 +88,35 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       }
     } catch (err) {
       setError(handleAuthError(err));
+      captchaInstance?.reset();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) {
+        setError('请输入用户名和密码');
+        return;
+    }
+
+    if (captchaInstance) {
+        captchaInstance.onSuccess = (verifyResult: any) => {
+            // verifyResult 包含了后端需要的验证参数
+            // 格式类似：{ captchaVerifyParam: "..." }
+            // console.log('验证通过:', verifyResult);
+            // 发送给后端
+            handleLoginLogic(verifyResult.captchaVerifyParam);
+        };
+        // 显示弹窗
+        captchaInstance.show();
+    } else {
+         // Fallback if captcha fails to load or for some reason isn't ready,
+         // though in production you might want to block or retry.
+         // For now, let's try logging in directly (server might reject if captcha is enforced).
+         console.warn("Captcha not initialized, attempting direct login.");
+         handleLoginLogic();
     }
   };
 
@@ -214,6 +268,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 验证码挂载点 */}
+              <div id="captcha-element"></div>
               <div className="space-y-6">
                 {/* 用户名 */}
                 <div className="group relative">

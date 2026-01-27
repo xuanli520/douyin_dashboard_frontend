@@ -1,26 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Save, Camera, User, Mail, Phone, Building, Shield, Award } from 'lucide-react';
 import maleAvatar from '@/assets/male.jpg';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import { getCurrentUser, updateCurrentUser, type User as AuthUser } from '@/lib/auth';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [formData, setFormData] = useState({
-    username: '管理员',
-    email: 'admin@example.com',
+    username: '',
+    email: '',
     phone: '138****8888',
     department: '技术部',
-    role: '系统管理员',
+    role: '加载中...',
     position: '技术总监',
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // TODO: 保存用户信息到后端
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        setFormData(prev => ({
+          ...prev,
+          username: currentUser.username || '',
+          email: currentUser.email || '',
+          role: currentUser.is_superuser ? '超级管理员' : '普通用户'
+        }));
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      const updatedUser = await updateCurrentUser({
+        username: formData.username,
+        email: formData.email,
+      });
+      setUser(updatedUser);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('保存失败，请重试');
+    }
   };
 
   return (
@@ -60,7 +90,7 @@ export default function ProfilePage() {
             </div>
             
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{formData.username}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{formData.username || '用户'}</h2>
               <p className="text-sm text-cyan-600 dark:text-cyan-400 font-mono mt-1">{formData.position}</p>
             </div>
 
@@ -97,13 +127,13 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={formData.username}
+                    value={formData.username || ''}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
                   />
                 ) : (
                   <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.username}
+                    {formData.username || '-'}
                   </div>
                 )}
               </div>
@@ -116,13 +146,13 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <input
                     type="email"
-                    value={formData.email}
+                    value={formData.email || ''}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
                   />
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.email}
+                    {formData.email || '-'}
                   </div>
                 )}
               </div>

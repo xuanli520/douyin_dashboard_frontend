@@ -56,6 +56,28 @@ export async function put<T = unknown>(
   });
 }
 
+// 封装 PATCH 请求
+export async function patch<T = unknown>(
+  endpoint: string,
+  data?: unknown,
+  options?: RequestInit
+): Promise<T> {
+  const body =
+    data instanceof URLSearchParams ||
+    data instanceof FormData ||
+    typeof data === 'string'
+      ? data
+      : data === undefined
+      ? undefined
+      : JSON.stringify(data);
+
+  return baseRequest<T>(endpoint, {
+    method: 'PATCH',
+    body,
+    ...options,
+  });
+}
+
 // 封装 DELETE 请求
 export async function del<T = unknown>(
   endpoint: string,
