@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, X, Users, Shield, Check, MoreVertical, Loader2 } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
@@ -9,6 +10,7 @@ import { useUserStore } from '@/stores/userStore';
 import type { User, UserCreate, UserUpdate } from '@/types/user';
 
 export default function UserPermissionPage() {
+  const router = useRouter();
   const {
     users,
     currentUser,
@@ -29,6 +31,16 @@ export default function UserPermissionPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // 检测会话过期错误并自动跳转登录页
+  useEffect(() => {
+    if (error && (error.includes('会话已过期') || error.includes('未授权') || error.includes('请重新登录'))) {
+      const timer = setTimeout(() => {
+        router.push('/login?reason=session_expired');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, router]);
 
   const filteredUsers = users.filter(
     (user) =>

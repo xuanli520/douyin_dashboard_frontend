@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, Rea
 import type { User, UserCreate, UserUpdate, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
 import { useRouter } from 'next/navigation';
+import { getAccessToken } from '@/lib/auth';
 
 // Token 刷新定时器引用
 let refreshTimer: NodeJS.Timeout | null = null;
@@ -233,10 +234,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [fetchUsers]);
 
-  // 初始化时获取当前用户
+  // 初始化时获取当前用户并启动刷新定时器
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    const initializeAuth = async () => {
+      const hasToken = !!getAccessToken();
+      if (hasToken) {
+        // 如果有 token，先启动刷新定时器
+        startRefreshTimer();
+      }
+      // 尝试获取当前用户信息
+      await fetchCurrentUser();
+    };
+    initializeAuth();
+  }, [fetchCurrentUser, startRefreshTimer]);
 
   // 组件卸载时清除刷新定时器
   useEffect(() => {

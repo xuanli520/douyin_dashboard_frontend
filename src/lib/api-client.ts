@@ -1,7 +1,7 @@
 // 带拦截器的 API 客户端
 import { baseRequest, API_BASE_URL, createRequestOptions, REQUEST_TIMEOUT } from './request';
-import { getAccessToken, setAccessToken, clearTokens } from './auth';
-import { refreshToken } from '@/lib/auth';
+import { getAccessToken, setAccessToken, clearTokens, getRefreshToken } from './auth';
+import { post } from './api';
 
 interface RequestOptions extends RequestInit {
   _retry?: boolean;
@@ -78,8 +78,17 @@ export function createAuthenticatedClient() {
         isRefreshing = true;
 
         try {
-          // 尝试刷新 token
-          const refreshResponse = await refreshToken();
+          // 直接调用刷新端点（刷新 token 不需要 Authorization 头）
+          const refreshTokenValue = getRefreshToken();
+          if (!refreshTokenValue) {
+            throw new Error('No refresh token available');
+          }
+
+          const refreshResponse = await post<{ access_token: string; token_type: string }>(
+            '/auth/jwt/refresh',
+            { refresh_token: refreshTokenValue }
+          );
+
           setAccessToken(refreshResponse.access_token);
 
           // 处理等待刷新的请求
