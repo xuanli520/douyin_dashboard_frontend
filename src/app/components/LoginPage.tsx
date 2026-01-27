@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
 import { login, handleAuthError } from '@/lib/auth';
@@ -58,9 +59,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       } else {
         const redirectPath = searchParams.get('redirect') || '/dashboard';
         router.push(redirectPath);
+        toast.success('登录成功', {
+          description: '欢迎回到猪鱼数据',
+        });
       }
     } catch (err) {
       setError(handleAuthError(err));
+      toast.error('登录失败', {
+        description: handleAuthError(err),
+      });
     } finally {
       setLoading(false);
     }
@@ -70,6 +77,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     return (
       <RegisterPage
         onSwitchToLogin={() => setIsRegisterMode(false)}
+        onRegisterSuccess={() => {
+          setIsRegisterMode(false);
+          toast.success('注册成功', {
+            description: '请使用您的账号登录',
+          });
+        }}
       />
     );
   }
