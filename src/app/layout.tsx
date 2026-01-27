@@ -1,6 +1,7 @@
 import '../styles/index.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from "./providers"
+import { UserProvider } from '@/stores/userStore';
 
 export const metadata: Metadata = {
   title: 'Douyin Frontend',
@@ -21,7 +22,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <UserProvider>
+            {children}
+          </UserProvider>
         </ThemeProvider>
       </body>
     </html>

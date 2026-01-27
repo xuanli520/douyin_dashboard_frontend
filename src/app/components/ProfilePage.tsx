@@ -2,64 +2,126 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Save, Camera, User, Mail, Phone, Building, Shield, Award } from 'lucide-react';
+import { Save, Camera, User, Mail, Phone, Building, Shield, Award, Loader2, UserCheck } from 'lucide-react';
 import maleAvatar from '@/assets/male.jpg';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
-import { getCurrentUser, updateCurrentUser, type User as AuthUser } from '@/lib/auth';
+import { useUserStore } from '@/stores/userStore';
+import * as userService from '@/services/userService';
 
 export default function ProfilePage() {
+  const { currentUser, fetchCurrentUser, isSuperuser } = useUserStore();
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    phone: '138****8888',
-    department: '技术部',
-    role: '加载中...',
-    position: '技术总监',
+    phone: '',
+    gender: '',
+    department: '',
+    position: '',
+    role: '',
+    level: 'L7 Senior',
   });
 
+  // 初始化表单数据
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-        setFormData(prev => ({
-          ...prev,
-          username: currentUser.username || '',
-          email: currentUser.email || '',
-          role: currentUser.is_superuser ? '超级管理员' : '普通用户'
-        }));
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (currentUser) {
+      setFormData({
+        username: currentUser.username || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        gender: currentUser.gender || '',
+        department: currentUser.department || '',
+        position: '',
+        role: currentUser.is_superuser ? '系统管理员' : '普通用户',
+        level: 'L7 Senior',
+      });
+    } else {
+      fetchCurrentUser();
+    }
+  }, [currentUser, fetchCurrentUser]);
+
+  // 从后端获取最新数据后更新表单
+  useEffect(() => {
+    if (currentUser) {
+      setFormData((prev) => ({
+        ...prev,
+        username: currentUser.username || prev.username,
+        email: currentUser.email || prev.email,
+        phone: currentUser.phone || prev.phone || '',
+        gender: currentUser.gender || prev.gender || '',
+        department: currentUser.department || prev.department || '',
+      }));
+    }
+  }, [currentUser]);
 
   const handleSave = async () => {
-    if (!user) return;
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
     try {
-      const updatedUser = await updateCurrentUser({
+      const updateData: { username: string; email: string; phone?: string; gender?: string; department?: string } = {
         username: formData.username,
         email: formData.email,
-      });
-      setUser(updatedUser);
+      };
+      if (formData.phone) updateData.phone = formData.phone;
+      if (formData.gender) updateData.gender = formData.gender;
+      if (formData.department) updateData.department = formData.department;
+
+      await userService.updateCurrentUser(updateData);
+
+      await fetchCurrentUser();
+      setSuccess('保存成功');
       setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      alert('保存失败，请重试');
+
+      // 3秒后清除成功消息
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.message || '保存失败，请重试');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const getRoleLabel = (): string => {
+    if (isSuperuser) return '系统管理员 (Superuser)';
+    return '普通用户 (User)';
+  };
+
+  if (!currentUser && !formData.username) {
+    return (
+      <div className="min-h-screen bg-transparent text-foreground p-6 relative flex items-center justify-center">
+        <Loader2 className="animate-spin text-cyan-500" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-foreground p-6 relative overflow-hidden">
       {/* Background Decor */}
       <div className="fixed top-1/4 left-1/4 w-[800px] h-[800px] bg-cyan-900/10 rounded-full blur-[120px] pointer-events-none" />
 
+      {/* Success Message */}
+      {success && (
+        <div className="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm shadow-lg animate-fade-in">
+          {success}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm shadow-lg animate-fade-in">
+          {error}
+        </div>
+      )}
+
       <GlassCard className="max-w-4xl mx-auto p-8 relative z-10">
-        
+
         {/* Header */}
         <div className="border-b border-slate-200 dark:border-white/10 pb-6 mb-8 flex justify-between items-end">
             <div>
@@ -67,7 +129,7 @@ export default function ProfilePage() {
                  <p className="text-sm text-slate-500 font-mono mt-1">Manage your personal account details</p>
             </div>
              <div className="px-3 py-1 rounded-full bg-cyan-500/10 dark:bg-cyan-950/30 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                STATUS: ACTIVE
+                STATUS: {currentUser?.is_active ? 'ACTIVE' : 'INACTIVE'}
              </div>
         </div>
 
@@ -88,9 +150,11 @@ export default function ProfilePage() {
                 <Camera size={18} />
               </button>
             </div>
-            
+
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{formData.username || '用户'}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {formData.username || '未知用户'}
+              </h2>
               <p className="text-sm text-cyan-600 dark:text-cyan-400 font-mono mt-1">{formData.position}</p>
             </div>
 
@@ -101,7 +165,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                         <div className="text-xs text-slate-500 font-mono uppercase">Role</div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">{formData.role}</div>
+                        <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">{getRoleLabel()}</div>
                     </div>
                 </div>
                  <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/5 flex items-center gap-3">
@@ -110,7 +174,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                         <div className="text-xs text-slate-500 font-mono uppercase">Level</div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">L7 Senior</div>
+                        <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">{formData.level}</div>
                     </div>
                 </div>
             </div>
@@ -133,7 +197,7 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.username || '-'}
+                    {formData.username || '未知'}
                   </div>
                 )}
               </div>
@@ -152,7 +216,7 @@ export default function ProfilePage() {
                   />
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.email || '-'}
+                    {formData.email || '未知'}
                   </div>
                 )}
               </div>
@@ -168,10 +232,11 @@ export default function ProfilePage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
+                    placeholder="暂未设置"
                   />
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.phone}
+                    {formData.phone || '暂未设置'}
                   </div>
                 )}
               </div>
@@ -187,10 +252,33 @@ export default function ProfilePage() {
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
+                    placeholder="暂未设置"
                   />
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
-                    {formData.department}
+                    {formData.department || '暂未设置'}
+                  </div>
+                )}
+              </div>
+
+              {/* 性别 */}
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <UserCheck size={14} /> 性别 (Gender)
+                </label>
+                {isEditing ? (
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
+                  >
+                    <option value="">未设置</option>
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                  </select>
+                ) : (
+                   <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
+                    {formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '未设置'}
                   </div>
                 )}
               </div>
@@ -202,14 +290,25 @@ export default function ProfilePage() {
                 <>
                   <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] font-medium"
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/50 text-white rounded-lg transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] font-medium disabled:opacity-50"
                   >
-                    <Save size={18} />
-                    保存更改
+                    {isLoading ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        保存中...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        保存更改
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="px-6 py-2.5 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded-lg hover:border-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                    disabled={isLoading}
+                    className="px-6 py-2.5 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded-lg hover:border-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
                   >
                     取消
                   </button>

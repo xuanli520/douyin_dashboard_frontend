@@ -56,6 +56,10 @@ const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 const AUTH_TOKEN_COOKIE = 'auth_token';
 
+// Token 有效期配置 (秒)
+export const ACCESS_TOKEN_EXPIRY = 1800; // 30分钟
+export const REFRESH_BEFORE_EXPIRY = 60 * 29; // 29分钟后刷新
+
 // ============ Token 管理 ============
 
 /**
@@ -110,6 +114,56 @@ export function clearTokens(): void {
 export function storeTokens(data: TokenResponse): void {
   setAccessToken(data.access_token);
   // refresh_token 由后端设置在 HttpOnly Cookie 中
+}
+
+/**
+ * 检查 Token 是否即将过期 (在指定秒数内)
+ */
+export function isTokenExpiringSoon(expirySeconds: number = 60): boolean {
+  const token = getAccessToken();
+  if (!token) return true;
+
+  try {
+    // JWT payload 格式: base64Url(header).base64Url(payload).signature
+    const payload = token.split('.')[1];
+    if (!payload) return true;
+
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const exp = decoded.exp;
+
+    if (!exp) return true;
+
+    const now = Math.floor(Date.now() / 1000);
+    const timeUntilExpiry = exp - now;
+
+    return timeUntilExpiry < expirySeconds;
+  } catch {
+    // 解析失败，假设需要刷新
+    return true;
+  }
+}
+
+/**
+ * 获取 Token 剩余有效时间 (秒)
+ */
+export function getTokenTimeRemaining(): number {
+  const token = getAccessToken();
+  if (!token) return 0;
+
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return 0;
+
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const exp = decoded.exp;
+
+    if (!exp) return 0;
+
+    const now = Math.floor(Date.now() / 1000);
+    return Math.max(0, exp - now);
+  } catch {
+    return 0;
+  }
 }
 
 // ============ 认证 API ============
@@ -270,11 +324,29 @@ export function handleAuthError(error: unknown): string {
 
 /**
  * 带自动刷新的请求函数
+ * 主动检测 Token 即将过期时先刷新再请求
  */
 export async function authRequest<T>(
   request: () => Promise<T>,
-  onRefresh?: () => void
+  options?: {
+    forceRefresh?: boolean; // 强制刷新 token
+    onRefresh?: () => void;
+  }
 ): Promise<T> {
+  const { forceRefresh = false, onRefresh } = options || {};
+
+  // 检查 token 是否即将过期
+  if (forceRefresh || isTokenExpiringSoon(REFRESH_BEFORE_EXPIRY)) {
+    try {
+      await refreshToken();
+      onRefresh?.();
+    } catch (refreshError) {
+      // 刷新失败，清除 token
+      clearTokens();
+      throw new Error('会话已过期，请重新登录');
+    }
+  }
+
   try {
     return await request();
   } catch (error: any) {
