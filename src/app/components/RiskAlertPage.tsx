@@ -3,6 +3,7 @@
 import { AlertTriangle, ShieldAlert, Zap, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import { RiskLevelIcon } from '@/app/components/ui/RiskLevelIcon';
 
 const alerts = [
   { 
@@ -85,20 +86,20 @@ export default function RiskAlertPage() {
         <div className="flex flex-1">
             {/* Sidebar Stats */}
             <div className="w-64 border-r border-slate-200 dark:border-white/10 p-6 space-y-6">
-                 <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                        <Zap size={40} className="text-rose-500" />
+                 <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 relative overflow-hidden group flex items-center justify-between">
+                    <div>
+                        <div className="text-4xl font-bold text-rose-500 mb-1 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)] font-mono">1</div>
+                        <div className="text-xs text-rose-600 dark:text-rose-300 uppercase tracking-wider font-medium">P0 严重预警</div>
                     </div>
-                    <div className="text-4xl font-bold text-rose-500 mb-1 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)] font-mono">1</div>
-                    <div className="text-xs text-rose-600 dark:text-rose-300 uppercase tracking-wider font-medium">P0 严重预警</div>
+                    <RiskLevelIcon level="P0" width={80} height={80} className="drop-shadow-[0_0_15px_rgba(244,63,94,0.3)]" />
                 </div>
 
-                <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                        <AlertTriangle size={40} className="text-orange-500" />
+                <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30 relative overflow-hidden group flex items-center justify-between">
+                    <div>
+                        <div className="text-4xl font-bold text-orange-500 mb-1 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)] font-mono">6</div>
+                        <div className="text-xs text-orange-600 dark:text-orange-300 uppercase tracking-wider font-medium">P1 重要预警</div>
                     </div>
-                    <div className="text-4xl font-bold text-orange-500 mb-1 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)] font-mono">6</div>
-                    <div className="text-xs text-orange-600 dark:text-orange-300 uppercase tracking-wider font-medium">P1 重要预警</div>
+                    <RiskLevelIcon level="P1" width={80} height={80} className="drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]" />
                 </div>
 
                 <div className="mt-8">
@@ -115,21 +116,15 @@ export default function RiskAlertPage() {
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-3">
                 {alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 hover:border-cyan-500/30 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all group relative overflow-hidden shadow-sm dark:shadow-none">
-                    {/* Status Indicator Bar */}
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                        alert.color === 'red' ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-orange-500 shadow-[0_0_10px_#f97316]'
-                    }`} />
+                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 hover:border-cyan-500/50 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all group relative overflow-hidden shadow-sm dark:shadow-none backdrop-blur-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+                    {/* Subtle Gradient Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                    <div className="pl-2 flex-1 grid grid-cols-12 gap-4 items-center relative z-10">
+                    <div className="flex-1 grid grid-cols-12 gap-4 items-center relative z-10">
                       <div className="col-span-5">
-                        <div className="flex items-center gap-3 mb-1">
-                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
-                                 alert.color === 'red' ? 'bg-rose-500 text-white' : 'bg-orange-500 text-white'
-                             }`}>
-                                 {alert.level}
-                             </span>
-                             <span className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{alert.title}</span>
+                        <div className="flex items-center gap-5 mb-1">
+                             <RiskLevelIcon level={alert.level} width={72} height={72} className="drop-shadow-md" />
+                             <span className="text-lg font-medium text-slate-800 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors tracking-tight">{alert.title}</span>
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono flex items-center gap-3">
                           <span className="flex items-center gap-1"><Clock size={10}/> {alert.time}</span>

@@ -10,6 +10,7 @@ import {
   AlertTriangle, CheckCircle2, RefreshCw, Bell, 
   Calendar, ChevronDown, Activity, ShieldAlert
 } from 'lucide-react';
+import { RiskLevelIcon } from '@/app/components/ui/RiskLevelIcon';
 
 // --- Mock Data based on Requirements ---
 
@@ -302,14 +303,7 @@ export default function DouyinDataHubDashboard() {
                   className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`
-                      flex items-center justify-center w-8 h-8 rounded font-mono text-xs font-bold
-                      ${alert.level === 'P0' ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.2)]' : 
-                        alert.level === 'P1' ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/50' : 
-                        'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/50'}
-                    `}>
-                      {alert.level}
-                    </div>
+                    <RiskLevelIcon level={alert.level} width={32} height={32} />
                     <div>
                       <div className="text-sm text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                         {alert.title}
