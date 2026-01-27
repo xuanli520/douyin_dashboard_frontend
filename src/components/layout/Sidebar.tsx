@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp } from 'lucide-react';
 import { logout } from '@/lib/auth';
 import profileImage from '@/assets/male.jpg';
+import { useUserStore } from '@/stores/userStore';
 
 const menuItems = [
   { id: 'dashboard', label: '首页', icon: Home, href: '/dashboard' },
@@ -23,6 +24,7 @@ export function Sidebar() {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { currentUser, isSuperuser } = useUserStore();
 
   // 点击外部关闭菜单
   useEffect(() => {
@@ -38,6 +40,13 @@ export function Sidebar() {
   const handleLogout = async () => {
     await logout();
     router.push('/login');
+  };
+
+  // 获取用户角色显示文本
+  const getRoleText = () => {
+    if (isSuperuser) return 'ADMIN';
+    if (currentUser?.username) return currentUser.username.toUpperCase();
+    return 'USER';
   };
 
   return (
@@ -87,8 +96,12 @@ export function Sidebar() {
             />
           </div>
           <div className="flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="text-sm font-bold text-slate-700 dark:text-gray-200 truncate font-mono">COMMANDER</div>
-            <div className="text-[10px] text-slate-500 dark:text-[#C8FDE6]/70 truncate tracking-wider">ONLINE</div>
+            <div className="text-sm font-bold text-slate-700 dark:text-gray-200 truncate font-mono">
+              {getRoleText()}
+            </div>
+            <div className="text-[10px] text-slate-500 dark:text-[#C8FDE6]/70 truncate tracking-wider">
+              {isSuperuser ? 'SUPERUSER' : 'ONLINE'}
+            </div>
           </div>
           <ChevronUp
             size={16}
@@ -99,6 +112,14 @@ export function Sidebar() {
         {/* 用户菜单弹窗 */}
         {showUserMenu && (
           <div className="absolute bottom-full left-0 w-[220px] mb-2 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-[0_0_30px_-5px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-white/10 overflow-hidden z-50">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5">
+              <div className="text-sm font-medium text-slate-700 dark:text-gray-200">
+                {currentUser?.username || '未知用户'}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+                {currentUser?.email || '无邮箱'}
+              </div>
+            </div>
             <button
               onClick={() => {
                 setShowUserMenu(false);
