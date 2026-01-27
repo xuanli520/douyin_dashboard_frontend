@@ -4,6 +4,9 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  phone?: string;
+  gender?: string;
+  department?: string;
   is_active: boolean;
   is_superuser: boolean;
   is_verified: boolean;
@@ -15,12 +18,18 @@ export interface UserCreate {
   username: string;
   email: string;
   password: string;
+  phone?: string;
+  gender?: string;
+  department?: string;
 }
 
 export interface UserUpdate {
   username?: string;
   email?: string;
   password?: string;
+  phone?: string;
+  gender?: string;
+  department?: string;
   is_active?: boolean;
   is_superuser?: boolean;
   is_verified?: boolean;
@@ -30,6 +39,9 @@ export interface UserUpdateMe {
   username?: string;
   email?: string;
   password?: string;
+  phone?: string;
+  gender?: string;
+  department?: string;
 }
 
 export interface TokenResponse {

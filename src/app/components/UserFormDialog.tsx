@@ -24,6 +24,9 @@ export function UserFormDialog({
     username: user?.username || '',
     email: user?.email || '',
     password: '',
+    phone: user?.phone || '',
+    gender: user?.gender || '',
+    department: user?.department || '',
     is_active: user?.is_active ?? true,
     is_superuser: user?.is_superuser ?? false,
     is_verified: user?.is_verified ?? false,
@@ -37,20 +40,36 @@ export function UserFormDialog({
     setIsLoading(true);
 
     try {
-      const submitData: UserCreate | UserUpdate =
-        mode === 'create'
-          ? {
-              username: formData.username,
-              email: formData.email,
-              password: formData.password,
-            }
-          : {
-              username: formData.username,
-              email: formData.email,
-              is_active: formData.is_active,
-              is_superuser: formData.is_superuser,
-              is_verified: formData.is_verified,
-            };
+      // 构建提交数据，空字符串转为 null（后端期望 nullable 字段为 null）
+      const buildSubmitData = () => {
+        const data: Record<string, unknown> = {
+          username: formData.username,
+          email: formData.email,
+          is_active: formData.is_active,
+          is_superuser: formData.is_superuser,
+          is_verified: formData.is_verified,
+        };
+
+        // 处理可选字符串字段：空字符串转为 null
+        if (formData.phone) {
+          data.phone = formData.phone;
+        }
+        if (formData.gender) {
+          data.gender = formData.gender;
+        }
+        if (formData.department) {
+          data.department = formData.department;
+        }
+
+        // 创建时需要密码
+        if (mode === 'create') {
+          data.password = formData.password;
+        }
+
+        return data;
+      };
+
+      const submitData = buildSubmitData();
 
       await onSubmit(submitData);
       onClose();
@@ -128,6 +147,61 @@ export function UserFormDialog({
               disabled={mode === 'permissions'}
               className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
               placeholder="请输入邮箱"
+            />
+          </div>
+
+          {/* 手机号 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              手机号
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              disabled={mode === 'permissions'}
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              placeholder="请输入手机号"
+            />
+          </div>
+
+          {/* 性别 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              性别
+            </label>
+            <select
+              value={formData.gender}
+              onChange={(e) =>
+                setFormData({ ...formData, gender: e.target.value })
+              }
+              disabled={mode === 'permissions'}
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+            >
+              <option value="">请选择</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+              <option value="other">其他</option>
+              <option value="prefer_not_to_say">不愿透露</option>
+            </select>
+          </div>
+
+          {/* 部门 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              部门
+            </label>
+            <input
+              type="text"
+              value={formData.department}
+              onChange={(e) =>
+                setFormData({ ...formData, department: e.target.value })
+              }
+              disabled={mode === 'permissions'}
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              placeholder="请输入部门"
             />
           </div>
 

@@ -8,17 +8,6 @@ import { UserFormDialog } from './UserFormDialog';
 import { useUserStore } from '@/stores/userStore';
 import type { User, UserCreate, UserUpdate } from '@/types/user';
 
-// 模拟用户数据
-const mockUsers: User[] = [
-  { id: 1, username: 'Alex Chen', email: 'alex@tech.co', is_active: true, is_superuser: true, is_verified: true },
-  { id: 2, username: 'Sarah Wu', email: 'sarah@ops.co', is_active: true, is_superuser: false, is_verified: true },
-  { id: 3, username: 'Mike Ross', email: 'mike@data.co', is_active: true, is_superuser: false, is_verified: true },
-  { id: 4, username: 'Jenny Lin', email: 'jenny@data.co', is_active: true, is_superuser: false, is_verified: true },
-  { id: 5, username: 'David Kim', email: 'david@ops.co', is_active: true, is_superuser: false, is_verified: true },
-  { id: 6, username: 'Tom Hardy', email: 'tom@ops.co', is_active: true, is_superuser: false, is_verified: true },
-  { id: 7, username: 'Guest User', email: 'guest@temp.co', is_active: false, is_superuser: false, is_verified: false },
-];
-
 export default function UserPermissionPage() {
   const {
     users,
@@ -36,24 +25,12 @@ export default function UserPermissionPage() {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'permissions'>('edit');
-  const [useMockData, setUseMockData] = useState(true);
 
   useEffect(() => {
-    handleRefresh();
-  }, []);
+    fetchUsers();
+  }, [fetchUsers]);
 
-  const handleRefresh = async () => {
-    try {
-      await fetchUsers();
-      setUseMockData(false);
-    } catch {
-      setUseMockData(true);
-    }
-  };
-
-  const displayUsers = useMockData ? mockUsers : users;
-
-  const filteredUsers = displayUsers.filter(
+  const filteredUsers = users.filter(
     (user) =>
       (user.username?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
       (user.email?.toLowerCase() || '').includes(searchText.toLowerCase())
@@ -160,7 +137,7 @@ export default function UserPermissionPage() {
                       className="rounded border-slate-300 dark:border-white/10 bg-white dark:bg-slate-800 text-cyan-500 focus:ring-offset-0 focus:ring-0"
                     />
                   </th>
-                  {['用户 (User)', '邮箱 (Email)', '角色 (Role)', '状态 (Status)', '操作 (Action)'].map(
+                  {['用户', '手机号', '部门', '角色', '状态', '操作'].map(
                     (h) => (
                       <th
                         key={h}
@@ -189,13 +166,19 @@ export default function UserPermissionPage() {
                         <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:border-cyan-500/50 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                           {(user.username || 'U').charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                          {user.username || '未知用户'}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                            {user.username || '未知用户'}
+                          </span>
+                          <span className="text-xs text-slate-400 font-mono">{user.email || '无邮箱'}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono">
-                      {user.email || '无邮箱'}
+                      {user.phone || '-'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                      {user.department || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                       <div className="flex items-center gap-2">

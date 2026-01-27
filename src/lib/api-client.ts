@@ -152,7 +152,13 @@ export async function authPost<T>(
       ? undefined
       : JSON.stringify(data);
 
-  return authClient.authRequest<T>(endpoint, { method: 'POST', body, ...options });
+  // 如果发送的是 JSON 对象，自动设置 Content-Type
+  const headers = { ...options?.headers };
+  if (typeof data === 'object' && data !== null && !(data instanceof URLSearchParams) && !(data instanceof FormData)) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
+  return authClient.authRequest<T>(endpoint, { method: 'POST', body, headers, ...options });
 }
 
 export async function authPatch<T>(
@@ -169,7 +175,13 @@ export async function authPatch<T>(
       ? undefined
       : JSON.stringify(data);
 
-  return authClient.authRequest<T>(endpoint, { method: 'PATCH', body, ...options });
+  // 如果发送的是 JSON 对象，自动设置 Content-Type
+  const headers = { ...options?.headers };
+  if (typeof data === 'object' && data !== null && !(data instanceof URLSearchParams) && !(data instanceof FormData)) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
+  return authClient.authRequest<T>(endpoint, { method: 'PATCH', body, headers, ...options });
 }
 
 export async function authDel<T>(endpoint: string, options?: RequestInit): Promise<T> {

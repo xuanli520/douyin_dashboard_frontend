@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Save, Camera, User, Mail, Phone, Building, Shield, Award, Loader2 } from 'lucide-react';
+import { Save, Camera, User, Mail, Phone, Building, Shield, Award, Loader2, UserCheck } from 'lucide-react';
 import maleAvatar from '@/assets/male.jpg';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
@@ -20,6 +20,7 @@ export default function ProfilePage() {
     username: '',
     email: '',
     phone: '',
+    gender: '',
     department: '',
     position: '',
     role: '',
@@ -32,9 +33,10 @@ export default function ProfilePage() {
       setFormData({
         username: currentUser.username || '',
         email: currentUser.email || '',
-        phone: '', // 后端可能没有这个字段
-        department: '', // 后端可能没有这个字段
-        position: '', // 后端可能没有这个字段
+        phone: currentUser.phone || '',
+        gender: currentUser.gender || '',
+        department: currentUser.department || '',
+        position: '',
         role: currentUser.is_superuser ? '系统管理员' : '普通用户',
         level: 'L7 Senior',
       });
@@ -50,6 +52,9 @@ export default function ProfilePage() {
         ...prev,
         username: currentUser.username || prev.username,
         email: currentUser.email || prev.email,
+        phone: currentUser.phone || prev.phone || '',
+        gender: currentUser.gender || prev.gender || '',
+        department: currentUser.department || prev.department || '',
       }));
     }
   }, [currentUser]);
@@ -60,10 +65,15 @@ export default function ProfilePage() {
     setSuccess(null);
 
     try {
-      await userService.updateCurrentUser({
+      const updateData: { username: string; email: string; phone?: string; gender?: string; department?: string } = {
         username: formData.username,
         email: formData.email,
-      });
+      };
+      if (formData.phone) updateData.phone = formData.phone;
+      if (formData.gender) updateData.gender = formData.gender;
+      if (formData.department) updateData.department = formData.department;
+
+      await userService.updateCurrentUser(updateData);
 
       await fetchCurrentUser();
       setSuccess('保存成功');
@@ -247,6 +257,28 @@ export default function ProfilePage() {
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
                     {formData.department || '暂未设置'}
+                  </div>
+                )}
+              </div>
+
+              {/* 性别 */}
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <UserCheck size={14} /> 性别 (Gender)
+                </label>
+                {isEditing ? (
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
+                  >
+                    <option value="">未设置</option>
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                  </select>
+                ) : (
+                   <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
+                    {formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '未设置'}
                   </div>
                 )}
               </div>
