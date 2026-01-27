@@ -1,9 +1,16 @@
 // 用户状态管理 (React Context + Hook)
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from 'react';
 import type { User, UserCreate, UserUpdate, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
+import { useRouter } from 'next/navigation';
+
+// Token 刷新定时器引用
+let refreshTimer: NodeJS.Timeout | null = null;
+
+// 刷新间隔 (29分钟后刷新)
+const REFRESH_INTERVAL = 29 * 60 * 1000;
 
 interface UserState {
   users: User[];
@@ -34,6 +41,7 @@ type UserStore = UserState & UserActions;
 const UserContext = createContext<UserStore | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [state, setState] = useState<UserState>({
     users: [],
     currentUser: null,
@@ -46,38 +54,41 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, error: null }));
   }, []);
 
-  const login = useCallback(async (params: LoginParams): Promise<boolean> => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      await userService.login(params);
-      await fetchCurrentUser();
-      return true;
-    } catch (error: any) {
-      setState((prev) => ({
-        ...prev,
-        error: error.message || '登录失败',
-        isLoading: false,
-      }));
-      return false;
+  // 清除 token 刷新定时器
+  const clearRefreshTimer = useCallback(() => {
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      refreshTimer = null;
     }
   }, []);
 
-  const logout = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      await userService.logout();
-    } catch {
-      // 忽略登出错误
-    } finally {
-      setState({
-        users: [],
-        currentUser: null,
-        isLoading: false,
-        error: null,
-        isSuperuser: false,
-      });
+  // 启动 token 刷新定时器
+  const startRefreshTimer = useCallback(() => {
+    // 清除已有定时器
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
     }
-  }, []);
+
+    // 设置新的刷新定时器
+    refreshTimer = setTimeout(async () => {
+      try {
+        await userService.refreshAccessToken();
+        // 刷新成功后重启定时器
+        startRefreshTimer();
+      } catch (error) {
+        // 刷新失败，清除状态并跳转到登录页
+        console.error('Token refresh failed:', error);
+        setState({
+          users: [],
+          currentUser: null,
+          isLoading: false,
+          error: null,
+          isSuperuser: false,
+        });
+        router.push('/login?reason=session_expired');
+      }
+    }, REFRESH_INTERVAL);
+  }, [router]);
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -96,6 +107,43 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }));
     }
   }, []);
+
+  const login = useCallback(async (params: LoginParams): Promise<boolean> => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    try {
+      await userService.login(params);
+      await fetchCurrentUser();
+      // 登录成功后启动自动刷新定时器
+      startRefreshTimer();
+      return true;
+    } catch (error: any) {
+      setState((prev) => ({
+        ...prev,
+        error: error.message || '登录失败',
+        isLoading: false,
+      }));
+      return false;
+    }
+  }, [fetchCurrentUser, startRefreshTimer]);
+
+  const logout = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await userService.logout();
+    } catch {
+      // 忽略登出错误
+    } finally {
+      // 清除刷新定时器
+      clearRefreshTimer();
+      setState({
+        users: [],
+        currentUser: null,
+        isLoading: false,
+        error: null,
+        isSuperuser: false,
+      });
+    }
+  }, [clearRefreshTimer]);
 
   const fetchUsers = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
@@ -189,6 +237,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
+
+  // 组件卸载时清除刷新定时器
+  useEffect(() => {
+    return () => {
+      clearRefreshTimer();
+    };
+  }, [clearRefreshTimer]);
 
   const value: UserStore = {
     ...state,

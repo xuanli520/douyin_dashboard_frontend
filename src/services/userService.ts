@@ -1,14 +1,22 @@
 // 用户 API 服务层
-import { get, post, patch, del } from '@/lib/api';
-import { getAccessToken, getRefreshToken } from '@/lib/auth';
+import { authGet, authPost, authPatch, authDel } from '@/lib/api-client';
+import { getAccessToken, setAccessToken, getRefreshToken } from '@/lib/auth';
 import type { User, UserCreate, UserUpdate, UserUpdateMe, TokenResponse, LoginParams } from '@/types/user';
 
 const AUTH_API = '/auth';
 
-// 辅助函数：获取带认证的请求头
-function getAuthHeaders(): HeadersInit {
-  const token = getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+// 登录成功后设置 token
+export function setTokens(response: TokenResponse): void {
+  setAccessToken(response.access_token);
+}
+
+// 清除 token
+export function clearAuthTokens(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('access_token');
+    document.cookie = 'refresh_token=; path=/; max-age=0';
+    document.cookie = 'auth_token=; path=/; max-age=0';
+  }
 }
 
 // 后端响应包装格式
@@ -20,7 +28,7 @@ interface ApiResponse<T> {
 
 // 辅助函数：处理后端包装的响应
 async function wrappedGet<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await get<ApiResponse<T>>(url, options);
+  const response = await authGet<ApiResponse<T>>(url, options);
   if (response.code !== 200) {
     throw new Error(response.msg || '请求失败');
   }
@@ -28,7 +36,7 @@ async function wrappedGet<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 async function wrappedPost<T>(url: string, data?: unknown, options?: RequestInit): Promise<T> {
-  const response = await post<ApiResponse<T>>(url, data, options);
+  const response = await authPost<ApiResponse<T>>(url, data, options);
   if (response.code !== 200) {
     throw new Error(response.msg || '请求失败');
   }
@@ -36,7 +44,7 @@ async function wrappedPost<T>(url: string, data?: unknown, options?: RequestInit
 }
 
 async function wrappedPatch<T>(url: string, data?: unknown, options?: RequestInit): Promise<T> {
-  const response = await patch<ApiResponse<T>>(url, data, options);
+  const response = await authPatch<ApiResponse<T>>(url, data, options);
   if (response.code !== 200) {
     throw new Error(response.msg || '请求失败');
   }
@@ -44,7 +52,7 @@ async function wrappedPatch<T>(url: string, data?: unknown, options?: RequestIni
 }
 
 async function wrappedDel<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await del<ApiResponse<T>>(url, options);
+  const response = await authDel<ApiResponse<T>>(url, options);
   if (response.code !== 200) {
     throw new Error(response.msg || '请求失败');
   }
@@ -67,48 +75,40 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
     }
   );
 
-  // 存储 access_token
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('access_token', response.access_token);
-  }
+  // 设置 access_token
+  setTokens(response);
 
   return response;
 }
 
 export async function logout(): Promise<void> {
-  const refreshToken = getRefreshToken();
-  if (refreshToken) {
+  const refreshTokenValue = getRefreshToken();
+  if (refreshTokenValue) {
     try {
-      await del(`${AUTH_API}/jwt/logout`, {
-        body: JSON.stringify({ refresh_token: refreshToken }),
+      await wrappedDel(`${AUTH_API}/jwt/logout`, {
+        body: JSON.stringify({ refresh_token: refreshTokenValue }),
       });
     } catch {
       // 即使请求失败也要清除本地令牌
     }
   }
   // 清除本地令牌
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('access_token');
-    document.cookie = 'refresh_token=; path=/; max-age=0';
-    document.cookie = 'auth_token=; path=/; max-age=0';
-  }
+  clearAuthTokens();
 }
 
 export async function refreshAccessToken(): Promise<{ access_token: string; token_type: string }> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
+  const refreshTokenValue = getRefreshToken();
+  if (!refreshTokenValue) {
     throw new Error('No refresh token available');
   }
 
   const response = await wrappedPost<{ access_token: string; token_type: string }>(
     `${AUTH_API}/jwt/refresh`,
-    { refresh_token: refreshToken }
+    { refresh_token: refreshTokenValue }
   );
 
   // 更新本地存储的 token
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('access_token', response.access_token);
-  }
+  setAccessToken(response.access_token);
 
   return response;
 }
@@ -119,45 +119,35 @@ export async function refreshAccessToken(): Promise<{ access_token: string; toke
  * 获取当前登录用户信息
  */
 export async function getCurrentUser(): Promise<User> {
-  return wrappedGet<User>(`${AUTH_API}/users/me`, {
-    headers: getAuthHeaders(),
-  });
+  return wrappedGet<User>(`${AUTH_API}/users/me`);
 }
 
 /**
  * 更新当前用户信息 (PATCH /auth/users/me)
  */
 export async function updateCurrentUser(data: UserUpdateMe): Promise<User> {
-  return wrappedPatch<User>(`${AUTH_API}/users/me`, data, {
-    headers: getAuthHeaders(),
-  });
+  return wrappedPatch<User>(`${AUTH_API}/users/me`, data);
 }
 
 /**
  * 根据 ID 获取用户信息 (需要 superuser 权限)
  */
 export async function getUserById(id: number): Promise<User> {
-  return wrappedGet<User>(`${AUTH_API}/users/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  return wrappedGet<User>(`${AUTH_API}/users/${id}`);
 }
 
 /**
  * 更新指定用户信息 (需要 superuser 权限, PATCH /auth/users/{user_id})
  */
 export async function updateUser(id: number, data: UserUpdate): Promise<User> {
-  return wrappedPatch<User>(`${AUTH_API}/users/${id}`, data, {
-    headers: getAuthHeaders(),
-  });
+  return wrappedPatch<User>(`${AUTH_API}/users/${id}`, data);
 }
 
 /**
  * 删除指定用户 (需要 superuser 权限)
  */
 export async function deleteUser(id: number): Promise<void> {
-  await wrappedDel(`${AUTH_API}/users/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  await wrappedDel(`${AUTH_API}/users/${id}`);
 }
 
 /**
