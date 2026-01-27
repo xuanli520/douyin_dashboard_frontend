@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
@@ -39,6 +39,47 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const isInView = useInView(formRef, { once: true, amount: 0.3 });
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pendingCredentialsRef = useRef<{ username: string; password: string } | null>(null);
+  const latestCredentialsRef = useRef<{ username: string; password: string }>({ username: '', password: '' });
+
+  useEffect(() => {
+    latestCredentialsRef.current = { username, password };
+  }, [username, password]);
+
+  const handleLoginLogic = useCallback(
+    async (params: { username: string; password: string; captchaVerifyParam?: string }) => {
+      setError(null);
+      setLoading(true);
+
+      try {
+        await login(params);
+        if (onLogin) {
+          onLogin();
+        } else {
+          const redirectPath = searchParams.get('redirect') || '/dashboard';
+          router.push(redirectPath);
+          toast.success('登录成功', {
+            description: '欢迎回到猪鱼数据',
+          });
+        }
+      } catch (err) {
+        setError(handleAuthError(err));
+        toast.error('登录失败', {
+          description: handleAuthError(err),
+        });
+      } finally {
+        setLoading(false);
+        pendingCredentialsRef.current = null;
+      }
+    },
+    [onLogin, router, searchParams]
+  );
+
+  const handleLoginLogicRef = useRef(handleLoginLogic);
+
+  useEffect(() => {
+    handleLoginLogicRef.current = handleLoginLogic;
+  }, [handleLoginLogic]);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -54,6 +95,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           immediate: false,
           region: 'cn',
           lang: 'cn',
+          success: (captchaVerifyParam: string) => {
+            const creds = pendingCredentialsRef.current ?? latestCredentialsRef.current;
+            handleLoginLogicRef.current({
+              ...creds,
+              captchaVerifyParam,
+            });
+          },
           getInstance: (instance) => {
             setCaptchaInstance(instance);
           },
@@ -75,31 +123,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setMousePosition({ x: moveX, y: moveY });
   };
 
-  const handleLoginLogic = async (verifyParam?: string) => {
-    setError(null);
-    setLoading(true);
-
-    try {
-      await login({ username, password, captchaVerifyParam: verifyParam });
-      if (onLogin) {
-        onLogin();
-      } else {
-        const redirectPath = searchParams.get('redirect') || '/dashboard';
-        router.push(redirectPath);
-        toast.success('登录成功', {
-          description: '欢迎回到猪鱼数据',
-        });
-      }
-    } catch (err) {
-      setError(handleAuthError(err));
-      toast.error('登录失败', {
-        description: handleAuthError(err),
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
@@ -107,22 +130,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         return;
     }
 
+    const credentials = { username, password };
+    pendingCredentialsRef.current = credentials;
+
     if (captchaInstance) {
-        captchaInstance.onSuccess = (verifyResult: any) => {
-            // verifyResult 包含了后端需要的验证参数
-            // 格式类似：{ captchaVerifyParam: "..." }
-            // console.log('验证通过:', verifyResult);
-            // 发送给后端
-            handleLoginLogic(verifyResult.captchaVerifyParam);
-        };
-        // 显示弹窗
         captchaInstance.show();
     } else {
          // Fallback if captcha fails to load or for some reason isn't ready,
          // though in production you might want to block or retry.
          // For now, let's try logging in directly (server might reject if captcha is enforced).
          console.warn("Captcha not initialized, attempting direct login.");
-         handleLoginLogic();
+         handleLoginLogic(credentials);
     }
   };
 

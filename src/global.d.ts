@@ -20,8 +20,8 @@ declare module '*.svg' {
 
 interface AliyunCaptchaInstance {
   show: () => void;
-  reset: () => void;
-  onSuccess: (callback: (data: { captchaVerifyParam: string }) => void) => void;
+  hide?: () => void;
+  reset?: () => void;
 }
 
 interface Window {
@@ -36,6 +36,8 @@ interface Window {
       region?: string;
       lang?: string;
       slideStyle?: { width: number; height: number };
+      success?: (captchaVerifyParam: string) => void;
+      fail?: () => void;
       getInstance?: (instance: AliyunCaptchaInstance) => void;
     }
   ) => void;
