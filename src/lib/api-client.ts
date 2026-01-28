@@ -2,6 +2,7 @@
 import { baseRequest, API_BASE_URL, createRequestOptions, REQUEST_TIMEOUT } from './request';
 import { getAccessToken, setAccessToken, clearTokens, getRefreshToken } from './auth';
 import { post } from './api';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface RequestOptions extends RequestInit {
   _retry?: boolean;
@@ -84,9 +85,13 @@ export function createAuthenticatedClient() {
             throw new Error('No refresh token available');
           }
 
+          // 使用 URLSearchParams 格式（与后端期望一致）
+          const formData = new URLSearchParams();
+          formData.append('refresh_token', refreshTokenValue);
+
           const refreshResponse = await post<{ access_token: string; token_type: string }>(
-            '/auth/jwt/refresh',
-            { refresh_token: refreshTokenValue }
+            API_ENDPOINTS.JWT_REFRESH,
+            formData
           );
 
           setAccessToken(refreshResponse.access_token);
