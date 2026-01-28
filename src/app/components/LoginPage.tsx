@@ -15,6 +15,23 @@ const CAPTCHA_REGION = 'cn';
 const CAPTCHA_PREFIX = '1fs7dl';
 const CAPTCHA_SCENE_ID = '71tobb9u';
 
+const isNaNConsolePayload = (value: unknown): boolean => {
+  if (typeof value === 'number') {
+    return Number.isNaN(value);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.startsWith('[NaN') || trimmed === 'NaN';
+  }
+  if (value instanceof Error) {
+    return isNaNConsolePayload(value.message);
+  }
+  if (Array.isArray(value)) {
+    return value.some(isNaNConsolePayload);
+  }
+  return false;
+};
+
 const generateUserCertifyId = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let rand = '';
@@ -78,20 +95,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   useEffect(() => {
     const originalError = console.error;
     const patched = (...args: unknown[]) => {
-      const shouldIgnore = args.some((arg) => {
-        try {
-          const text =
-            typeof arg === 'string'
-              ? arg
-              : arg instanceof Error && typeof arg.message === 'string'
-              ? arg.message
-              : String(arg);
-          return text.trim().startsWith('[NaN');
-        } catch {
-          return true;
+      if (args.some(isNaNConsolePayload)) {
+        return;
+      }
+      try {
+        const combined = args.map((arg) => String(arg)).join(' ');
+        if (combined.trim().startsWith('[NaN')) {
+          return;
         }
-      });
-      if (shouldIgnore) {
+      } catch {
         return;
       }
       originalError(...args);

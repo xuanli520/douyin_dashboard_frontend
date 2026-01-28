@@ -52,3 +52,5 @@ logs
 # Editor local settings
 .claude/settings.local.json
 *.local.json
+package-lock.json
+package-lock.json
