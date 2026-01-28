@@ -79,19 +79,14 @@ export function createAuthenticatedClient() {
         isRefreshing = true;
 
         try {
-          // 直接调用刷新端点（刷新 token 不需要 Authorization 头）
+          // 直接调用刷新端点
           const refreshTokenValue = getRefreshToken();
           if (!refreshTokenValue) {
             throw new Error('No refresh token available');
           }
 
-          // 使用 URLSearchParams 格式（与后端期望一致）
-          const formData = new URLSearchParams();
-          formData.append('refresh_token', refreshTokenValue);
-
           const refreshResponse = await post<{ access_token: string; token_type: string }>(
-            API_ENDPOINTS.JWT_REFRESH,
-            formData
+            `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
           );
 
           setAccessToken(refreshResponse.access_token);

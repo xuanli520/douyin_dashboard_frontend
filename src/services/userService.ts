@@ -175,12 +175,8 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
   // 创建新的刷新请求
   refreshTokenPromise = (async () => {
     try {
-      const formData = new URLSearchParams();
-      formData.append('refresh_token', refreshTokenValue);
-
       const response = await post<{ access_token: string; token_type: string }>(
-        API_ENDPOINTS.JWT_REFRESH,
-        formData
+        `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
       );
 
       // 更新本地存储的 token
@@ -211,11 +207,10 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
  */
 export async function login(params: LoginParams): Promise<TokenResponse> {
   const formData = new URLSearchParams();
-  formData.append('grant_type', 'password');
   formData.append('username', params.username);
   formData.append('password', params.password);
   if (params.captchaVerifyParam) {
-    formData.append('captcha_verify_param', params.captchaVerifyParam);
+    formData.append('captchaVerifyParam', params.captchaVerifyParam);
   }
 
   const response = await authPost<TokenResponse>(
@@ -239,10 +234,9 @@ export async function logout(): Promise<void> {
 
   if (refreshTokenValue) {
     try {
-      // 将 refresh_token 放在请求体中（更安全的方式）
-      const formData = new URLSearchParams();
-      formData.append('refresh_token', refreshTokenValue);
-      await post<ApiResponse<null>>(API_ENDPOINTS.JWT_LOGOUT, formData);
+      await post<ApiResponse<null>>(
+        `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
+      );
     } catch {
       // 即使请求失败也要清除本地令牌
     }
