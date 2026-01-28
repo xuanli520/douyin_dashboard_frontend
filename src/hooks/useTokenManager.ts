@@ -2,7 +2,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { refreshToken, getAccessToken, setAccessToken, clearTokens } from '@/lib/auth';
+import { getAccessToken, setAccessToken, clearTokens } from '@/lib/auth';
+import { refreshToken } from '@/services/userService';
 import { useRouter } from 'next/navigation';
 
 // Token 有效期配置 (秒)

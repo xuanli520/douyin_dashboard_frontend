@@ -73,7 +73,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // 设置新的刷新定时器
     refreshTimer = setTimeout(async () => {
       try {
-        await userService.refreshAccessToken();
+        await userService.refreshToken();
         // 刷新成功后重启定时器
         startRefreshTimer();
       } catch (error) {
@@ -239,11 +239,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       const hasToken = !!getAccessToken();
       if (hasToken) {
-        // 如果有 token，先启动刷新定时器
+        // 如果有 token，启动刷新定时器并获取用户信息
         startRefreshTimer();
+        await fetchCurrentUser();
       }
-      // 尝试获取当前用户信息
-      await fetchCurrentUser();
+      // 如果没有 token，不尝试获取用户信息（避免 401）
     };
     initializeAuth();
   }, [fetchCurrentUser, startRefreshTimer]);

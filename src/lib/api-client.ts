@@ -161,9 +161,11 @@ export async function authPost<T>(
       ? undefined
       : JSON.stringify(data);
 
-  // 如果发送的是 JSON 对象，自动设置 Content-Type
+  // 设置正确的 Content-Type
   const headers = { ...options?.headers };
-  if (typeof data === 'object' && data !== null && !(data instanceof URLSearchParams) && !(data instanceof FormData)) {
+  if (data instanceof URLSearchParams) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
+  } else if (typeof data === 'object' && data !== null && !(data instanceof FormData)) {
     (headers as Record<string, string>)['Content-Type'] = 'application/json';
   }
 

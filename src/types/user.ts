@@ -53,6 +53,42 @@ export interface TokenResponse {
 export interface LoginParams {
   username: string;
   password: string;
+  captchaVerifyParam?: string;
+}
+
+export interface RegisterParams {
+  username: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+}
+
+// 错误码常量
+export const AUTH_ERROR_CODES = {
+  10001: '无效凭证',
+  10002: '无效密码',
+  10004: 'Token无效',
+  10005: '账户已锁定',
+  20001: '用户不存在',
+  20003: '用户未激活',
+  30001: '权限不足',
+  30002: '角色不足',
+} as const;
+
+export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES;
+
+// 密码强度类型
+export interface PasswordStrength {
+  score: number; // 0-4
+  label: '弱' | '中等' | '强';
+  color: string;
+  requirements: {
+    hasMinLength: boolean;
+    hasUppercase: boolean;
+    hasLowercase: boolean;
+    hasNumber: boolean;
+    hasSpecial: boolean;
+  };
 }
 
 export interface PaginatedUsers {

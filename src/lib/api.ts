@@ -27,9 +27,18 @@ export async function post<T = unknown>(
       ? undefined
       : JSON.stringify(data);
 
+  // 如果是 URLSearchParams 或 FormData，设置正确的 Content-Type
+  const headers = { ...options?.headers };
+  if (data instanceof URLSearchParams) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
+  } else if (data instanceof FormData) {
+    // FormData 不需要手动设置 Content-Type，fetch 会自动设置
+  }
+
   return baseRequest<T>(endpoint, {
     method: 'POST',
     body,
+    headers,
     ...options,
   });
 }

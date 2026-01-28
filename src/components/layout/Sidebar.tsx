@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp } from 'lucide-react';
-import { logout } from '@/lib/auth';
 import profileImage from '@/assets/male.jpg';
 import { useUserStore } from '@/stores/userStore';
 
@@ -24,7 +23,7 @@ export function Sidebar() {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { currentUser, isSuperuser } = useUserStore();
+  const { currentUser, isSuperuser, logout } = useUserStore();
 
   // 点击外部关闭菜单
   useEffect(() => {

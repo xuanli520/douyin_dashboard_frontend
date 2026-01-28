@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2, UserPlus } from 'lucide-react';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
-import { register, handleAuthError } from '@/lib/auth';
+import { register, handleAuthError, checkPasswordStrength } from '@/services/userService';
 
 interface RegisterPageProps {
   onSwitchToLogin?: () => void;
@@ -34,6 +34,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<ReturnType<typeof checkPasswordStrength> | null>(null);
 
   const formRef = useRef(null);
   const isInView = useInView(formRef, { once: true, amount: 0.3 });
@@ -56,8 +57,14 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
       return;
     }
 
-    if (password.length < 6) {
-      setError('密码长度至少为6位');
+    if (password.length < 8) {
+      setError('密码长度至少为8位');
+      return;
+    }
+
+    const strength = checkPasswordStrength(password);
+    if (strength.score < 2) {
+      setError('密码强度不足，请包含大小写字母、数字和特殊字符');
       return;
     }
 
@@ -255,12 +262,15 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setPasswordStrength(checkPasswordStrength(e.target.value));
+                      }}
                       className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 pr-12 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-pink-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light tracking-widest"
                       placeholder="••••••••"
                       disabled={loading}
                       required
-                      minLength={6}
+                      minLength={8}
                     />
                     <button
                       type="button"
@@ -271,6 +281,43 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
                     </button>
                   </div>
                   <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-pink-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
+
+                  {/* 密码强度指示器 */}
+                  {password && (
+                    <div className="mt-3 space-y-2">
+                      {/* 强度条 */}
+                      <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${passwordStrength?.color || 'bg-red-500'}`}
+                          style={{ width: `${((passwordStrength?.score || 0) + 1) * 20}%` }}
+                        />
+                      </div>
+                      {/* 强度文字 */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={passwordStrength?.label === '弱' ? 'text-red-400' : passwordStrength?.label === '中等' ? 'text-yellow-400' : 'text-green-400'}>
+                          强度: {passwordStrength?.label || '弱'}
+                        </span>
+                        <span className="text-slate-500">
+                          {password.length}/8+ 字符
+                        </span>
+                      </div>
+                      {/* 密码要求列表 */}
+                      <div className="grid grid-cols-2 gap-1 text-xs text-slate-500">
+                        <div className={`flex items-center gap-1 ${passwordStrength?.requirements.hasUppercase ? 'text-green-400' : ''}`}>
+                          <span className={passwordStrength?.requirements.hasUppercase ? 'text-green-400' : 'text-slate-600'}>[A-Z]</span> 大写字母
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength?.requirements.hasLowercase ? 'text-green-400' : ''}`}>
+                          <span className={passwordStrength?.requirements.hasLowercase ? 'text-green-400' : 'text-slate-600'}>[a-z]</span> 小写字母
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength?.requirements.hasNumber ? 'text-green-400' : ''}`}>
+                          <span className={passwordStrength?.requirements.hasNumber ? 'text-green-400' : 'text-slate-600'}>[0-9]</span> 数字
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength?.requirements.hasSpecial ? 'text-green-400' : ''}`}>
+                          <span className={passwordStrength?.requirements.hasSpecial ? 'text-green-400' : 'text-slate-600'}>[!@#$]</span> 特殊字符
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 确认密码 */}
