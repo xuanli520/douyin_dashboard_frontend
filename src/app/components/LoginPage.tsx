@@ -7,7 +7,8 @@ import { Eye, EyeOff, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
-import { login, handleAuthError } from '@/services/userService';
+import { handleAuthError } from '@/services/userService';
+import { useUserStore } from '@/stores/userStore';
 import RegisterPage from './RegisterPage';
 
 const CAPTCHA_REGION = 'cn';
@@ -50,6 +51,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [captchaLoading, setCaptchaLoading] = useState(true);
   const [retryCaptcha, setRetryCaptcha] = useState(0);
 
+  const { login: storeLogin, error: userError } = useUserStore();
+
   const formRef = useRef(null);
   const isMountedRef = useRef(true);
   const scriptLoaderRef = useRef<Promise<void> | null>(null);
@@ -75,7 +78,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   useEffect(() => {
     const originalError = console.error;
     const patched = (...args: unknown[]) => {
-      if (args.length && typeof args[0] === 'string' && args[0].startsWith('[NaN')) {
+      const shouldIgnore = args.some((arg) => {
+        try {
+          const text =
+            typeof arg === 'string'
+              ? arg
+              : arg instanceof Error && typeof arg.message === 'string'
+              ? arg.message
+              : String(arg);
+          return text.trim().startsWith('[NaN');
+        } catch {
+          return true;
+        }
+      });
+      if (shouldIgnore) {
         return;
       }
       originalError(...args);
@@ -117,7 +133,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       setLoading(true);
 
       try {
-        await login(params);
+        const success = await storeLogin(params);
+        if (!success) {
+          setError(userError || '登录失败');
+          toast.error('登录失败', {
+            description: userError || '请检查账号、密码或验证码',
+          });
+          return;
+        }
         if (onLogin) {
           onLogin();
         } else {
