@@ -10,6 +10,7 @@ export interface User {
   is_active: boolean;
   is_superuser: boolean;
   is_verified: boolean;
+  permissions?: string[];
   created_at?: string;
   updated_at?: string;
 }

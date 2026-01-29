@@ -1,0 +1,243 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+import { 
+  UserStats, 
+  UserFilter, 
+  UserTable, 
+  AssignRolesDialog, 
+  ResetPasswordDialog 
+} from './_components';
+import { useQueryState, QueryCodec } from '../_components/common/QueryState';
+import { 
+  getUsers, 
+  getUserStats, 
+  deleteUser, 
+  UserListParams, 
+  UserStats as UserStatsType,
+  createUser,
+  updateUser
+} from '@/services/adminService';
+import { User, UserCreate, UserUpdate } from '@/types/user';
+import { PermissionGate } from '../_components/common/PermissionGate';
+import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
+import { Button } from '@/app/components/ui/button';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { UserFormDialog } from '@/app/components/UserFormDialog'; // Reuse existing component
+
+const userQueryCodec: QueryCodec<UserListParams> = {
+  parse: (sp) => ({
+    page: Number(sp.get('page')) || 1,
+    size: Number(sp.get('size')) || 20,
+    username: sp.get('username') || undefined,
+    email: sp.get('email') || undefined,
+    is_active: sp.get('is_active') === 'true' ? true : sp.get('is_active') === 'false' ? false : undefined,
+    is_superuser: sp.get('is_superuser') === 'true' ? true : sp.get('is_superuser') === 'false' ? false : undefined,
+    role_id: sp.get('role_id') ? Number(sp.get('role_id')) : undefined,
+  }),
+  serialize: (state) => ({
+    page: state.page?.toString(),
+    size: state.size?.toString(),
+    username: state.username,
+    email: state.email,
+    is_active: state.is_active === undefined ? undefined : String(state.is_active),
+    is_superuser: state.is_superuser === undefined ? undefined : String(state.is_superuser),
+    role_id: state.role_id?.toString(),
+  }),
+  resetPageOnChangeKeys: ['username', 'email', 'is_active', 'is_superuser', 'role_id', 'size']
+};
+
+export default function UsersPage() {
+  const [query, setQuery] = useQueryState(userQueryCodec);
+  
+  const [data, setData] = useState<User[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState<UserStatsType>({ total: 0, active: 0, inactive: 0, superusers: 0 });
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
+  
+  // Selection state
+  const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
+
+  // Dialog states
+  const [userFormOpen, setUserFormOpen] = useState(false);
+  const [userFormMode, setUserFormMode] = useState<'create' | 'edit'>('create');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  
+  const [assignRolesOpen, setAssignRolesOpen] = useState(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [targetUser, setTargetUser] = useState<User | null>(null);
+  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch data
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await getUsers(query);
+      setData(res.items || []); // Handle case where items might be undefined if API format differs
+      setTotal(res.total);
+    } catch (error) {
+      toast.error('获取用户列表失败');
+      setData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query]);
+
+  // Fetch stats (debounced or on query change less frequently? Plan says "based on current filter")
+  const fetchStats = useCallback(async () => {
+    try {
+      setIsStatsLoading(true);
+      const res = await getUserStats(query, total);
+      setStats(res);
+    } catch (error) {
+      console.error("Failed to fetch stats", error);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, [query, total]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Handlers
+  const handleCreate = () => {
+    setEditingUser(null);
+    setUserFormMode('create');
+    setUserFormOpen(true);
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setUserFormMode('edit');
+    setUserFormOpen(true);
+  };
+
+  const handleDelete = (user: User) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deleteUser(userToDelete.id);
+      toast.success('删除成功');
+      setDeleteDialogOpen(false);
+      fetchData(); // Refresh list
+    } catch (error: any) {
+      toast.error(error.message || '删除失败');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleAssignRoles = (user: User) => {
+    setTargetUser(user);
+    setAssignRolesOpen(true);
+  };
+
+  const handleResetPassword = (user: User) => {
+    setTargetUser(user);
+    setResetPasswordOpen(true);
+  };
+
+  const handleUserFormSubmit = async (data: UserCreate | UserUpdate) => {
+    if (userFormMode === 'create') {
+      await createUser(data as UserCreate);
+      toast.success('创建用户成功');
+    } else {
+      if (!editingUser) return;
+      await updateUser(editingUser.id, data as UserUpdate);
+      toast.success('更新用户成功');
+    }
+    fetchData();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">用户管理</h1>
+        <PermissionGate require="user:create" mode="hide">
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            新建用户
+          </Button>
+        </PermissionGate>
+      </div>
+
+      <UserStats stats={stats} isLoading={isStatsLoading} />
+
+      <UserFilter 
+        value={query} 
+        onChange={setQuery} 
+        onReset={() => setQuery({ 
+             page: 1, 
+             size: 20, 
+             username: undefined, 
+             email: undefined, 
+             is_active: undefined, 
+             is_superuser: undefined, 
+             role_id: undefined 
+        }, { resetPage: true })}
+      />
+
+      <UserTable
+        data={data}
+        isLoading={isLoading}
+        pagination={{ page: query.page || 1, size: query.size || 20, total }}
+        onPageChange={(page) => setQuery({ page })}
+        onSizeChange={(size) => setQuery({ size, page: 1 })}
+        selectedKeys={selectedKeys}
+        onSelectionChange={setSelectedKeys}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAssignRoles={handleAssignRoles}
+        onResetPassword={handleResetPassword}
+      />
+
+      <UserFormDialog
+        isOpen={userFormOpen}
+        onClose={() => setUserFormOpen(false)}
+        onSubmit={handleUserFormSubmit}
+        user={editingUser}
+        mode={userFormMode}
+      />
+
+      <AssignRolesDialog
+        open={assignRolesOpen}
+        onOpenChange={setAssignRolesOpen}
+        user={targetUser}
+        onSuccess={fetchData}
+      />
+
+      <ResetPasswordDialog
+        open={resetPasswordOpen}
+        onOpenChange={setResetPasswordOpen}
+        user={targetUser}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        description={
+            userToDelete 
+            ? `确定要删除用户 "${userToDelete.username}" 吗？此操作无法撤销。` 
+            : undefined
+        }
+      />
+    </div>
+  );
+}

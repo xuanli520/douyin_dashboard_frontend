@@ -10,6 +10,7 @@ const protectedRoutes = [
   '/risk-alert',
   '/task-schedule',
   '/user-permission',
+  '/admin',
 ];
 
 // 公开的路由（无需登录即可访问）

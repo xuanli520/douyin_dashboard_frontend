@@ -4,9 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp } from 'lucide-react';
+import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, Users, Shield, Key } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import { useUserStore } from '@/stores/userStore';
+import { can } from '@/lib/rbac';
 
 const menuItems = [
   { id: 'dashboard', label: '首页', icon: Home, href: '/dashboard' },
@@ -15,7 +16,10 @@ const menuItems = [
   { id: 'reports', label: '定期报表', icon: FileText, href: '/reports' },
   { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: '/risk-alert' },
   { id: 'data-source', label: '数据源管理', icon: Database, href: '/data-source' },
-  { id: 'user-permission', label: '用户管理', icon: Settings, href: '/user-permission' },
+  // { id: 'user-permission', label: '用户管理', icon: Settings, href: '/user-permission' }, // Deprecated in favor of admin/users
+  { id: 'admin-users', label: '用户管理', icon: Users, href: '/admin/users', perm: 'user:read' },
+  { id: 'admin-roles', label: '角色管理', icon: Shield, href: '/admin/roles', perm: 'role:read' },
+  { id: 'admin-permissions', label: '权限管理', icon: Key, href: '/admin/permissions', perm: 'permission:read' },
 ];
 
 export function Sidebar() {
@@ -54,7 +58,10 @@ export function Sidebar() {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#C8FDE6]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       <nav className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto scrollbar-none">
-        {menuItems.map((item) => {
+        {menuItems.filter(item => {
+          if (!item.perm) return true;
+          return can({ is_superuser: isSuperuser, permissions: currentUser?.permissions }, item.perm);
+        }).map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
           return (
