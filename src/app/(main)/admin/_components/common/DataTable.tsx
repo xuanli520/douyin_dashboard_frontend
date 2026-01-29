@@ -179,20 +179,21 @@ export function DataTable<T>({
     <div className={cn("space-y-4", className)}>
       {toolbar && <div className="flex items-center justify-between">{toolbar}</div>}
       
-      <div className="rounded-md border">
+      <div className="rounded-md border border-slate-200 bg-white dark:rounded-none dark:border-0 dark:bg-slate-950/30 dark:backdrop-blur-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/80 dark:border-slate-800">
+            <TableRow className="hover:bg-transparent border-slate-200 dark:border-slate-800">
               {rowSelection && (
-                <TableHead className="w-[50px]">
+                <TableHead className="w-[50px] text-slate-500 dark:text-cyan-600/70">
                   <Checkbox 
+                    className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                     checked={isAllSelected || (isPartiallySelected ? "indeterminate" : false)}
                     onCheckedChange={(checked) => handleSelectAll(checked === true)}
                   />
                 </TableHead>
               )}
               {columns.map(col => (
-                <TableHead key={col.key} style={{ width: col.width }}>
+                <TableHead key={col.key} style={{ width: col.width }} className="text-slate-500 font-medium text-xs uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
                   {col.header}
                 </TableHead>
               ))}
@@ -202,24 +203,24 @@ export function DataTable<T>({
             {isLoading ? (
               // Loading Skeleton
               Array.from({ length: Math.min(pagination.size, 5) }).map((_, i) => (
-                <TableRow key={i}>
-                  {rowSelection && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                <TableRow key={i} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
+                  {rowSelection && <TableCell><Skeleton className="h-4 w-4 bg-slate-200 dark:bg-slate-800" /></TableCell>}
                   {columns.map((col, j) => (
                     <TableCell key={j}>
-                      <Skeleton className="h-4 w-[80%]" />
+                      <Skeleton className="h-4 w-[80%] bg-slate-200 dark:bg-slate-800" />
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 text-center text-red-500">
+                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 text-center text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-950/10 dark:border-slate-800">
                   {error}
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24">
+                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 border-slate-100 dark:border-slate-800">
                   <EmptyState />
                 </TableCell>
               </TableRow>
@@ -228,17 +229,22 @@ export function DataTable<T>({
                 const key = rowKey(row);
                 const isSelected = rowSelection?.selectedKeys.includes(key);
                 return (
-                  <TableRow key={key} data-state={isSelected ? "selected" : undefined}>
+                  <TableRow 
+                    key={key} 
+                    data-state={isSelected ? "selected" : undefined}
+                    className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-cyan-950/20 dark:hover:shadow-[inset_2px_0_0_0_rgba(34,211,238,0.5)] transition-all duration-200 group data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-cyan-950/30"
+                  >
                     {rowSelection && (
                       <TableCell>
                         <Checkbox 
+                          className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                           checked={isSelected}
                           onCheckedChange={(checked) => handleSelectRow(key, checked === true)}
                         />
                       </TableCell>
                     )}
                     {columns.map(col => (
-                      <TableCell key={col.key}>
+                      <TableCell key={col.key} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors py-3 font-normal dark:font-light">
                         {col.render(row)}
                       </TableCell>
                     ))}

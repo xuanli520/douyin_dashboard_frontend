@@ -38,29 +38,32 @@ export function UserTable({
     {
       key: 'username',
       header: '用户名',
-      render: (user) => <span className="font-medium">{user.username}</span>,
+      render: (user) => <span className="font-mono font-medium text-cyan-600 dark:text-cyan-300">{user.username}</span>,
     },
     {
       key: 'email',
       header: '邮箱',
-      render: (user) => <span>{user.email}</span>,
+      render: (user) => <span className="text-slate-500 dark:text-slate-400">{user.email}</span>,
     },
     {
       key: 'roles',
       header: '角色',
       render: (user) => {
           if (user.is_superuser) {
-              return <Badge variant="default" className="bg-cyan-600 hover:bg-cyan-700">超级管理员</Badge>
+              return <Badge variant="default" className="bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/50 dark:shadow-[0_0_10px_rgba(168,85,247,0.2)] hover:bg-purple-200 dark:hover:bg-purple-500/20 transition-all">超级管理员</Badge>
           }
-          // Assuming user.roles exists, otherwise show '用户'
-          return <Badge variant="secondary">普通用户</Badge>
+          return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">普通用户</Badge>
       },
     },
     {
       key: 'is_active',
       header: '状态',
       render: (user) => (
-        <Badge variant={user.is_active ? 'outline' : 'destructive'} className={user.is_active ? "text-green-600 border-green-600" : ""}>
+        <Badge variant={user.is_active ? 'outline' : 'destructive'} className={
+            user.is_active 
+            ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/50 dark:shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:bg-emerald-200 dark:hover:bg-emerald-500/20 transition-all" 
+            : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/50 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:bg-red-200 dark:hover:bg-red-500/20 transition-all"
+        }>
           {user.is_active ? '正常' : '禁用'}
         </Badge>
       ),
@@ -71,7 +74,7 @@ export function UserTable({
       render: (user) => {
         if (!user.created_at) return '-';
         try {
-            return format(new Date(user.created_at), 'yyyy-MM-dd HH:mm');
+            return <span className="font-mono text-xs text-slate-500">{format(new Date(user.created_at), 'yyyy-MM-dd HH:mm')}</span>;
         } catch {
             return user.created_at;
         }

@@ -165,11 +165,13 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">用户管理</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          
+        </h1>
         <PermissionGate require="user:create" mode="hide">
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm rounded-md dark:bg-cyan-600/80 dark:hover:bg-cyan-500 dark:border dark:border-cyan-400/50 dark:shadow-[0_0_15px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all duration-300 dark:rounded-none dark:clip-path-polygon">
             <Plus className="mr-2 h-4 w-4" />
             新建用户
           </Button>
