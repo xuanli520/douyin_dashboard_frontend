@@ -3,43 +3,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import pigFishIcon from '@/assets/profile.jpg';
 import oceanBg from '@/assets/backgrond.jpg';
 import { handleAuthError } from '@/services/userService';
 import { useUserStore } from '@/stores/userStore';
 import RegisterPage from './RegisterPage';
-
-const CAPTCHA_REGION = 'cn';
-const CAPTCHA_PREFIX = '1fs7dl';
-const CAPTCHA_SCENE_ID = '71tobb9u';
-
-const isNaNConsolePayload = (value: unknown): boolean => {
-  if (typeof value === 'number') {
-    return Number.isNaN(value);
-  }
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.startsWith('[NaN') || trimmed === 'NaN';
-  }
-  if (value instanceof Error) {
-    return isNaNConsolePayload(value.message);
-  }
-  if (Array.isArray(value)) {
-    return value.some(isNaNConsolePayload);
-  }
-  return false;
-};
-
-const generateUserCertifyId = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let rand = '';
-  for (let i = 0; i < 10; i += 1) {
-    rand += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `${CAPTCHA_PREFIX}_${rand}`;
-};
 
 interface LoginPageProps {
   onLogin?: () => void;
@@ -56,6 +26,11 @@ const PARTICLES = Array.from({ length: 15 }).map((_, i) => ({
   delay: Math.random() * 5,
 }));
 
+// 阿里云验证码2.0配置
+const CAPTCHA_REGION = 'cn';
+const CAPTCHA_PREFIX = '1fs7dl';
+const CAPTCHA_SCENE_ID = '71tobb9u';
+
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [username, setUsername] = useState('');
@@ -64,24 +39,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [captchaInstance, setCaptchaInstance] = useState<AliyunCaptchaInstance | null>(null);
-  const [captchaLoading, setCaptchaLoading] = useState(true);
-  const [retryCaptcha, setRetryCaptcha] = useState(0);
 
   const { login: storeLogin, error: userError } = useUserStore();
 
+  const captchaRef = useRef<any>(null);
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false);
+
   const formRef = useRef(null);
   const isMountedRef = useRef(true);
-  const scriptLoaderRef = useRef<Promise<void> | null>(null);
-  const captchaInitializedRef = useRef(false);
   const isInView = useInView(formRef, { once: true, amount: 0.3 });
   const router = useRouter();
   const searchParams = useSearchParams();
-  // 页面加载时重置凭据，防止自动登录
   const pendingCredentialsRef = useRef<{ username: string; password: string } | null>(null);
   const latestCredentialsRef = useRef<{ username: string; password: string }>({ username: '', password: '' });
 
-  // 组件挂载时清空挂起的凭据
   useEffect(() => {
     pendingCredentialsRef.current = null;
   }, []);
@@ -93,49 +64,74 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   }, []);
 
   useEffect(() => {
-    const originalError = console.error;
-    const patched = (...args: unknown[]) => {
-      if (args.some(isNaNConsolePayload)) {
-        return;
-      }
-      try {
-        const combined = args.map((arg) => String(arg)).join(' ');
-        if (combined.trim().startsWith('[NaN')) {
-          return;
-        }
-      } catch {
-        return;
-      }
-      originalError(...args);
-    };
-    console.error = patched;
-    return () => {
-      console.error = originalError;
-    };
-  }, []);
-
-  useEffect(() => {
     latestCredentialsRef.current = { username, password };
   }, [username, password]);
 
-  // 重试加载验证码
-  const handleRetryCaptcha = () => {
-    setError(null);
-    setCaptchaLoading(true);
-    setRetryCaptcha(prev => prev + 1);
-    const oldScript = document.querySelector('script[src*="aliyunCaptcha"]');
-    if (oldScript) {
-      oldScript.remove();
-    }
-    scriptLoaderRef.current = null;
-    captchaInitializedRef.current = false;
-    delete (window as unknown as { initAliyunCaptcha?: typeof window.initAliyunCaptcha }).initAliyunCaptcha;
-    setCaptchaInstance(null);
-  };
+  // 阿里云验证码2.0 初始化
+  useEffect(() => {
+    // 设置验证码配置
+    (window as any).AliyunCaptchaConfig = {
+      region: CAPTCHA_REGION,
+      prefix: CAPTCHA_PREFIX,
+    };
+
+    // 动态加载验证码JS
+    const loadCaptcha = () => {
+      return new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
+        script.async = true;
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+      });
+    };
+
+    const initCaptcha = async () => {
+      try {
+        await loadCaptcha();
+
+        // 等待DOM就绪
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!(window as any).initAliyunCaptcha) {
+          console.error('initAliyunCaptcha 未定义');
+          return;
+        }
+
+        (window as any).initAliyunCaptcha({
+          SceneId: CAPTCHA_SCENE_ID,
+          mode: 'popup',
+          element: '#captcha-element',
+          button: '#login-button',
+          success: async (captchaVerifyParam: string) => {
+            const credentials = latestCredentialsRef.current;
+            if (credentials.username && credentials.password) {
+              await handleLoginLogic({
+                username: credentials.username,
+                password: credentials.password,
+                captchaVerifyParam,
+              });
+            }
+          },
+          fail: (result: any) => {
+            console.error('验证码失败:', result);
+            toast.error('验证码验证失败，请重试');
+          },
+          getInstance: (instance: any) => {
+            captchaRef.current = instance;
+            setIsCaptchaReady(true);
+          },
+        });
+      } catch (error) {
+        console.error('验证码初始化失败:', error);
+      }
+    };
+
+    initCaptcha();
+  }, []);
 
   const handleLoginLogic = useCallback(
     async (params: { username: string; password: string; captchaVerifyParam?: string }) => {
-      // 验证凭据有效性
       if (!params.username || !params.password) {
         pendingCredentialsRef.current = null;
         return;
@@ -149,7 +145,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         if (!success) {
           setError(userError || '登录失败');
           toast.error('登录失败', {
-            description: userError || '请检查账号、密码或验证码',
+            description: userError || '请检查账号和密码',
           });
           return;
         }
@@ -172,7 +168,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         pendingCredentialsRef.current = null;
       }
     },
-    [onLogin, router, searchParams]
+    [onLogin, router, searchParams, userError, storeLogin]
   );
 
   const handleLoginLogicRef = useRef(handleLoginLogic);
@@ -180,153 +176,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   useEffect(() => {
     handleLoginLogicRef.current = handleLoginLogic;
   }, [handleLoginLogic]);
-
-  const applyGlobalCaptchaConfig = useCallback(() => {
-    const target = window as unknown as { AliyunCaptchaConfig?: { region: string; prefix: string } };
-    if (!target.AliyunCaptchaConfig) {
-      target.AliyunCaptchaConfig = {
-        region: CAPTCHA_REGION,
-        prefix: CAPTCHA_PREFIX,
-      };
-    } else {
-      target.AliyunCaptchaConfig.region = CAPTCHA_REGION;
-      target.AliyunCaptchaConfig.prefix = CAPTCHA_PREFIX;
-    }
-  }, []);
-
-  const loadCaptchaScript = useCallback(() => {
-    if (scriptLoaderRef.current) {
-      return scriptLoaderRef.current;
-    }
-
-    scriptLoaderRef.current = new Promise<void>((resolve, reject) => {
-      const existingScript = document.querySelector('script[src*="aliyunCaptcha"]') as HTMLScriptElement | null;
-      if (existingScript?.getAttribute('data-aliyun-captcha') === 'loaded') {
-        resolve();
-        return;
-      }
-
-      const script = existingScript ?? document.createElement('script');
-      script.src = 'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-
-      const timeoutId = window.setTimeout(() => {
-        scriptLoaderRef.current = null;
-        if (!existingScript) {
-          script.remove();
-        }
-        reject(new Error('captcha_script_timeout'));
-      }, 10000);
-
-      script.onload = () => {
-        window.clearTimeout(timeoutId);
-        script.setAttribute('data-aliyun-captcha', 'loaded');
-        resolve();
-      };
-
-      script.onerror = () => {
-        window.clearTimeout(timeoutId);
-        scriptLoaderRef.current = null;
-        if (!existingScript) {
-          script.remove();
-        }
-        reject(new Error('captcha_script_error'));
-      };
-
-      if (!existingScript) {
-        document.head.appendChild(script);
-      }
-    });
-
-    return scriptLoaderRef.current;
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const bootstrapCaptcha = async () => {
-      setError(null);
-      setCaptchaLoading(true);
-      applyGlobalCaptchaConfig();
-
-      try {
-        await loadCaptchaScript();
-        if (cancelled || !isMountedRef.current) {
-          return;
-        }
-
-        const initFn = (window as unknown as { initAliyunCaptcha?: typeof window.initAliyunCaptcha }).initAliyunCaptcha;
-        const captchaElement = document.getElementById('captcha-element');
-
-        if (!captchaElement || typeof initFn !== 'function') {
-          throw new Error('captcha_init_unavailable');
-        }
-
-        if (captchaInitializedRef.current && captchaInstance) {
-          setCaptchaLoading(false);
-          return;
-        }
-
-        initFn({
-          SceneId: CAPTCHA_SCENE_ID,
-          mode: 'popup',
-          element: '#captcha-element',
-          button: '#login-submit',
-          prefix: CAPTCHA_PREFIX,
-          region: CAPTCHA_REGION,
-          language: 'cn',
-          slideStyle: { width: 360, height: 40 },
-          showErrorTip: true,
-          delayBeforeSuccess: true,
-          timeout: 8000,
-          UserCertifyId: generateUserCertifyId(),
-          success: (captchaVerifyParam: string) => {
-            const creds = pendingCredentialsRef.current ?? latestCredentialsRef.current;
-            if (creds.username && creds.password) {
-              handleLoginLogicRef.current({
-                ...creds,
-                captchaVerifyParam,
-              });
-            }
-          },
-          fail: () => {
-            setError('验证未通过，请重试');
-          },
-          getInstance: (instance) => {
-            if (!isMountedRef.current || cancelled) return;
-            captchaInitializedRef.current = true;
-            setCaptchaInstance(instance);
-            setCaptchaLoading(false);
-          },
-          onError: (errorInfo) => {
-            if (!isMountedRef.current || cancelled) return;
-            const message = errorInfo?.msg || '验证码初始化异常，请重试';
-            setError(message);
-            setCaptchaLoading(false);
-          },
-          onClose: () => {
-            pendingCredentialsRef.current = null;
-          },
-        });
-
-        if (!captchaInitializedRef.current) {
-          setCaptchaLoading(false);
-        }
-      } catch (err) {
-        if (!isMountedRef.current || cancelled) return;
-        console.error('Failed to initialize captcha:', err);
-        setCaptchaLoading(false);
-        setError('验证码服务加载失败，请检查网络后重试');
-      }
-    };
-
-    bootstrapCaptcha();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [applyGlobalCaptchaConfig, loadCaptchaScript, retryCaptcha]);
 
   // 鼠标视差效果逻辑
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -343,18 +192,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
 
+    // 必须通过验证码验证才能登录
+    if (!captchaRef.current || !isCaptchaReady) {
+      toast.error('验证码加载中，请稍候');
+      return;
+    }
+
     const credentials = { username, password };
     pendingCredentialsRef.current = credentials;
 
-    if (captchaInstance) {
-      captchaInstance.show();
-    } else if (captchaLoading) {
-      // 验证码还在加载中
-      setError('安全验证服务正在加载，请稍候...');
-    } else {
-      // 验证码加载失败
-      setError('安全验证服务加载失败，请点击下方按钮重试或检查网络连接');
-    }
+    // 触发验证码
+    captchaRef.current.show();
   };
 
   if (isRegisterMode) {
@@ -503,36 +351,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex flex-col gap-2 text-red-400 text-sm"
+                className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-400 text-sm"
               >
-                <div className="flex items-center gap-2">
-                  <AlertCircle size={16} />
-                  <span>{error}</span>
-                </div>
-                {(error.includes('验证码') || error.includes('网络')) && (
-                  <button
-                    type="button"
-                    onClick={handleRetryCaptcha}
-                    className="flex items-center gap-1 text-xs text-red-300 hover:text-red-200 transition-colors mt-1"
-                  >
-                    <RefreshCw size={12} />
-                    点击重试加载验证码
-                  </button>
-                )}
+                <AlertCircle size={16} />
+                <span>{error}</span>
               </motion.div>
             )}
 
-            {/* 验证码加载状态 */}
-            {captchaLoading && !error && (
-              <div className="mb-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-2 text-cyan-400 text-sm">
-                <Loader2 size={16} className="animate-spin" />
-                <span>正在加载安全验证服务...</span>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 验证码挂载点 */}
-              <div id="captcha-element"></div>
               <div className="space-y-6">
                 {/* 用户名 */}
                 <div className="group relative">
@@ -583,17 +409,25 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 <a href="#" className="hover:text-cyan-200 transition-colors border-b border-transparent hover:border-cyan-200/30 pb-0.5">忘记密钥?</a>
               </div>
 
+              {/* 阿里云验证码容器 */}
+              <div id="captcha-element" style={{ display: 'none' }}></div>
+
               <motion.button
-                whileHover={{ scale: loading ? 1 : 1.01 }}
-                whileTap={{ scale: loading ? 1 : 0.99 }}
+                id="login-button"
+                whileHover={{ scale: loading || !isCaptchaReady ? 1 : 1.01 }}
+                whileTap={{ scale: loading || !isCaptchaReady ? 1 : 0.99 }}
                 type="submit"
-                id="login-submit"
-                disabled={loading}
+                disabled={loading || !isCaptchaReady}
                 className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 p-[1px]"
               >
                 <div className="relative bg-[#0b1221] group-hover:bg-opacity-90 transition-all rounded-[11px] py-4 flex items-center justify-center gap-2">
                   {loading ? (
                     <Loader2 size={18} className="animate-spin text-cyan-400" />
+                  ) : !isCaptchaReady ? (
+                    <span className="relative z-10 flex items-center justify-center gap-2 text-cyan-200/60 font-medium tracking-widest uppercase text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      验证加载中
+                    </span>
                   ) : (
                     <>
                       <span className="relative z-10 flex items-center justify-center gap-2 text-white font-medium tracking-widest uppercase text-sm">
@@ -603,7 +437,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     </>
                   )}
                 </div>
-                {!loading && (
+                {!loading && isCaptchaReady && (
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500" />
                 )}
               </motion.button>
