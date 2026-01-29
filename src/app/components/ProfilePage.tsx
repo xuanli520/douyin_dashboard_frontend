@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Save, Camera, User, Mail, Phone, Building, Shield, Award, Loader2, UserCheck } from 'lucide-react';
 import maleAvatar from '@/assets/male.jpg';
+import femaleAvatar from '@/assets/female.jpg';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { useUserStore } from '@/stores/userStore';
@@ -118,16 +119,24 @@ export default function ProfilePage() {
           {/* Left Column: Avatar & Status */}
           <div className="flex flex-col items-center gap-6 md:w-1/3">
             <div className="relative group">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-200 dark:border-slate-800 shadow-[0_0_20px_rgba(34,211,238,0.3)] group-hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all duration-500">
+              <div className={`w-32 h-32 rounded-full overflow-hidden border-4 border-slate-200 dark:border-slate-800 transition-all duration-500 ${
+                formData.gender === 'female'
+                  ? 'shadow-[0_0_20px_rgba(244,114,182,0.6)] group-hover:shadow-[0_0_30px_rgba(244,114,182,0.8)]'
+                  : 'shadow-[0_0_20px_rgba(34,211,238,0.3)] group-hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]'
+              }`}>
                 <Image
-                  src={maleAvatar}
+                  src={formData.gender === 'female' ? femaleAvatar : maleAvatar}
                   alt="用户头像"
                   width={128}
                   height={128}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
-              <button className="absolute bottom-0 right-0 w-10 h-10 bg-cyan-600 rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-colors border-2 border-white dark:border-[#050714] shadow-lg group-hover:scale-110">
+              <button className={`absolute bottom-0 right-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors border-2 border-white dark:border-[#050714] shadow-lg group-hover:scale-110 ${
+                formData.gender === 'female'
+                  ? 'bg-pink-500 hover:bg-pink-400'
+                  : 'bg-cyan-600 hover:bg-cyan-500'
+              }`}>
                 <Camera size={18} />
               </button>
             </div>
