@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { GlassCard } from '@/app/components/ui/glass-card';
 import type { User, UserCreate, UserUpdate } from '@/types/user';
 
 interface UserFormDialogProps {
@@ -87,15 +86,15 @@ export function UserFormDialog({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <GlassCard className="w-full max-w-lg max-h-[90vh] flex flex-col p-0 border border-cyan-500/20 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
-        <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-white/[0.02]">
+      <div className="w-full max-w-lg max-h-[90vh] flex flex-col bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               {title}
             </h2>
             {user && mode !== 'create' && (
               <p className="text-xs text-slate-500 font-mono">
-                User ID: {user.id}
+                用户 ID: {user.id}
               </p>
             )}
           </div>
@@ -127,7 +126,7 @@ export function UserFormDialog({
               }
               required
               disabled={mode === 'permissions'}
-              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
               placeholder="请输入用户名"
             />
           </div>
@@ -145,7 +144,7 @@ export function UserFormDialog({
               }
               required
               disabled={mode === 'permissions'}
-              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
               placeholder="请输入邮箱"
             />
           </div>
@@ -162,7 +161,7 @@ export function UserFormDialog({
                 setFormData({ ...formData, phone: e.target.value })
               }
               disabled={mode === 'permissions'}
-              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
               placeholder="请输入手机号"
             />
           </div>
@@ -178,7 +177,7 @@ export function UserFormDialog({
                 setFormData({ ...formData, gender: e.target.value })
               }
               disabled={mode === 'permissions'}
-              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
             >
               <option value="">请选择</option>
               <option value="male">男</option>
@@ -200,7 +199,7 @@ export function UserFormDialog({
                 setFormData({ ...formData, department: e.target.value })
               }
               disabled={mode === 'permissions'}
-              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 disabled:opacity-50"
               placeholder="请输入部门"
             />
           </div>
@@ -219,7 +218,7 @@ export function UserFormDialog({
                 }
                 required
                 minLength={8}
-                className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200"
+                className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200"
                 placeholder="请输入密码（至少8位）"
               />
             </div>
@@ -289,7 +288,7 @@ export function UserFormDialog({
           )}
         </form>
 
-        <div className="px-6 py-5 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-3 bg-slate-50 dark:bg-white/[0.02]">
+        <div className="px-6 py-5 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
           <button
             type="button"
             onClick={onClose}
@@ -305,7 +304,7 @@ export function UserFormDialog({
             {isLoading ? '处理中...' : mode === 'create' ? '创建' : '保存'}
           </button>
         </div>
-      </GlassCard>
+      </div>
     </div>
   );
 }

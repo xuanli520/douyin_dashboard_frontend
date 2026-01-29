@@ -50,7 +50,7 @@ export function UserTable({
       header: '角色',
       render: (user) => {
           if (user.is_superuser) {
-              return <Badge variant="default" className="bg-purple-600 hover:bg-purple-700">超级管理员</Badge>
+              return <Badge variant="default" className="bg-cyan-600 hover:bg-cyan-700">超级管理员</Badge>
           }
           // Assuming user.roles exists, otherwise show '用户'
           return <Badge variant="secondary">普通用户</Badge>

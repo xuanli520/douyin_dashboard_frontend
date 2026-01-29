@@ -3,7 +3,7 @@
 import React from 'react';
 import { UserStats as UserStatsType } from '@/services/adminService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Users, UserCheck, UserX, ShieldAlert } from 'lucide-react';
+import { Users, UserCheck, UserX, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/app/components/ui/skeleton';
 
 interface UserStatsProps {
@@ -36,9 +36,9 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
     {
       title: '超级管理员',
       value: stats.superusers,
-      icon: ShieldAlert,
+      icon: ShieldCheck,
       description: '拥有最高权限',
-      className: 'text-purple-600',
+      className: 'text-cyan-600',
     },
   ];
 
