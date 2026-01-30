@@ -23,7 +23,7 @@ describe('userService API 参数修复验证', () => {
       const refreshTokenValue = 'test-refresh-token';
       const expectedUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
-      expect(expectedUrl).toBe('/auth/jwt/refresh?refresh_token=test-refresh-token');
+      expect(expectedUrl).toBe('/v1/auth/jwt/refresh?refresh_token=test-refresh-token');
       expect(expectedUrl).toContain('?refresh_token=');
       expect(expectedUrl).not.toContain('grant_type');
     });
@@ -32,7 +32,7 @@ describe('userService API 参数修复验证', () => {
       const refreshTokenValue = 'token/with=special&chars';
       const expectedUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
-      expect(expectedUrl).toBe('/auth/jwt/refresh?refresh_token=token%2Fwith%3Dspecial%26chars');
+      expect(expectedUrl).toBe('/v1/auth/jwt/refresh?refresh_token=token%2Fwith%3Dspecial%26chars');
     });
   });
 
@@ -41,7 +41,7 @@ describe('userService API 参数修复验证', () => {
       const refreshTokenValue = 'test-refresh-token';
       const expectedUrl = `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
-      expect(expectedUrl).toBe('/auth/jwt/logout?refresh_token=test-refresh-token');
+      expect(expectedUrl).toBe('/v1/auth/jwt/logout?refresh_token=test-refresh-token');
       expect(expectedUrl).toContain('?refresh_token=');
     });
 
@@ -49,7 +49,7 @@ describe('userService API 参数修复验证', () => {
       const refreshTokenValue = 'logout/token+with spaces';
       const expectedUrl = `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
-      expect(expectedUrl).toBe('/auth/jwt/logout?refresh_token=logout%2Ftoken%2Bwith%20spaces');
+      expect(expectedUrl).toBe('/v1/auth/jwt/logout?refresh_token=logout%2Ftoken%2Bwith%20spaces');
     });
   });
 

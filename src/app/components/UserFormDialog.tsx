@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Shield, User as UserIcon, Mail, Phone, Lock, Briefcase, Info } from 'lucide-react';
 import type { User, UserCreate, UserUpdate } from '@/types/user';
 
@@ -30,6 +30,37 @@ export function UserFormDialog({
     is_superuser: user?.is_superuser ?? false,
     is_verified: user?.is_verified ?? false,
   });
+
+  // 监听 user 和 mode 变化，同步更新表单数据
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        email: user.email || '',
+        password: '',
+        phone: user.phone || '',
+        gender: user.gender || '',
+        department: user.department || '',
+        is_active: user.is_active ?? true,
+        is_superuser: user.is_superuser ?? false,
+        is_verified: user.is_verified ?? false,
+      });
+    } else if (mode === 'create') {
+      // 新建模式时重置表单
+      setFormData({
+        username: '',
+        email: '',
+        password: '',
+        phone: '',
+        gender: '',
+        department: '',
+        is_active: true,
+        is_superuser: false,
+        is_verified: false,
+      });
+    }
+  }, [user, mode]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -175,18 +175,18 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
   // 创建新的刷新请求
   refreshTokenPromise = (async () => {
     try {
-      const response = await post<{ access_token: string; token_type: string }>(
+      const response = await post<ApiResponse<{ access_token: string; token_type: string }>>(
         `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
       );
 
       // 更新本地存储的 token
-      setAccessToken(response.access_token);
+      setAccessToken(response.data.access_token);
       // 设置 auth_token cookie 供 middleware 验证
       if (typeof document !== 'undefined') {
-        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24}`;
+        document.cookie = `auth_token=${response.data.access_token}; path=/; max-age=${60 * 60 * 24}`;
       }
 
-      return response;
+      return response.data;
     } finally {
       // 请求完成后清除缓存，允许下次刷新
       refreshTokenPromise = null;
@@ -213,14 +213,14 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
     formData.append('captchaVerifyParam', params.captchaVerifyParam);
   }
 
-  const response = await authPost<TokenResponse>(
+  const response = await authPost<ApiResponse<TokenResponse>>(
     API_ENDPOINTS.JWT_LOGIN,
     formData,
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 
-  storeTokens(response);
-  return response;
+  storeTokens(response.data);
+  return response.data;
 }
 
 /**

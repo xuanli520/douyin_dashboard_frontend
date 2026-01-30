@@ -3,15 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
     return [
-      // Auth routes: /api/auth/* -> http://.../auth/* (No /api prefix on backend)
+      // All API routes: /api/v1/* -> http://.../api/v1/*
       {
-        source: '/api/auth/:path*',
-        destination: 'http://100.77.18.82:8000/auth/:path*',
-      },
-      // Other routes (Admin, etc.): /api/* -> http://.../api/* (Keep /api prefix)
-      {
-        source: '/api/:path*',
-        destination: 'http://100.77.18.82:8000/api/:path*',
+        source: '/api/v1/:path*',
+        destination: 'http://100.77.18.82:8000/api/v1/:path*',
       },
     ];
   },

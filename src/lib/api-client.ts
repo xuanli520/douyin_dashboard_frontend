@@ -4,6 +4,15 @@ import { getAccessToken, setAccessToken, clearTokens, getRefreshToken } from './
 import { post } from './api';
 import { API_ENDPOINTS } from '@/config/api';
 
+/**
+ * 后端统一响应格式
+ */
+interface ApiResponse<T> {
+  code: number;
+  msg: string;
+  data: T;
+}
+
 interface RequestOptions extends RequestInit {
   _retry?: boolean;
 }
@@ -85,11 +94,11 @@ export function createAuthenticatedClient() {
             throw new Error('No refresh token available');
           }
 
-          const refreshResponse = await post<{ access_token: string; token_type: string }>(
+          const refreshResponse = await post<ApiResponse<{ access_token: string; token_type: string }>>(
             `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
           );
 
-          setAccessToken(refreshResponse.access_token);
+          setAccessToken(refreshResponse.data.access_token);
 
           // 处理等待刷新的请求
           processQueue(refreshResponse.access_token, null);

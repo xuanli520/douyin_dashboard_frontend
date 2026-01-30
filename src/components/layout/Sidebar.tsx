@@ -4,40 +4,83 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, Users, Shield, Key } from 'lucide-react';
+import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import { useUserStore } from '@/stores/userStore';
 import { can } from '@/lib/rbac';
 
-const menuItems = [
+interface MenuItem {
+  id: string;
+  label: string;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  href?: string;
+  perm?: string;
+  subItems?: MenuItem[];
+}
+
+const menuItems: MenuItem[] = [
   { id: 'dashboard', label: '首页', icon: Home, href: '/dashboard' },
   { id: 'data-analysis', label: '数据分析', icon: BarChart3, href: '/data-analysis' },
   { id: 'task-schedule', label: '任务调度', icon: Calendar, href: '/task-schedule' },
   { id: 'reports', label: '定期报表', icon: FileText, href: '/reports' },
   { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: '/risk-alert' },
   { id: 'data-source', label: '数据源管理', icon: Database, href: '/data-source' },
-  // { id: 'user-permission', label: '用户管理', icon: Settings, href: '/user-permission' }, // Deprecated in favor of admin/users
-  { id: 'admin-users', label: '用户管理', icon: Users, href: '/admin/users', perm: 'user:read' },
-  { id: 'admin-roles', label: '角色管理', icon: Shield, href: '/admin/roles', perm: 'role:read' },
-  { id: 'admin-permissions', label: '权限管理', icon: Key, href: '/admin/permissions', perm: 'permission:read' },
+  // 系统管理
+  {
+    id: 'system-management',
+    label: '系统管理',
+    icon: Settings,
+    perm: 'user:read',
+    subItems: [
+      { id: 'admin-users', label: '用户管理', icon: Users, href: '/admin/users', perm: 'user:read' },
+      { id: 'admin-roles', label: '角色管理', icon: Shield, href: '/admin/roles', perm: 'role:read' },
+      { id: 'admin-permissions', label: '权限管理', icon: Key, href: '/admin/permissions', perm: 'permission:read' },
+    ],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['system-management']);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { currentUser, isSuperuser, logout } = useUserStore();
+
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev =>
+      prev.includes(menuId)
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
+  };
 
   // 点击外部关闭菜单
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 鼠标移出侧边栏时收起子菜单
+  useEffect(() => {
+    function handleMouseLeave() {
+      setExpandedMenus([]);
+    }
+    const sidebar = sidebarRef.current;
+    if (sidebar) {
+      sidebar.addEventListener('mouseleave', handleMouseLeave);
+    }
+    return () => {
+      if (sidebar) {
+        sidebar.removeEventListener('mouseleave', handleMouseLeave);
+      }
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -53,7 +96,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-[80px] hover:w-[240px] transition-all duration-300 ease-cubic-bezier(0.4, 0, 0.2, 1) h-[calc(100vh-32px)] my-4 ml-4 rounded-2xl bg-white/80 dark:bg-[#0a101f]/60 backdrop-blur-xl border border-slate-200 dark:border-white/5 flex flex-col z-50 shadow-sm dark:shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] group overflow-hidden">
+    <div ref={sidebarRef} className="w-[80px] hover:w-[240px] transition-all duration-300 ease-cubic-bezier(0.4, 0, 0.2, 1) h-[calc(100vh-32px)] my-4 ml-4 rounded-2xl bg-white/80 dark:bg-[#0a101f]/60 backdrop-blur-xl border border-slate-200 dark:border-white/5 flex flex-col z-50 shadow-sm dark:shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] group overflow-hidden">
       {/* Decorative Glow - Only in dark mode or subtle in light */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#C8FDE6]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -62,6 +105,70 @@ export function Sidebar() {
           if (!item.perm) return true;
           return can({ is_superuser: isSuperuser, permissions: currentUser?.permissions }, item.perm);
         }).map((item) => {
+          if (item.subItems) {
+            // 系统管理菜单只有 superuser 才能看到
+            if (!isSuperuser) return null;
+
+            const isExpanded = expandedMenus.includes(item.id);
+            const Icon = item.icon;
+            const isAnyActive = item.subItems.some(subItem => pathname.startsWith(subItem.href));
+
+            return (
+              <div key={item.id} className="flex flex-col">
+                <button
+                  onClick={() => toggleMenu(item.id)}
+                  className={`relative px-4 py-3 mx-3 rounded-xl flex items-center gap-4 transition-all duration-300 group/item overflow-hidden ${
+                    isAnyActive
+                      ? 'bg-gradient-to-r from-[#C8FDE6]/30 to-[#F4D5BD]/30 text-slate-900 dark:text-[#C8FDE6] shadow-sm dark:shadow-[0_0_20px_rgba(200,253,230,0.15)] border border-[#C8FDE6]/40'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#C8FDE6] hover:bg-slate-100 dark:hover:bg-white/5'
+                  }`}
+                >
+                  {isAnyActive && (
+                    <div className="absolute inset-y-0 left-0 w-1 bg-[#C8FDE6] rounded-full shadow-[0_0_10px_#C8FDE6]" />
+                  )}
+                  <Icon size={20} className={`flex-shrink-0 transition-transform duration-300 ${isAnyActive ? 'scale-110 drop-shadow-md dark:drop-shadow-[0_0_8px_rgba(200,253,230,0.5)]' : 'group-hover/item:scale-110'}`} />
+                  <span className={`whitespace-nowrap font-medium tracking-wide transition-opacity duration-300 opacity-0 group-hover:opacity-100 ${isAnyActive ? 'text-slate-900 dark:text-[#C8FDE6]' : ''}`}>
+                    {item.label}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`flex-shrink-0 transition-transform duration-300 opacity-0 group-hover:opacity-100 ml-auto ${isExpanded ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {isExpanded && (
+                  <div className="flex flex-col gap-1 mt-1 px-3">
+                    {item.subItems.filter(subItem => {
+                      if (!subItem.perm) return true;
+                      return can({ is_superuser: isSuperuser, permissions: currentUser?.permissions }, subItem.perm);
+                    }).map(subItem => {
+                      const SubIcon = subItem.icon;
+                      const isActive = pathname.startsWith(subItem.href);
+                      return (
+                        <Link
+                          key={subItem.id}
+                          href={subItem.href}
+                          className={`relative px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 group/subitem ${
+                            isActive
+                              ? 'bg-gradient-to-r from-[#C8FDE6]/20 to-[#F4D5BD]/20 text-slate-900 dark:text-[#C8FDE6] shadow-sm'
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#C8FDE6] hover:bg-slate-100 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          {isActive && (
+                            <div className="absolute inset-y-0 left-0 w-1 bg-[#C8FDE6] rounded-full shadow-[0_0_10px_#C8FDE6]" />
+                          )}
+                          <SubIcon size={20} className={`flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-105 drop-shadow-[0_0_8px_rgba(200,253,230,0.5)]' : 'group-hover/subitem:scale-105'}`} />
+                          <span className={`whitespace-nowrap font-medium tracking-wide transition-opacity duration-300 opacity-0 group-hover:opacity-100 ${isActive ? 'text-slate-900 dark:text-[#C8FDE6]' : ''}`}>
+                            {subItem.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
           return (
@@ -87,7 +194,7 @@ export function Sidebar() {
       </nav>
 
       {/* 用户信息区域 */}
-      <div className="relative border-t border-slate-200 dark:border-white/5 p-3" ref={menuRef}>
+      <div className="relative border-t border-slate-200 dark:border-white/5 p-3" ref={userMenuRef}>
         <button
           onClick={() => setShowUserMenu(!showUserMenu)}
           className={`w-full p-2 rounded-xl flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${showUserMenu ? 'bg-slate-100 dark:bg-white/5' : ''}`}
