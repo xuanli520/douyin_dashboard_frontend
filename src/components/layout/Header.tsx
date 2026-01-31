@@ -2,17 +2,20 @@
 
 import { usePathname } from 'next/navigation';
 import { Activity } from 'lucide-react';
+import { ROUTES } from '@/config/routes';
 
 const menuItems = [
-  { id: 'dashboard', label: '首页', href: '/dashboard' },
-  { id: 'data-analysis', label: '数据分析', href: '/data-analysis' },
-  { id: 'task-schedule', label: '任务调度', href: '/task-schedule' },
-  { id: 'reports', label: '定期报表', href: '/reports' },
-  { id: 'risk-alert', label: '风险预警', href: '/risk-alert' },
-  { id: 'data-source', label: '数据源管理', href: '/data-source' },
-  { id: 'user-permission', label: '用户管理', href: '/user-permission' },
-  { id: 'profile', label: '个人信息', href: '/profile' },
-  { id: 'system-settings', label: '系统设置', href: '/system-settings' },
+  { id: 'dashboard', label: '首页', href: ROUTES.DASHBOARD },
+  { id: 'data-analysis', label: '数据分析', href: ROUTES.DATA_ANALYSIS },
+  { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
+  { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
+  { id: 'risk-alert', label: '风险预警', href: ROUTES.RISK_ALERT },
+  { id: 'data-source', label: '数据源管理', href: ROUTES.DATA_SOURCE },
+  { id: 'user-permission', label: '用户管理', href: ROUTES.USER_PERMISSION },
+  { id: 'role-management', label: '角色管理', href: ROUTES.ADMIN_ROLES },
+  { id: 'permission-management', label: '权限管理', href: ROUTES.ADMIN_PERMISSIONS },
+  { id: 'profile', label: '个人信息', href: ROUTES.PROFILE },
+  { id: 'system-settings', label: '系统设置', href: ROUTES.SYSTEM_SETTINGS },
 ];
 
 export function Header() {
