@@ -6,7 +6,7 @@ const nextConfig = {
       // All API routes: /api/v1/* -> http://.../api/v1/*
       {
         source: '/api/v1/:path*',
-        destination: 'http://100.124.1.87:8000/api/v1/:path*',
+        destination: 'http://100.124.232.87:8000/api/v1/:path*',
       },
     ];
   },
