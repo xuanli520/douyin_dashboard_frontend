@@ -28,10 +28,6 @@ export function CyberCard({ children, className, variant = 'default', ...props }
       )}
       {...props}
     >
-      {/* Decorative Corner Accents (Cyberpunk feel) - Visible mostly in Dark Mode */}
-      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-slate-300 dark:border-white/10 rounded-tl-xl opacity-50 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-slate-300 dark:border-white/10 rounded-br-xl opacity-50 pointer-events-none" />
-      
       {children}
     </div>
   );

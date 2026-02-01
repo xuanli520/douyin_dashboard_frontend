@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { 
   getRolesList, 
+  getRole,
   createRole, 
   updateRole, 
   deleteRole, 
@@ -63,10 +64,23 @@ export default function RolesPage() {
         getRolesList(),
         getPermissions()
       ]);
-      setRoles(rolesData);
+
+      // 为每个角色获取详细权限信息，因为角色列表API可能不返回权限
+      const rolesWithPermissions = await Promise.all(
+        rolesData.map(async (role) => {
+          try {
+            return await getRole(role.id);
+          } catch {
+            // 如果获取失败，返回原始角色数据
+            return role;
+          }
+        })
+      );
+
+      setRoles(rolesWithPermissions);
       setPermissions(permsData);
     } catch (error) {
-      toast.error('Failed to load roles data');
+      toast.error('加载角色数据失败');
       console.error(error);
     } finally {
       setLoading(false);
@@ -92,27 +106,27 @@ export default function RolesPage() {
     try {
       if (editingRole) {
         await updateRole(editingRole.id, { name: data.name, description: data.description });
-        toast.success('Role updated');
+        toast.success('角色已更新');
       } else {
         await createRole({ name: data.name, description: data.description });
-        toast.success('Role created');
+        toast.success('角色已创建');
       }
       setIsRoleDialogOpen(false);
       fetchData(); // Refresh list
     } catch (error) {
-      toast.error('Operation failed');
+      toast.error('操作失败');
     }
   };
 
   const handleDeleteClick = async (role: Role) => {
-    if (!confirm(`Are you sure you want to delete role "${role.name}"? This cannot be undone.`)) return;
-    
+    if (!confirm(`确定要删除角色 "${role.name}" 吗？此操作无法撤销。`)) return;
+
     try {
       await deleteRole(role.id);
-      toast.success('Role deleted');
+      toast.success('角色已删除');
       setRoles(roles.filter(r => r.id !== role.id));
     } catch (error) {
-      toast.error('Failed to delete role');
+      toast.error('删除角色失败');
     }
   };
 
@@ -141,11 +155,16 @@ export default function RolesPage() {
     setIsPermSubmitting(true);
     try {
       await assignPermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
-      toast.success('Permissions updated');
+      toast.success('权限已更新');
       setIsPermDialogOpen(false);
-      fetchData(); // Refresh to update the local list with new perms
+      
+      // Update local state by fetching the single role with fresh permissions
+      // This avoids issues where the list endpoint might not return detailed permissions
+      const updatedRole = await getRole(selectedRoleForPerms.id);
+      setRoles(prev => prev.map(r => r.id === updatedRole.id ? updatedRole : r));
+      
     } catch (error) {
-      toast.error('Failed to update permissions');
+      toast.error('更新权限失败');
     } finally {
       setIsPermSubmitting(false);
     }
@@ -251,8 +270,8 @@ export default function RolesPage() {
           <form onSubmit={handleSubmit(onRoleSubmit)} className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">角色名称</label>
-              <CyberInput 
-                {...register('name', { required: 'Role name is required' })}
+              <CyberInput
+                {...register('name', { required: '角色名称为必填项' })}
                 placeholder="例如：内容编辑"
                 disabled={editingRole?.is_system}
               />

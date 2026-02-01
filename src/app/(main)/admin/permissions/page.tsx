@@ -23,7 +23,7 @@ export default function PermissionsPage() {
       const data = await getPermissions();
       setPermissions(data);
     } catch (error) {
-      toast.error('Failed to load permissions');
+      toast.error('加载权限数据失败');
       console.error(error);
     } finally {
       setLoading(false);

@@ -99,20 +99,26 @@ export interface Permission {
   id: number;
   code: string;
   name: string;
-  description?: string;
-  module?: string;
-  created_at?: string;
-  updated_at?: string;
+  description?: string | null;
+  module: string;
+  created_at: string;
+  updated_at: string;
 }
 
+// 角色列表返回的基础角色类型（不包含权限）
 export interface Role {
   id: number;
   name: string;
-  description?: string;
-  is_system?: boolean;
-  permissions?: Permission[];
-  created_at?: string;
-  updated_at?: string;
+  description?: string | null;
+  is_system: boolean;
+  permissions?: Permission[]; // 列表接口可能不返回
+  created_at: string;
+  updated_at: string;
+}
+
+// 获取单个角色时返回的完整类型（包含权限）
+export interface RoleWithPermissions extends Role {
+  permissions: Permission[];
 }
 
 export interface RoleCreate {
@@ -174,7 +180,7 @@ export async function getRolesList(): Promise<Role[]> {
   return wrappedRequest(Promise.resolve(res));
 }
 
-export async function getRole(id: number): Promise<Role> {
+export async function getRole(id: number): Promise<RoleWithPermissions> {
   return wrappedRequest(authGet(API_ENDPOINTS.ADMIN_ROLE_DETAIL(id)));
 }
 
