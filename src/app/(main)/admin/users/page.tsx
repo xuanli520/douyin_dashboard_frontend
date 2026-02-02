@@ -21,7 +21,7 @@ import {
 import { User, UserCreate, UserUpdate } from '@/types/user';
 import { PermissionGate } from '../_components/common/PermissionGate';
 import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
-import { Button } from '@/app/components/ui/button';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { UserFormDialog } from '@/app/components/UserFormDialog'; // Reuse existing component
@@ -171,10 +171,10 @@ export default function UsersPage() {
           
         </h1>
         <PermissionGate require="user:create" mode="hide">
-          <Button onClick={handleCreate} className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm rounded-md dark:bg-cyan-600/80 dark:hover:bg-cyan-500 dark:border dark:border-cyan-400/50 dark:shadow-[0_0_15px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all duration-300 dark:rounded-none dark:clip-path-polygon">
-            <Plus className="mr-2 h-4 w-4" />
+          <CyberButton onClick={handleCreate} className="shadow-lg shadow-cyan-500/20">
+            <Plus className="w-4 h-4 mr-2" />
             新建用户
-          </Button>
+          </CyberButton>
         </PermissionGate>
       </div>
 

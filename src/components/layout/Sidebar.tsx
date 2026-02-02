@@ -8,6 +8,7 @@ import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database,
 import profileImage from '@/assets/male.jpg';
 import { useUserStore } from '@/stores/userStore';
 import { can } from '@/lib/rbac';
+import { ROUTES } from '@/config/routes';
 
 interface MenuItem {
   id: string;
@@ -19,12 +20,12 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', label: '首页', icon: Home, href: '/dashboard' },
-  { id: 'data-analysis', label: '数据分析', icon: BarChart3, href: '/data-analysis' },
-  { id: 'task-schedule', label: '任务调度', icon: Calendar, href: '/task-schedule' },
-  { id: 'reports', label: '定期报表', icon: FileText, href: '/reports' },
-  { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: '/risk-alert' },
-  { id: 'data-source', label: '数据源管理', icon: Database, href: '/data-source' },
+  { id: 'dashboard', label: '首页', icon: Home, href: ROUTES.DASHBOARD },
+  { id: 'data-analysis', label: '数据分析', icon: BarChart3, href: ROUTES.DATA_ANALYSIS },
+  { id: 'task-schedule', label: '任务调度', icon: Calendar, href: ROUTES.TASK_SCHEDULE },
+  { id: 'reports', label: '定期报表', icon: FileText, href: ROUTES.REPORTS },
+  { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: ROUTES.RISK_ALERT },
+  { id: 'data-source', label: '数据源管理', icon: Database, href: ROUTES.DATA_SOURCE },
   // 系统管理
   {
     id: 'system-management',
@@ -32,9 +33,9 @@ const menuItems: MenuItem[] = [
     icon: Settings,
     perm: 'user:read',
     subItems: [
-      { id: 'admin-users', label: '用户管理', icon: Users, href: '/admin/users', perm: 'user:read' },
-      { id: 'admin-roles', label: '角色管理', icon: Shield, href: '/admin/roles', perm: 'role:read' },
-      { id: 'admin-permissions', label: '权限管理', icon: Key, href: '/admin/permissions', perm: 'permission:read' },
+      { id: 'admin-users', label: '用户管理', icon: Users, href: ROUTES.ADMIN_USERS, perm: 'user:read' },
+      { id: 'admin-roles', label: '角色管理', icon: Shield, href: ROUTES.ADMIN_ROLES, perm: 'role:read' },
+      { id: 'admin-permissions', label: '权限管理', icon: Key, href: ROUTES.ADMIN_PERMISSIONS, perm: 'permission:read' },
     ],
   },
 ];
