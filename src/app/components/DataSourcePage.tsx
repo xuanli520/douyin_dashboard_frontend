@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Search, Database, RefreshCw, Server, Plus } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import { DataSourceSelect } from '@/app/components/ui/styled-select';
+import { Select, SelectItem } from '@/app/components/ui/select';
 
 const dataSources = [
   {
@@ -32,10 +34,25 @@ export default function DataSourcePage() {
       
       <GlassCard className="min-h-[600px] flex flex-col">
         {/* Header & Controls */}
-        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-            <NeonTitle icon={Database}>数据源管理</NeonTitle>
-          
+        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
+                <NeonTitle icon={Database}>数据源管理</NeonTitle>
+                <div className="flex items-center gap-2">
+                    <DataSourceSelect>
+                        <SelectItem value="all">全部类型</SelectItem>
+                        <SelectItem value="API">API</SelectItem>
+                        <SelectItem value="database">数据库</SelectItem>
+                    </DataSourceSelect>
+
+                    <DataSourceSelect>
+                        <SelectItem value="all">全部状态</SelectItem>
+                        <SelectItem value="normal">正常</SelectItem>
+                        <SelectItem value="error">异常</SelectItem>
+                    </DataSourceSelect>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
                 <div className="relative group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
                     <input
@@ -46,18 +63,6 @@ export default function DataSourcePage() {
                         className="pl-10 pr-4 py-2 w-[240px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-all"
                     />
                 </div>
-
-                <select className="px-3 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:border-cyan-500/50">
-                    <option>全部类型</option>
-                    <option>API</option>
-                    <option>数据库</option>
-                </select>
-
-                 <select className="px-3 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:border-cyan-500/50">
-                    <option>全部状态</option>
-                    <option>正常</option>
-                    <option>异常</option>
-                </select>
 
                 <button className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group">
                     <Plus size={16} className="group-hover:rotate-90 transition-transform"/>

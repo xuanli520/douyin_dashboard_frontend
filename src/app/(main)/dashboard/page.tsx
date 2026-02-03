@@ -196,29 +196,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-canvas text-text-primary font-sans selection:bg-primary selection:text-white overflow-hidden relative transition-colors duration-500">
       
-      {/* 背景光效 */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-30 dark:opacity-40 overflow-hidden">
-         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary blur-[120px] opacity-20 animate-pulse"></div>
-         <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-secondary blur-[150px] opacity-20"></div>
-      </div>
-
       {/* --- Header (Command Bar) --- */}
       <header className="sticky top-0 z-50 w-full mb-4 pt-4 px-6">
-        <GlassPanel className="container mx-auto h-20 flex items-center justify-between px-6 shadow-lg backdrop-blur-2xl">
+        <GlassPanel className="w-full h-20 flex items-center justify-between px-6 shadow-lg backdrop-blur-2xl">
           
           <div className="flex items-center gap-6">
-            {/* Logo */}
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold tracking-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary filter drop-shadow-sm">
-                  COMPASS
-                </span>
-              </h1>
-              <span className="text-[10px] font-mono text-text-muted uppercase tracking-[0.2em]">Dashboard</span>
-            </div>
-
-            <div className="h-6 w-[1px] bg-border/40 mx-2 hidden md:block" />
-
             {/* Shop Selector */}
             <Select defaultValue="kailas">
               <SelectTrigger className="w-[180px] border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg h-9 font-medium shadow-none pl-2">
@@ -312,9 +294,9 @@ export default function DashboardPage() {
 
       {/* --- Main Content --- */}
       <main className="relative z-10 p-6 pt-0 h-[calc(100vh-110px)] overflow-y-auto overflow-x-hidden scrollbar-none">
-        <div className="mx-auto max-w-[1600px]">
+        <div className="w-full">
           <ResponsiveGridLayout
-            className="layout"
+            className={`layout ${isEditMode ? 'is-edit-mode' : ''}`}
             layouts={layouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 6, sm: 4, xs: 2, xxs: 2 }}
@@ -326,7 +308,7 @@ export default function DashboardPage() {
             margin={[20, 20]}
           >
             {activeWidgets.map((widget) => (
-              <div key={widget.id}>
+              <div key={widget.id} className={isEditMode ? 'is-edit-mode' : ''}>
                 {/* 卡片容器 */}
                 <GlassPanel className={`h-full flex flex-col group transition-all duration-300 ${
                     isEditMode 

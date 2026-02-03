@@ -134,13 +134,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, label, size = 'md', clas
           )}
         </div>
       </div>
-      
-      <div className={cn(
-        "mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-surface border border-border/50",
-        colorConfig.textColor
-      )}>
-        {score >= 90 ? 'Excellent' : score >= 60 ? 'Good' : 'Needs Action'}
-      </div>
     </div>
   );
 };

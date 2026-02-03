@@ -93,3 +93,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* --- 扩大 react-grid-layout resize handle 判定范围 --- */
+.react-grid-item.react-grid-placeholder {
+  @apply bg-primary/20 rounded-xl;
+}
+
+/* 扩大resize handle的点击区域 */
+.react-resizable-handle {
+  width: 24px !important;
+  height: 24px !important;
+  right: -8px !important;
+  bottom: -8px !important;
+  z-index: 30;
+}
+
+/* 添加可视化的resize trigger区域提示 */
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+  border-bottom-right-radius: 2px;
+}
+
+/* 编辑模式下，卡片显示可调整大小的视觉提示 */
+.react-grid-item.is-edit-mode {
+  cursor: se-resize;
+}
+
+/* 编辑模式下，整个卡片区域都可感知resize */
+.react-grid-item.is-edit-mode .react-resizable-handle {
+  opacity: 1;
+}

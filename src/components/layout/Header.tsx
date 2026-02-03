@@ -5,7 +5,7 @@ import { Activity } from 'lucide-react';
 import { ROUTES } from '@/config/routes';
 
 const menuItems = [
-  { id: 'dashboard', label: '首页', href: ROUTES.DASHBOARD },
+  { id: 'dashboard', label: '罗盘', href: ROUTES.DASHBOARD },
   { id: 'data-analysis', label: '数据分析', href: ROUTES.DATA_ANALYSIS },
   { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
   { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
