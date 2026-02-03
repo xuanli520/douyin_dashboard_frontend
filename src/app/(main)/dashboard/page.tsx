@@ -12,8 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CompassWidget from '@/components/dashboard/CompassWidget';
 import ScoreGauge from '@/components/dashboard/ScoreGauge';
-import MetricCard from '@/components/dashboard/MetricCard'; 
+import MetricCard from '@/components/dashboard/MetricCard';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
+import KPIWidget from '@/components/dashboard/KPIWidget';
+import TrendChartWidget from '@/components/dashboard/TrendChartWidget';
+import ChannelPieWidget from '@/components/dashboard/ChannelPieWidget';
+import RiskAlertsWidget from '@/components/dashboard/RiskAlertsWidget';
+import TaskMonitorWidget from '@/components/dashboard/TaskMonitorWidget';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -33,66 +38,110 @@ const GlassPanel = ({ children, className = "", noBorder = false }: { children: 
 const LAYOUT_PRESETS: Record<string, any> = {
   standard: {
     lg: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 0, w: 3, h: 4 },
-      { i: 'card-merchant', x: 0, y: 4, w: 3, h: 6 },
-      { i: 'card-product', x: 3, y: 4, w: 3, h: 6 },
-      { i: 'card-logistics', x: 6, y: 0, w: 3, h: 10 },
-      { i: 'card-service', x: 9, y: 0, w: 3, h: 10 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 8, h: 8 },
+      { i: 'channel-pie', x: 8, y: 4, w: 4, h: 8 },
+      { i: 'risk-alerts', x: 0, y: 12, w: 6, h: 8 },
+      { i: 'task-monitor', x: 6, y: 12, w: 6, h: 8 },
+      { i: 'gauge-merchant', x: 0, y: 20, w: 3, h: 4 },
+      { i: 'gauge-product', x: 3, y: 20, w: 3, h: 4 },
+      { i: 'card-merchant', x: 6, y: 20, w: 3, h: 6 },
+      { i: 'card-product', x: 9, y: 20, w: 3, h: 6 },
+      { i: 'card-logistics', x: 0, y: 26, w: 6, h: 8 },
+      { i: 'card-service', x: 6, y: 26, w: 6, h: 8 },
     ],
     md: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 0, w: 3, h: 4 },
-      { i: 'card-merchant', x: 0, y: 4, w: 6, h: 6 },
-      { i: 'card-product', x: 0, y: 10, w: 6, h: 6 },
-      { i: 'card-logistics', x: 0, y: 16, w: 6, h: 8 },
-      { i: 'card-service', x: 0, y: 24, w: 6, h: 8 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
+      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
+      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
+      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
+      { i: 'gauge-merchant', x: 0, y: 26, w: 3, h: 4 },
+      { i: 'gauge-product', x: 3, y: 26, w: 3, h: 4 },
+      { i: 'card-merchant', x: 0, y: 30, w: 6, h: 6 },
+      { i: 'card-product', x: 0, y: 36, w: 6, h: 6 },
+      { i: 'card-logistics', x: 0, y: 42, w: 6, h: 6 },
+      { i: 'card-service', x: 0, y: 48, w: 6, h: 6 },
     ]
   },
   focus: { // 聚焦模式：上方两个大指标，下方详细卡片平铺
     lg: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 6, h: 4 },
-      { i: 'gauge-product', x: 6, y: 0, w: 6, h: 4 },
-      { i: 'card-merchant', x: 0, y: 4, w: 3, h: 8 },
-      { i: 'card-product', x: 3, y: 4, w: 3, h: 8 },
-      { i: 'card-logistics', x: 6, y: 4, w: 3, h: 8 },
-      { i: 'card-service', x: 9, y: 4, w: 3, h: 8 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 8, h: 8 },
+      { i: 'channel-pie', x: 8, y: 4, w: 4, h: 8 },
+      { i: 'risk-alerts', x: 0, y: 12, w: 6, h: 8 },
+      { i: 'task-monitor', x: 6, y: 12, w: 6, h: 8 },
+      { i: 'gauge-merchant', x: 0, y: 20, w: 4, h: 4 },
+      { i: 'gauge-product', x: 4, y: 20, w: 4, h: 4 },
+      { i: 'card-logistics', x: 8, y: 20, w: 4, h: 4 },
+      { i: 'card-merchant', x: 0, y: 24, w: 4, h: 8 },
+      { i: 'card-product', x: 4, y: 24, w: 4, h: 8 },
+      { i: 'card-service', x: 8, y: 24, w: 4, h: 8 },
     ],
     md: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 6, h: 4 },
-      { i: 'gauge-product', x: 0, y: 4, w: 6, h: 4 },
-      { i: 'card-merchant', x: 0, y: 8, w: 6, h: 6 },
-      { i: 'card-product', x: 0, y: 14, w: 6, h: 6 },
-      { i: 'card-logistics', x: 0, y: 20, w: 6, h: 6 },
-      { i: 'card-service', x: 0, y: 26, w: 6, h: 6 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
+      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
+      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
+      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
+      { i: 'gauge-merchant', x: 0, y: 26, w: 2, h: 4 },
+      { i: 'gauge-product', x: 2, y: 26, w: 2, h: 4 },
+      { i: 'card-logistics', x: 4, y: 26, w: 2, h: 4 },
+      { i: 'card-merchant', x: 0, y: 30, w: 2, h: 8 },
+      { i: 'card-product', x: 2, y: 30, w: 2, h: 8 },
+      { i: 'card-service', x: 4, y: 30, w: 2, h: 8 },
     ]
   },
   grid: { // 网格模式：均匀分布
     lg: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 4, h: 5 },
-      { i: 'gauge-product', x: 4, y: 0, w: 4, h: 5 },
-      { i: 'card-service', x: 8, y: 0, w: 4, h: 5 }, // 把一个卡片提上来
-      { i: 'card-merchant', x: 0, y: 5, w: 4, h: 7 },
-      { i: 'card-product', x: 4, y: 5, w: 4, h: 7 },
-      { i: 'card-logistics', x: 8, y: 5, w: 4, h: 7 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
+      { i: 'channel-pie', x: 6, y: 4, w: 6, h: 8 },
+      { i: 'risk-alerts', x: 0, y: 12, w: 4, h: 8 },
+      { i: 'task-monitor', x: 4, y: 12, w: 4, h: 8 },
+      { i: 'gauge-merchant', x: 8, y: 12, w: 4, h: 4 },
+      { i: 'gauge-product', x: 8, y: 16, w: 4, h: 4 },
+      { i: 'card-merchant', x: 0, y: 20, w: 4, h: 6 },
+      { i: 'card-product', x: 4, y: 20, w: 4, h: 6 },
+      { i: 'card-logistics', x: 8, y: 20, w: 4, h: 6 },
+      { i: 'card-service', x: 0, y: 26, w: 12, h: 6 },
     ],
     md: [
-      { i: 'gauge-merchant', x: 0, y: 0, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 0, w: 3, h: 4 },
-      { i: 'card-merchant', x: 0, y: 4, w: 3, h: 8 },
-      { i: 'card-product', x: 3, y: 4, w: 3, h: 8 },
-      { i: 'card-logistics', x: 0, y: 12, w: 3, h: 8 },
-      { i: 'card-service', x: 3, y: 12, w: 3, h: 8 },
+      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
+      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
+      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
+      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
+      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
+      { i: 'gauge-merchant', x: 0, y: 26, w: 3, h: 4 },
+      { i: 'gauge-product', x: 3, y: 26, w: 3, h: 4 },
+      { i: 'card-merchant', x: 0, y: 30, w: 2, h: 6 },
+      { i: 'card-product', x: 2, y: 30, w: 2, h: 6 },
+      { i: 'card-logistics', x: 4, y: 30, w: 2, h: 6 },
+      { i: 'card-service', x: 0, y: 36, w: 6, h: 6 },
     ]
   }
+};
+
+// --- 新组件的默认布局配置 ---
+const DEFAULT_LAYOUTS: Record<string, any> = {
+  lg: { w: 6, h: 10 },
+  md: { w: 6, h: 10 },
+  sm: { w: 4, h: 8 },
+  xs: { w: 2, h: 8 },
+  xxs: { w: 2, h: 8 }
 };
 
 const WIDGETS = [
   { id: 'gauge-merchant', title: '商家体验分', type: 'gauge', data: { score: 100 } },
   { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 99 } },
-  { 
-    id: 'card-merchant', title: '商家体验详情', type: 'metric', 
-    data: { 
+  { id: 'kpi-cards', title: '核心指标', type: 'kpi' },
+  { id: 'trend-chart', title: '运营趋势', type: 'trend' },
+  { id: 'channel-pie', title: '渠道分布', type: 'channel' },
+  { id: 'risk-alerts', title: '风险预警', type: 'risk' },
+  { id: 'task-monitor', title: '任务状态', type: 'task' },
+  {
+    id: 'card-merchant', title: '商家体验详情', type: 'metric',
+    data: {
       totalScore: 100, totalLabel: '体验总分',
       items: [
         { label: '商品体验', score: 99 },
@@ -100,22 +149,22 @@ const WIDGETS = [
         { label: '服务体验', score: 100 },
         { label: '纠纷投诉', score: 100 },
       ]
-    } 
+    }
   },
-  { 
-    id: 'card-product', title: '商品体验详情', type: 'metric', 
-    data: { 
+  {
+    id: 'card-product', title: '商品体验详情', type: 'metric',
+    data: {
       totalScore: 89, totalLabel: '综合评分',
       items: [
         { label: '好评率', score: 95 },
         { label: '品质退货率', score: 70, isWarning: true },
         { label: '品退率(行业)', score: 90 },
       ]
-    } 
+    }
   },
-  { 
-    id: 'card-logistics', title: '物流体验详情', type: 'metric', 
-    data: { 
+  {
+    id: 'card-logistics', title: '物流体验详情', type: 'metric',
+    data: {
       totalScore: 92, totalLabel: '物流总分',
       items: [
         { label: '揽收时效', score: 100 },
@@ -124,11 +173,11 @@ const WIDGETS = [
         { label: '承诺达标率', score: 98 },
         { label: '发货及时率', score: 100 },
       ]
-    } 
+    }
   },
-  { 
-    id: 'card-service', title: '服务体验详情', type: 'metric', 
-    data: { 
+  {
+    id: 'card-service', title: '服务体验详情', type: 'metric',
+    data: {
       totalScore: 100, totalLabel: '服务总分',
       items: [
         { label: '飞鸽响应', score: 100 },
@@ -136,7 +185,7 @@ const WIDGETS = [
         { label: '售后满意度', score: 98 },
         { label: '平台介入率', score: 100 },
       ]
-    } 
+    }
   },
 ];
 
@@ -183,11 +232,45 @@ export default function DashboardPage() {
     }
   };
 
+  // 添加组件时设置默认布局
+  const addWidgetLayout = useCallback((id: string, currentLayouts: any) => {
+    const newLayouts = { ...currentLayouts };
+    const breakpoints = ['lg', 'md', 'sm', 'xs', 'xxs'];
+
+    breakpoints.forEach(bp => {
+      const defaultSize = DEFAULT_LAYOUTS[bp];
+      newLayouts[bp] = [
+        ...(newLayouts[bp] || []),
+        {
+          i: id,
+          x: 0,
+          y: Infinity, // 放在最后
+          w: defaultSize.w,
+          h: defaultSize.h
+        }
+      ];
+    });
+
+    return newLayouts;
+  }, []);
+
   const toggleWidget = useCallback((id: string, visible: boolean) => {
+    let newLayouts = { ...layouts };
+
+    // 如果是添加组件，为其设置默认布局
+    if (visible) {
+      const hasLayout = layouts.lg?.some((item: any) => item.i === id);
+      if (!hasLayout) {
+        newLayouts = addWidgetLayout(id, layouts);
+        setLayouts(newLayouts);
+        localStorage.setItem('compass_layouts', JSON.stringify(newLayouts));
+      }
+    }
+
     const newVisibility = { ...visibleWidgets, [id]: visible };
     setVisibleWidgets(newVisibility);
     localStorage.setItem('compass_visibility', JSON.stringify(newVisibility));
-  }, [visibleWidgets]);
+  }, [visibleWidgets, layouts, addWidgetLayout]);
 
   if (!mounted) return <div className="min-h-screen bg-canvas" />;
 
@@ -234,12 +317,12 @@ export default function DashboardPage() {
             <Select value={currentPreset} onValueChange={handlePresetChange}>
               <SelectTrigger className="w-[140px] border-none bg-transparent hover:bg-surface/10 text-text-muted hover:text-text-primary focus:ring-0 transition-all rounded-lg h-9 text-xs font-medium shadow-none pl-2 flex gap-2">
                  <LayoutTemplate size={14} />
-                 <SelectValue placeholder="Layout" />
+                 <SelectValue placeholder="布局" />
               </SelectTrigger>
               <SelectContent className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
-                <SelectItem value="standard">Standard View</SelectItem>
-                <SelectItem value="focus">Focus Mode</SelectItem>
-                <SelectItem value="grid">Grid Layout</SelectItem>
+                <SelectItem value="standard">标准视图</SelectItem>
+                <SelectItem value="focus">聚焦模式</SelectItem>
+                <SelectItem value="grid">网格布局</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -350,11 +433,21 @@ export default function DashboardPage() {
                            <ScoreGauge score={widget.data.score} label={widget.title} />
                         </div>
                       ) : widget.type === 'metric' ? (
-                        <MetricCard 
-                          totalScore={widget.data.totalScore!} 
+                        <MetricCard
+                          totalScore={widget.data.totalScore!}
                           totalLabel={widget.data.totalLabel}
                           items={widget.data.items!}
                         />
+                      ) : widget.type === 'kpi' ? (
+                        <KPIWidget />
+                      ) : widget.type === 'trend' ? (
+                        <TrendChartWidget />
+                      ) : widget.type === 'channel' ? (
+                        <ChannelPieWidget />
+                      ) : widget.type === 'risk' ? (
+                        <RiskAlertsWidget />
+                      ) : widget.type === 'task' ? (
+                        <TaskMonitorWidget />
                       ) : null}
                     </div>
                   </CompassWidget>
