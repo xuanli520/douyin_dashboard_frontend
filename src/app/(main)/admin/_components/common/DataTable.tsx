@@ -119,10 +119,10 @@ export function DataTable<T>({
                     value={pagination.size.toString()}
                     onValueChange={(val) => onSizeChange(Number(val))}
                 >
-                    <SelectTrigger className="h-8 w-[70px]">
+                    <SelectTrigger className="h-8 w-[70px] border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg font-medium shadow-none">
                         <SelectValue placeholder={pagination.size} />
                     </SelectTrigger>
-                    <SelectContent side="top">
+                    <SelectContent side="top" className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
                         {[10, 20, 50, 100].map(size => (
                             <SelectItem key={size} value={size.toString()}>
                                 {size}

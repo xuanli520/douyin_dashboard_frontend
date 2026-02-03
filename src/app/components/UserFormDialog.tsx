@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Shield, User as UserIcon, Mail, Phone, Lock, Briefcase, Info } from 'lucide-react';
 import type { User, UserCreate, UserUpdate } from '@/types/user';
+import { FormSelect } from '@/app/components/ui/styled-select';
+import { SelectItem } from '@/app/components/ui/select';
 
 interface UserFormDialogProps {
   isOpen: boolean;
@@ -211,17 +213,16 @@ export function UserFormDialog({
               <label className="block text-xs font-mono text-slate-500 dark:text-cyan-200/50 mb-1.5 tracking-wider uppercase">
                 性别
               </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                disabled={mode === 'permissions'}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:border-cyan-500/50 dark:focus:ring-0 text-sm text-slate-900 dark:text-slate-200 font-mono"
+              <FormSelect
+                value={formData.gender || 'unset'}
+                onValueChange={(val) => setFormData({ ...formData, gender: val === 'unset' ? '' : val })}
+                placeholder="请选择..."
               >
-                <option value="">请选择...</option>
-                <option value="male">男</option>
-                <option value="female">女</option>
-                <option value="other">其他</option>
-              </select>
+                <SelectItem value="unset">请选择...</SelectItem>
+                <SelectItem value="male">男</SelectItem>
+                <SelectItem value="female">女</SelectItem>
+                <SelectItem value="other">其他</SelectItem>
+              </FormSelect>
             </div>
 
             {/* Department */}

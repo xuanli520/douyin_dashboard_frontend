@@ -5,6 +5,8 @@ import { Settings, Bell, Lock, Palette, Save, Moon, Sun, Monitor } from 'lucide-
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { useTheme } from "next-themes";
+import { SettingSelect } from '@/app/components/ui/styled-select';
+import { SelectItem } from '@/app/components/ui/select';
 
 export default function SystemSettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -114,16 +116,15 @@ export default function SystemSettingsPage() {
                     <p className="text-sm font-medium text-foreground">会话超时时间</p>
                     <p className="text-xs text-muted-foreground mt-1">Auto-logout duration</p>
                  </div>
-                <select
+                <SettingSelect
                   value={settings.sessionTimeout}
-                  onChange={(e) => setSettings({ ...settings, sessionTimeout: e.target.value })}
-                  className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-foreground dark:text-slate-300 focus:outline-none focus:border-cyan-500/50"
+                  onValueChange={(val) => setSettings({ ...settings, sessionTimeout: val })}
                 >
-                  <option value="15">15 Minutes</option>
-                  <option value="30">30 Minutes</option>
-                  <option value="60">1 Hour</option>
-                  <option value="120">2 Hours</option>
-                </select>
+                  <SelectItem value="15">15 Minutes</SelectItem>
+                  <SelectItem value="30">30 Minutes</SelectItem>
+                  <SelectItem value="60">1 Hour</SelectItem>
+                  <SelectItem value="120">2 Hours</SelectItem>
+                </SettingSelect>
               </div>
             </div>
           </div>

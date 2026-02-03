@@ -102,10 +102,10 @@ export function FilterBar({ items, value, onChange, onReset, className }: Filter
                 value={value[item.key]?.toString() || ''}
                 onValueChange={(val) => onChange({ [item.key]: val === 'ALL' ? undefined : val }, { resetPage: true })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg h-9 font-medium shadow-none pl-2">
                   <SelectValue placeholder={item.placeholder || '请选择'} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
                    <SelectItem value="ALL">全部</SelectItem>
                   {item.options.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>
