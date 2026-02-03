@@ -319,12 +319,11 @@ export default function DashboardPage() {
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 6, sm: 4, xs: 2, xxs: 2 }}
             rowHeight={40}
-            // --- 核心修复：严格绑定是否可拖拽 ---
-            isDraggable={isEditMode}
-            isResizable={isEditMode}
+            // --- v2 API: 使用 dragConfig/resizeConfig 对象式 API ---
+            dragConfig={{ enabled: isEditMode, handle: '.drag-handle' }}
+            resizeConfig={{ enabled: isEditMode }}
             onLayoutChange={onLayoutChange}
             margin={[20, 20]}
-            draggableHandle=".drag-handle"
           >
             {activeWidgets.map((widget) => (
               <div key={widget.id}>

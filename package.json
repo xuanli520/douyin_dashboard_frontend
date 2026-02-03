@@ -59,6 +59,7 @@
     "react-day-picker": "8.10.1",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
+    "react-grid-layout": "^2.2.2",
     "react-hook-form": "7.55.0",
     "react-popper": "2.3.0",
     "react-resizable-panels": "2.1.7",
@@ -67,6 +68,7 @@
     "recharts": "2.15.2",
     "sonner": "2.0.3",
     "tailwind-merge": "3.2.0",
+    "tailwindcss-animate": "^1.0.7",
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2"
   },

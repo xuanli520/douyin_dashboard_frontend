@@ -8,6 +8,7 @@ interface CompassWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
   onRemove?: () => void;
   isEditMode?: boolean;
   children: React.ReactNode;
+  headerClassName?: string;
   // Props injected by react-grid-layout
   className?: string;
   style?: React.CSSProperties;
@@ -18,7 +19,7 @@ interface CompassWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
 
 // ForwardRef is required by react-grid-layout to function correctly
 const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps>(
-  ({ title, onRemove, isEditMode, children, className, style, onMouseDown, onMouseUp, onTouchEnd, ...props }, ref) => {
+  ({ title, onRemove, isEditMode, children, className, style, headerClassName, onMouseDown, onMouseUp, onTouchEnd, ...props }, ref) => {
     return (
       <motion.div
         ref={ref}
@@ -39,6 +40,7 @@ const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps>(
         {/* Header / Drag Handle */}
         <div className={cn(
           "flex items-center justify-between px-4 py-3 border-b select-none",
+          headerClassName,
           "dark:border-cyan-500/20 dark:bg-slate-900/40",
           "border-slate-100 bg-slate-50/50",
           isEditMode ? "cursor-move" : "cursor-default"
