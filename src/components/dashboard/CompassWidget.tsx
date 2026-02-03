@@ -18,7 +18,8 @@ interface CompassWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // ForwardRef is required by react-grid-layout to function correctly
-const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps & { [key: string]: any }>(
   ({ title, onRemove, isEditMode, children, className, style, headerClassName, onMouseDown, onMouseUp, onTouchEnd, ...props }, ref) => {
     return (
       <motion.div

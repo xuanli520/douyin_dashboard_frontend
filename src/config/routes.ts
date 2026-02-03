@@ -1,4 +1,5 @@
 export const ROUTES = {
+  COMPASS: '/compass',
   DASHBOARD: '/dashboard',
   DATA_ANALYSIS: '/data-analysis',
   TASK_SCHEDULE: '/task-schedule',

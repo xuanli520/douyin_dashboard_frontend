@@ -4,12 +4,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Responsive } from 'react-grid-layout';
 import { WidthProvider } from '@/components/dashboard/WidthProvider';
 import { useTheme } from 'next-themes';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { 
   Moon, Sun, LayoutDashboard, LayoutTemplate, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { SHOP_OPTIONS } from '@/data/shops';
 import CompassWidget from '@/components/dashboard/CompassWidget';
 import ScoreGauge from '@/components/dashboard/ScoreGauge';
 import MetricCard from '@/components/dashboard/MetricCard';
@@ -131,7 +133,21 @@ const DEFAULT_LAYOUTS: Record<string, any> = {
   xxs: { w: 2, h: 8 }
 };
 
-const WIDGETS = [
+interface WidgetData {
+  score?: number;
+  totalScore?: number;
+  totalLabel?: string;
+  items?: Array<{ label: string; score: number; isWarning?: boolean }>;
+}
+
+interface WidgetItem {
+  id: string;
+  title: string;
+  type: 'gauge' | 'kpi' | 'trend' | 'channel' | 'risk' | 'task' | 'metric';
+  data?: WidgetData;
+}
+
+const WIDGETS: WidgetItem[] = [
   { id: 'gauge-merchant', title: '商家体验分', type: 'gauge', data: { score: 100 } },
   { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 99 } },
   { id: 'kpi-cards', title: '核心指标', type: 'kpi' },
@@ -193,7 +209,19 @@ export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  
+
+  // Store selection state
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const storeId = searchParams.get('storeId') || 'c1';
+
+  const handleStoreChange = (newStoreId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('storeId', newStoreId);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   // Layout State
   const [layouts, setLayouts] = useState(LAYOUT_PRESETS.standard);
   const [currentPreset, setCurrentPreset] = useState('standard');
@@ -236,23 +264,33 @@ export default function DashboardPage() {
   const addWidgetLayout = useCallback((id: string, currentLayouts: any) => {
     const newLayouts = { ...currentLayouts };
     const breakpoints = ['lg', 'md', 'sm', 'xs', 'xxs'];
+    // 每行显示数量（根据当前预设计算）
+    const itemsPerRow = parseInt(currentPreset) || 3;
+    const cols = 12;
+    const cardWidth = cols / itemsPerRow;
 
     breakpoints.forEach(bp => {
-      const defaultSize = DEFAULT_LAYOUTS[bp];
+      const existingItems = newLayouts[bp] || [];
+      const existingCount = existingItems.length;
+      const row = Math.floor(existingCount / itemsPerRow);
+      const col = existingCount % itemsPerRow;
+      const x = col * cardWidth;
+      const y = row * DEFAULT_LAYOUTS[bp].h;
+
       newLayouts[bp] = [
-        ...(newLayouts[bp] || []),
+        ...existingItems,
         {
           i: id,
-          x: 0,
-          y: Infinity, // 放在最后
-          w: defaultSize.w,
-          h: defaultSize.h
+          x: x,
+          y: y,
+          w: cardWidth,
+          h: DEFAULT_LAYOUTS[bp].h
         }
       ];
     });
 
     return newLayouts;
-  }, []);
+  }, [currentPreset]);
 
   const toggleWidget = useCallback((id: string, visible: boolean) => {
     let newLayouts = { ...layouts };
@@ -285,13 +323,16 @@ export default function DashboardPage() {
           
           <div className="flex items-center gap-6">
             {/* Shop Selector */}
-            <Select defaultValue="kailas">
+            <Select value={storeId} onValueChange={handleStoreChange}>
               <SelectTrigger className="w-[180px] border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg h-9 font-medium shadow-none pl-2">
-                <SelectValue placeholder="Select Store" />
+                <SelectValue placeholder="选择店铺" />
               </SelectTrigger>
               <SelectContent className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
-                <SelectItem value="kailas">Kailas 旗舰店</SelectItem>
-                <SelectItem value="demo">Demo Store</SelectItem>
+                {SHOP_OPTIONS.map(shop => (
+                  <SelectItem key={shop.value} value={shop.value}>
+                    {shop.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -398,27 +439,26 @@ export default function DashboardPage() {
                     ? 'border-primary border-dashed bg-primary/5 ring-1 ring-primary/20 z-20' // 编辑模式样式加强
                     : 'hover:border-primary/30'
                 }`}>
-                  <CompassWidget 
+                  <CompassWidget
                     title={widget.title}
                     isEditMode={isEditMode}
                     onRemove={() => toggleWidget(widget.id, false)}
-                    className="h-full bg-transparent p-0 shadow-none border-none" 
+                    className="h-full bg-transparent p-0 shadow-none border-none"
                     // --- 核心修复：只有在 EditMode 时，才添加 cursor-move 类名 ---
                     headerClassName={`px-5 py-4 flex items-center justify-between border-b border-border/10 transition-colors ${
                         isEditMode ? 'drag-handle cursor-move bg-primary/5' : 'cursor-default'
                     }`}
-                    titleClassName="text-sm font-medium text-text-primary tracking-wide select-none"
                   >
                     <div className="p-5 flex-1 h-full overflow-hidden relative select-none">
                       {widget.type === 'gauge' ? (
                         <div className="flex flex-col items-center justify-center h-full">
-                           <ScoreGauge score={widget.data.score} label={widget.title} />
+                           <ScoreGauge score={widget.data?.score ?? 0} label={widget.title} />
                         </div>
                       ) : widget.type === 'metric' ? (
                         <MetricCard
-                          totalScore={widget.data.totalScore!}
-                          totalLabel={widget.data.totalLabel}
-                          items={widget.data.items!}
+                          totalScore={widget.data?.totalScore ?? 0}
+                          totalLabel={widget.data?.totalLabel ?? ''}
+                          items={widget.data?.items ?? []}
                         />
                       ) : widget.type === 'kpi' ? (
                         <KPIWidget />

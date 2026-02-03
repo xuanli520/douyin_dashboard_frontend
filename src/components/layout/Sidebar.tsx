@@ -20,7 +20,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', label: '罗盘', icon: Home, href: ROUTES.DASHBOARD },
+  { id: 'compass', label: '罗盘', icon: Home, href: ROUTES.COMPASS },
   { id: 'data-analysis', label: '数据分析', icon: BarChart3, href: ROUTES.DATA_ANALYSIS },
   { id: 'task-schedule', label: '任务调度', icon: Calendar, href: ROUTES.TASK_SCHEDULE },
   { id: 'reports', label: '定期报表', icon: FileText, href: ROUTES.REPORTS },
