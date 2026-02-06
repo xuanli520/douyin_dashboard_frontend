@@ -26,7 +26,7 @@ import {
   type PasswordStrength,
   AUTH_ERROR_CODES,
 } from '@/types/user';
-import { API_ENDPOINTS, SUCCESS_CODE } from '@/config/api';
+import { API_ENDPOINTS, SUCCESS_CODES } from '@/config/api';
 
 // ============ 类型定义 ============
 
@@ -114,8 +114,8 @@ async function wrappedRequest<T>(
       break;
   }
 
-  // 验证响应状态码
-  if (response.code !== SUCCESS_CODE) {
+  // 验证响应状态码 (200-209 都为成功)
+  if (!SUCCESS_CODES.includes(response.code)) {
     throw new ApiError(
       response.msg || `请求失败: ${response.code}`,
       response.code,

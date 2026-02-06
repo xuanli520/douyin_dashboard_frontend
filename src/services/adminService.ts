@@ -1,5 +1,5 @@
 import { authGet, authPost, authPatch, authDel } from '@/lib/api-client';
-import { API_ENDPOINTS, SUCCESS_CODE } from '@/config/api';
+import { API_ENDPOINTS, SUCCESS_CODES } from '@/config/api';
 import { User, UserCreate, UserUpdate } from '@/types/user';
 
 interface ApiResponse<T> {

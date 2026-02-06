@@ -49,9 +49,27 @@ export function UserTable({
       key: 'roles',
       header: '角色',
       render: (user) => {
+          // 超级管理员优先显示
           if (user.is_superuser) {
               return <Badge variant="default" className="bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/50 dark:shadow-[0_0_10px_rgba(168,85,247,0.2)] hover:bg-purple-200 dark:hover:bg-purple-500/20 transition-all">超级管理员</Badge>
           }
+          // 如果有分配的角色，显示角色名称
+          if (user.roles && user.roles.length > 0) {
+              return (
+                  <div className="flex gap-1 flex-wrap">
+                      {user.roles.map(role => (
+                          <Badge
+                              key={role.id}
+                              variant="outline"
+                              className="bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700"
+                          >
+                              {role.name}
+                          </Badge>
+                      ))}
+                  </div>
+              );
+          }
+          // 默认显示普通用户
           return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">普通用户</Badge>
       },
     },

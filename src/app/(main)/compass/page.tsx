@@ -127,9 +127,24 @@ export default function CompassPage() {
     setMounted(true);
     const savedLayouts = localStorage.getItem('compass-layouts');
     const savedVisibility = localStorage.getItem('compass-visibility');
+    const savedPreset = localStorage.getItem('compass-preset');
 
     if (savedLayouts) {
-      try { setLayouts(JSON.parse(savedLayouts)); } catch (e) { console.error(e); }
+      try {
+        const parsedLayouts = JSON.parse(savedLayouts);
+        setLayouts(parsedLayouts);
+
+        // 根据布局中的卡片数量推断 preset
+        const firstBreakpoint = Object.keys(parsedLayouts)[0] as keyof typeof parsedLayouts;
+        const cardCount = parsedLayouts[firstBreakpoint]?.[0]?.w || 0;
+        if (cardCount === 6) setCurrentPreset('2');
+        else if (cardCount === 4) setCurrentPreset('3');
+        else if (cardCount === 3) setCurrentPreset('4');
+      } catch (e) { console.error(e); }
+    }
+    // 单独保存的 preset 优先级更高
+    if (savedPreset && ['2', '3', '4'].includes(savedPreset)) {
+      setCurrentPreset(savedPreset);
     }
     if (savedVisibility) {
       try { setVisibleShops(JSON.parse(savedVisibility)); } catch (e) { console.error(e); }
@@ -147,6 +162,7 @@ export default function CompassPage() {
   // 处理预设切换
   const handlePresetChange = (value: string) => {
     setCurrentPreset(value);
+    localStorage.setItem('compass-preset', value);
     const newLayout = LAYOUT_PRESETS[value];
     if (newLayout) {
       setLayouts(newLayout);

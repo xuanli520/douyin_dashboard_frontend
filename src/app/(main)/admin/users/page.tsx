@@ -147,6 +147,19 @@ export default function UsersPage() {
     setAssignRolesOpen(true);
   };
 
+  /** 分配角色成功后更新本地用户数据 */
+  const handleAssignRolesSuccess = (newRoles: Array<{ id: number; name: string; description?: string | null; is_system: boolean }>) => {
+    if (!targetUser) return;
+    // 本地更新目标用户的角色信息
+    setData(prevData =>
+      prevData.map(u =>
+        u.id === targetUser.id
+          ? { ...u, roles: newRoles }
+          : u
+      )
+    );
+  };
+
   const handleResetPassword = (user: User) => {
     setTargetUser(user);
     setResetPasswordOpen(true);
@@ -220,7 +233,7 @@ export default function UsersPage() {
         open={assignRolesOpen}
         onOpenChange={setAssignRolesOpen}
         user={targetUser}
-        onSuccess={fetchData}
+        onSuccess={handleAssignRolesSuccess}
       />
 
       <ResetPasswordDialog

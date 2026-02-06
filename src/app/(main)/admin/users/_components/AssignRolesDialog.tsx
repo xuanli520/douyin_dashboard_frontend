@@ -13,7 +13,8 @@ interface AssignRolesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onSuccess: () => void;
+  /** 分配成功回调，返回新分配的角色列表 */
+  onSuccess: (roles: Array<{ id: number; name: string; description?: string | null; is_system: boolean }>) => void;
 }
 
 export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: AssignRolesDialogProps) {
@@ -25,21 +26,14 @@ export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: Assig
   useEffect(() => {
     if (open && user) {
       loadRoles();
-      // Initialize selected roles from user object if available
-      // Note: User type currently doesn't have roles array structure matching this exactly.
-      // We might need to fetch user roles separately or assume user.role_ids exists.
-      // For now, let's assume we need to fetch user details or roles.
-      // But given the API structure, maybe we fetch roles first.
-      // Since we don't have user roles in the User object (only is_superuser), 
-      // we might need to fetch them.
-      // However, to keep it simple and fast, we'll start with empty or try to infer.
-      // If the API 'getUsers' returns roles, we should use that. 
-      // UserTable logic assumed user.roles exists or we show 'User'.
-      // If we don't have them, we might want to fetch them:
-      // GET /admin/users/{id}/roles (API endpoint I added to config)
-      
-      // Let's implement fetching current roles for the user.
-      fetchUserRoles();
+      // 从 user 对象中获取已选角色
+      if (user.roles && user.roles.length > 0) {
+        setSelectedRoleIds(user.roles.map(role => role.id));
+      } else if (user.role_ids && user.role_ids.length > 0) {
+        setSelectedRoleIds(user.role_ids);
+      } else {
+        setSelectedRoleIds([]);
+      }
     }
   }, [open, user]);
 
@@ -55,19 +49,22 @@ export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: Assig
     }
   };
 
-  const fetchUserRoles = async () => {
-      // TODO: Fetch user specific roles if not present in user object
-      // For now, we'll assume we start clean or based on some property if available
-      setSelectedRoleIds([]); 
-  }
-
   const handleSave = async () => {
     if (!user) return;
     try {
       setIsSaving(true);
       await assignRoles(user.id, selectedRoleIds);
       toast.success('角色分配成功');
-      onSuccess();
+      // 构造新角色信息并返回（从已选角色ID和角色列表中匹配）
+      const newRoles = roles
+        .filter(role => selectedRoleIds.includes(role.id))
+        .map(role => ({
+          id: role.id,
+          name: role.name,
+          description: role.description,
+          is_system: role.is_system
+        }));
+      onSuccess(newRoles);
       onOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || '角色分配失败');

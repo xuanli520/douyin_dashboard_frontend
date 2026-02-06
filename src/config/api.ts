@@ -32,8 +32,8 @@ export const API_ENDPOINTS = {
   ADMIN_PERMISSIONS: '/v1/admin/permissions',
 } as const;
 
-/** 成功响应状态码 */
-export const SUCCESS_CODE = 200;
+/** 成功响应状态码范围 (200-209) */
+export const SUCCESS_CODES = [200, 201, 202, 203, 204, 205, 206, 207, 208, 209] as const;
 
 /** 默认请求超时时间（毫秒） */
 export const DEFAULT_TIMEOUT = 30000;
