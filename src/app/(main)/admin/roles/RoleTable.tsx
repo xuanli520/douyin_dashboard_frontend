@@ -10,15 +10,12 @@ import { Edit2, Trash2, Key } from 'lucide-react';
 interface RoleTableProps {
   data: Role[];
   loading: boolean;
-  pagination: { page: number; size: number; total: number };
-  onPageChange: (page: number) => void;
-  onSizeChange: (size: number) => void;
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
   onAssignPermissions: (role: Role) => void;
 }
 
-export function RoleTable({ data, loading, pagination, onPageChange, onSizeChange, onEdit, onDelete, onAssignPermissions }: RoleTableProps) {
+export function RoleTable({ data, loading, onEdit, onDelete, onAssignPermissions }: RoleTableProps) {
   const columns: DataTableColumn<Role>[] = [
     {
       key: 'name',
@@ -86,9 +83,6 @@ export function RoleTable({ data, loading, pagination, onPageChange, onSizeChang
       data={data}
       columns={columns}
       isLoading={loading}
-      pagination={pagination}
-      onPageChange={onPageChange}
-      onSizeChange={onSizeChange}
       rowKey={(role) => role.id}
     />
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDataSources } from '../../hooks/useDataSources';
 import { useCreateDataSource } from '../../hooks/useCreateDataSource';
 import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
@@ -13,6 +13,7 @@ import { DataSourceType, DataSourceStatus, DataSourceCreateDTO, DataSource } fro
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
+import { useQueryState } from '@/app/(main)/admin/_components/common/QueryState';
 import {
   Select,
   SelectContent,
@@ -21,8 +22,35 @@ import {
   SelectValue,
 } from '@/app/components/ui/select';
 
+interface DataSourceQuery {
+  page: number;
+  pageSize: number;
+  name?: string;
+  type?: string;
+  status?: string;
+}
+
+const dataSourceQueryCodec = {
+  parse: (sp: URLSearchParams) => ({
+    page: Number(sp.get('page')) || 1,
+    pageSize: Number(sp.get('pageSize')) || 10,
+    name: sp.get('name') || undefined,
+    type: sp.get('type') || 'all',
+    status: sp.get('status') || 'all',
+  }),
+  serialize: (state: DataSourceQuery) => ({
+    page: state.page?.toString(),
+    pageSize: state.pageSize?.toString(),
+    name: state.name,
+    type: state.type === 'all' ? undefined : state.type,
+    status: state.status === 'all' ? undefined : state.status,
+  }),
+  resetPageOnChangeKeys: ['name', 'type', 'status', 'pageSize'] as ('name' | 'type' | 'status' | 'pageSize')[]
+};
+
 export function DataSourceList() {
-  const { data, loading, filters, updateFilters, refetch } = useDataSources();
+  const [query, setQuery] = useQueryState(dataSourceQueryCodec);
+  const { data, loading, refetch } = useDataSources(query as any);
   const { create, loading: creating } = useCreateDataSource();
   const { update, loading: updating } = useUpdateDataSource();
   const { remove, loading: deleting } = useDeleteDataSource();
@@ -35,16 +63,17 @@ export function DataSourceList() {
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-    updateFilters({ name: e.target.value, page: 1 });
+    const value = e.target.value;
+    setSearchText(value);
+    setQuery({ name: value, page: 1 });
   };
 
   const handleTypeChange = (value: string) => {
-    updateFilters({ type: value as DataSourceType | 'all', page: 1 });
+    setQuery({ type: value, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
-    updateFilters({ status: value as DataSourceStatus | 'all', page: 1 });
+    setQuery({ status: value, page: 1 });
   };
 
   const handleCreate = async (formData: DataSourceCreateDTO) => {
@@ -100,11 +129,11 @@ export function DataSourceList() {
   };
 
   const handlePageChange = (page: number) => {
-    updateFilters({ page });
+    setQuery({ page });
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ pageSize: size, page: 1 });
+    setQuery({ pageSize: size, page: 1 });
   };
 
   return (
@@ -113,7 +142,7 @@ export function DataSourceList() {
         <div className="flex items-center gap-3">
           <NeonTitle icon={Database}>数据源管理</NeonTitle>
           <div className="flex items-center gap-2">
-            <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
+            <Select value={query.type || 'all'} onValueChange={handleTypeChange}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="全部类型" />
               </SelectTrigger>
@@ -126,7 +155,7 @@ export function DataSourceList() {
               </SelectContent>
             </Select>
 
-            <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
+            <Select value={query.status || 'all'} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="全部状态" />
               </SelectTrigger>
@@ -165,7 +194,7 @@ export function DataSourceList() {
       <DataSourceTable
         data={data?.list || []}
         loading={loading || deleting}
-        pagination={{ page: data?.page || 1, size: data?.pageSize || 10, total: data?.total || 0 }}
+        pagination={{ page: query.page, size: query.pageSize, total: data?.total || 0 }}
         onPageChange={handlePageChange}
         onSizeChange={handleSizeChange}
         onEdit={handleEditClick}

@@ -63,30 +63,32 @@ export const dataSourceApi = {
   /**
    * Get list of data sources
    */
-  getAll: async (params?: DataSourceFilter): Promise<PaginatedResponse<DataSource>> => {
-    // Construct query string
-    const query = new URLSearchParams();
-    if (params) {
-      if (params.name) query.append('name', params.name);
-      if (params.type && params.type !== 'all') query.append('type', params.type);
-      if (params.status && params.status !== 'all') query.append('status', params.status);
-      if (params.page) query.append('page', params.page.toString());
-      if (params.pageSize) query.append('page_size', params.pageSize.toString());
-    }
+    getAll: async (params?: DataSourceFilter): Promise<PaginatedResponse<DataSource>> => {
+     const query = new URLSearchParams();
+     if (params) {
+       if (params.name) query.append('name', params.name);
+       if (params.type && params.type !== 'all') query.append('source_type', toUpperCaseType(params.type));
+       if (params.status && params.status !== 'all') {
+         const statusValue = toUpperCaseStatus(params.status);
+         if (statusValue) query.append('status', statusValue);
+       }
+       if (params.page) query.append('page', params.page.toString());
+       if (params.pageSize) query.append('size', params.pageSize.toString());
+     }
 
     const queryString = query.toString();
     const url = queryString
       ? `${API_ENDPOINTS.DATA_SOURCES}?${queryString}`
       : API_ENDPOINTS.DATA_SOURCES;
 
-     const response = await authGet<ApiResponse<{ items: DataSource[]; total: number; page: number; size: number; pages: number }>>(url);
-     return {
-       list: response.data.items.map(normalizeDataSource),
-       total: response.data.total,
-       page: response.data.page,
-       pageSize: response.data.size,
-       pages: response.data.pages
-     };
+    const response = await authGet<ApiResponse<{ items: DataSource[]; total: number; page: number; size: number; pages: number }>>(url);
+    return {
+      list: response.data.items.map(normalizeDataSource),
+      total: response.data.total,
+      page: response.data.page,
+      pageSize: response.data.size,
+      pages: response.data.pages
+    };
   },
 
   /**

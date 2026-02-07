@@ -97,12 +97,11 @@ export function ScrapingRuleList() {
         </Button>
       </div>
 
-      {loading && <div className="text-left py-8">加载中...</div>}
       {error && <div className="text-left text-red-500 py-8">错误: {error.message}</div>}
 
-      {!loading && !error && (
+      {!error && (
         <RuleTable
-          data={data.list}
+          data={data?.list || []}
           loading={loading}
           pagination={{ page: data.page || 1, size: filters.pageSize || 10, total: data.total || 0 }}
           onPageChange={handlePageChange}

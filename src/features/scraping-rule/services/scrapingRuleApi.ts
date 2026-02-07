@@ -44,10 +44,13 @@ getAll: async (params?: ScrapingRuleFilter): Promise<PaginatedResponse<ScrapingR
       const query = new URLSearchParams();
       if (params) {
         if (params.name) query.append('name', params.name);
-        if (params.rule_type && params.rule_type !== 'all') query.append('rule_type', params.rule_type);
+        if (params.rule_type && params.rule_type !== 'all') {
+          const typeValue = toUpperCaseRuleType(params.rule_type);
+          query.append('rule_type', typeValue);
+        }
         if (params.data_source_id) query.append('data_source_id', params.data_source_id.toString());
         if (params.page) query.append('page', params.page.toString());
-        if (params.pageSize) query.append('page_size', params.pageSize.toString());
+        if (params.pageSize) query.append('size', params.pageSize.toString());
       }
      
      const queryString = query.toString();

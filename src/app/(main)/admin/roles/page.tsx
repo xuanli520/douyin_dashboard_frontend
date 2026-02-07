@@ -31,8 +31,6 @@ export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   // Dialog States
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
@@ -53,10 +51,6 @@ export default function RolesPage() {
   const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(new Set());
   const [isPermSubmitting, setIsPermSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -65,6 +59,7 @@ export default function RolesPage() {
         getPermissions()
       ]);
 
+      // API返回的是角色列表，需要获取每个角色的完整信息（包含权限）
       const rolesWithPermissions = await Promise.all(
         rolesData.map(async (role) => {
           try {
@@ -84,6 +79,10 @@ export default function RolesPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // --- Role CRUD ---
 
@@ -111,7 +110,6 @@ export default function RolesPage() {
       }
       setIsRoleDialogOpen(false);
       fetchData();
-      setPage(1);
     } catch (error) {
       toast.error('操作失败');
     }
@@ -127,15 +125,6 @@ export default function RolesPage() {
     } catch (error) {
       toast.error('删除角色失败');
     }
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleSizeChange = (newSize: number) => {
-    setPageSize(newSize);
-    setPage(1);
   };
 
   // --- Permission Assignment ---
@@ -201,9 +190,6 @@ export default function RolesPage() {
       <RoleTable
         data={roles}
         loading={loading}
-        pagination={{ page, size: pageSize, total: roles.length }}
-        onPageChange={handlePageChange}
-        onSizeChange={handleSizeChange}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onAssignPermissions={handlePermsClick}

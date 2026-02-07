@@ -43,9 +43,9 @@ export type DataTableProps<T> = {
   columns: DataTableColumn<T>[];
   isLoading?: boolean;
   error?: string | null;
-  pagination: { page: number; size: number; total: number };
-  onPageChange: (page: number) => void;
-  onSizeChange: (size: number) => void;
+  pagination?: { page: number; size: number; total: number };
+  onPageChange?: (page: number) => void;
+  onSizeChange?: (size: number) => void;
   rowKey: (row: T) => string | number;
   rowSelection?: {
     selectedKeys: Array<string | number>;
@@ -75,7 +75,7 @@ export function DataTable<T>({
   className,
   virtualScroll = { enabled: false }
 }: DataTableProps<T>) {
-  const totalPages = Math.ceil(pagination.total / pagination.size);
+  const totalPages = pagination ? Math.ceil(pagination.total / pagination.size) : 1;
   const parentRef = useRef<HTMLDivElement>(null);
 
   // 虚拟滚动配置
@@ -118,7 +118,7 @@ export function DataTable<T>({
   const isPartiallySelected = rowSelection && data.length > 0 && !isAllSelected && data.some(row => rowSelection.selectedKeys.includes(rowKey(row)));
 
   const renderPagination = () => {
-    if (pagination.total <= 0) return null;
+    if (!pagination || pagination.total <= 0) return null;
 
     // Simple pagination logic: show current, prev, next, first, last
     const pages: (number | 'ellipsis')[] = [];
@@ -137,12 +137,12 @@ export function DataTable<T>({
     return (
       <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          <span>共 {pagination.total} 条</span>
+          <span>共 {pagination?.total || 0} 条</span>
           <div className="flex items-center gap-1">
             <span>每页</span>
             <Select
-              value={pagination.size.toString()}
-              onValueChange={(val) => onSizeChange(Number(val))}
+              value={pagination?.size.toString() || '10'}
+              onValueChange={(val) => onSizeChange?.(Number(val))}
             >
               <SelectTrigger className="h-8 min-w-[50px] px-2 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                 <SelectValue />
@@ -163,9 +163,9 @@ export function DataTable<T>({
           <PaginationContent className="gap-1">
             <PaginationItem>
               <PaginationPrevious
-                onClick={(e) => { e.preventDefault(); if(pagination.page > 1) onPageChange(pagination.page - 1); }}
-                aria-disabled={pagination.page <= 1}
-                className={pagination.page <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if((pagination?.page || 1) > 1) onPageChange?.((pagination?.page || 1) - 1); }}
+                aria-disabled={(pagination?.page || 1) <= 1}
+                className={(pagination?.page || 1) <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
 
@@ -175,9 +175,9 @@ export function DataTable<T>({
                   <PaginationEllipsis />
                 ) : (
                 <PaginationLink
-                    isActive={pagination.page === p}
-                    onClick={(e) => { e.preventDefault(); onPageChange(p as number); }}
-                    className={pagination.page === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
+                    isActive={(pagination?.page || 1) === p}
+                    onClick={(e) => { e.preventDefault(); onPageChange?.(p as number); }}
+                    className={(pagination?.page || 1) === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
                   >
                     {p}
                   </PaginationLink>
@@ -187,9 +187,9 @@ export function DataTable<T>({
 
             <PaginationItem>
               <PaginationNext
-                onClick={(e) => { e.preventDefault(); if(pagination.page < totalPages) onPageChange(pagination.page + 1); }}
-                aria-disabled={pagination.page >= totalPages}
-                className={pagination.page >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if((pagination?.page || 1) < totalPages) onPageChange?.((pagination?.page || 1) + 1); }}
+                aria-disabled={(pagination?.page || 1) >= totalPages}
+                className={(pagination?.page || 1) >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
           </PaginationContent>
@@ -200,7 +200,7 @@ export function DataTable<T>({
 
   const renderTableContent = () => {
     if (isLoading) {
-      return Array.from({ length: Math.min(pagination.size, 5) }).map((_, i) => (
+      return Array.from({ length: Math.min(pagination?.size || 10, 5) }).map((_, i) => (
         <TableRow key={i} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
           {rowSelection && <TableCell><Skeleton className="h-4 w-4 bg-slate-200 dark:bg-slate-800" /></TableCell>}
           {columns.map((col, j) => (
@@ -302,7 +302,7 @@ export function DataTable<T>({
       
       <div 
         ref={parentRef}
-        className="rounded-md border border-slate-200 bg-white dark:rounded-none dark:border-0 dark:bg-slate-950/30 dark:backdrop-blur-sm overflow-auto"
+        className="overflow-auto"
         style={virtualEnabled ? { height: tableHeight } : undefined}
       >
         <Table>
