@@ -84,6 +84,12 @@ export function DataSourceTable({ data, loading, pagination, onPageChange, onSiz
       onPageChange={onPageChange}
       onSizeChange={onSizeChange}
       rowKey={(source) => source.id}
+      virtualScroll={{
+        enabled: data.length > 20, // 当数据超过20条时启用虚拟滚动
+        rowHeight: 64,
+        tableHeight: 600,
+        overscan: 5,
+      }}
     />
   );
 }

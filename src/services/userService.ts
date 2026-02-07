@@ -16,6 +16,7 @@ import {
   clearTokens,
   storeTokens,
 } from '@/lib/auth';
+import { setSecureCookie } from '@/lib/cookies';
 import {
   type User,
   type UserUpdate,
@@ -118,7 +119,7 @@ async function wrappedRequest<T>(
 
 
 
-  if (!SUCCESS_CODES.includes(response.code)) {
+  if (!SUCCESS_CODES.includes(response.code as typeof SUCCESS_CODES[number])) {
     throw new ApiError(
       response.msg || `请求失败: ${response.code}`,
       response.code,
@@ -183,10 +184,8 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
 
       // 更新本地存储的 token
       setAccessToken(response.data.access_token);
-      // 设置 auth_token cookie 供 middleware 验证
-      if (typeof document !== 'undefined') {
-        document.cookie = `auth_token=${response.data.access_token}; path=/; max-age=${60 * 60 * 24}`;
-      }
+      // 设置 auth_token cookie 供 middleware 验证（使用安全属性）
+      setSecureCookie('auth_token', response.data.access_token, 60 * 60 * 24);
 
       return response.data;
     } finally {

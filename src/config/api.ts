@@ -3,8 +3,8 @@
  * 所有 API 地址在此定义，便于维护和配置
  */
 
-/** API 基础地址（相对路径） */
-export const API_BASE_PATH = '/v1';
+/** API 基础地址（从环境变量读取，默认为 /api/v1） */
+export const API_BASE_PATH = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1';
 
 /** API 端点路径 */
 export const API_ENDPOINTS = {

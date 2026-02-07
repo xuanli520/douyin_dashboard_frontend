@@ -1,5 +1,5 @@
 // Token 管理模块
-import { setCookie, deleteCookie, getCookie } from './cookies';
+import { setCookie, setSecureCookie, deleteCookie, getCookie } from './cookies';
 
 // 存储键
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -61,15 +61,17 @@ export function clearTokens(): void {
 
 /**
  * 存储令牌
+ * 注意：auth_token 使用 secure cookie 设置（SameSite=strict, Secure in production）
  */
 export function storeTokens(data: { access_token: string; refresh_token?: string }): void {
   setAccessToken(data.access_token);
   // refresh_token 由后端设置在 HttpOnly Cookie 中
   if (data.refresh_token) {
-    setCookie(REFRESH_TOKEN_COOKIE, data.refresh_token);
+    setSecureCookie(REFRESH_TOKEN_COOKIE, data.refresh_token);
   }
   // 设置 auth_token cookie 供 middleware 验证（24小时过期）
-  setCookie(AUTH_TOKEN_COOKIE, data.access_token, 60 * 60 * 24);
+  // 使用安全属性：SameSite=strict, Secure in production
+  setSecureCookie(AUTH_TOKEN_COOKIE, data.access_token, 60 * 60 * 24);
 }
 
 /**
