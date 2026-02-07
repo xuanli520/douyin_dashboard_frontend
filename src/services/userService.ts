@@ -26,7 +26,7 @@ import {
   type PasswordStrength,
   AUTH_ERROR_CODES,
 } from '@/types/user';
-import { API_ENDPOINTS, SUCCESS_CODE } from '@/config/api';
+import { API_ENDPOINTS, SUCCESS_CODES } from '@/config/api';
 
 // ============ 类型定义 ============
 
@@ -114,8 +114,9 @@ async function wrappedRequest<T>(
       break;
   }
 
-  // 验证响应状态码
-  if (response.code !== SUCCESS_CODE) {
+
+
+  if (!SUCCESS_CODES.includes(response.code)) {
     throw new ApiError(
       response.msg || `请求失败: ${response.code}`,
       response.code,
@@ -126,7 +127,6 @@ async function wrappedRequest<T>(
   return response.data;
 }
 
-// 便捷方法（保持向后兼容）
 async function wrappedGet<T>(url: string, options?: RequestInit): Promise<T> {
   return wrappedRequest<T>(url, 'GET', undefined, options);
 }
@@ -175,18 +175,18 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
   // 创建新的刷新请求
   refreshTokenPromise = (async () => {
     try {
-      const response = await post<{ access_token: string; token_type: string }>(
+      const response = await post<ApiResponse<{ access_token: string; token_type: string }>>(
         `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
       );
 
       // 更新本地存储的 token
-      setAccessToken(response.access_token);
+      setAccessToken(response.data.access_token);
       // 设置 auth_token cookie 供 middleware 验证
       if (typeof document !== 'undefined') {
-        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24}`;
+        document.cookie = `auth_token=${response.data.access_token}; path=/; max-age=${60 * 60 * 24}`;
       }
 
-      return response;
+      return response.data;
     } finally {
       // 请求完成后清除缓存，允许下次刷新
       refreshTokenPromise = null;
@@ -213,14 +213,14 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
     formData.append('captchaVerifyParam', params.captchaVerifyParam);
   }
 
-  const response = await authPost<TokenResponse>(
+  const response = await authPost<ApiResponse<TokenResponse>>(
     API_ENDPOINTS.JWT_LOGIN,
     formData,
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 
-  storeTokens(response);
-  return response;
+  storeTokens(response.data);
+  return response.data;
 }
 
 /**
@@ -340,6 +340,13 @@ export async function checkIsSuperuser(): Promise<boolean> {
 const ERROR_MSG_MAP: Record<string, string> = {
   REGISTER_USER_ALREADY_EXISTS: '用户已存在',
   REGISTER_INVALID_EMAIL: '邮箱格式错误',
+  REGISTER_INVALID_PASSWORD: '密码强度不足',
+  UPDATE_USER_EMAIL_ALREADY_EXISTS: '邮箱已被使用',
+  UPDATE_USER_INVALID_PASSWORD: '密码强度不足',
+  RESET_PASSWORD_BAD_TOKEN: '重置链接已过期',
+  RESET_PASSWORD_INVALID_PASSWORD: '密码强度不足',
+  VERIFY_USER_BAD_TOKEN: '验证链接无效',
+  VERIFY_USER_ALREADY_VERIFIED: '用户已验证',
 };
 
 /**
@@ -446,5 +453,4 @@ export function checkPasswordStrength(password: string): PasswordStrength {
   return { score, label, color, requirements };
 }
 
-// 导出类型供外部使用
-export type { ApiResponse, NetworkError, TimeoutError, ApiError };
+

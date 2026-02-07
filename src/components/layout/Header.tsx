@@ -2,17 +2,22 @@
 
 import { usePathname } from 'next/navigation';
 import { Activity } from 'lucide-react';
+import { ROUTES } from '@/config/routes';
 
 const menuItems = [
-  { id: 'dashboard', label: '首页', href: '/dashboard' },
-  { id: 'data-analysis', label: '数据分析', href: '/data-analysis' },
-  { id: 'task-schedule', label: '任务调度', href: '/task-schedule' },
-  { id: 'reports', label: '定期报表', href: '/reports' },
-  { id: 'risk-alert', label: '风险预警', href: '/risk-alert' },
-  { id: 'data-source', label: '数据源管理', href: '/data-source' },
-  { id: 'user-permission', label: '用户管理', href: '/user-permission' },
-  { id: 'profile', label: '个人信息', href: '/profile' },
-  { id: 'system-settings', label: '系统设置', href: '/system-settings' },
+  { id: 'compass', label: '罗盘', href: ROUTES.COMPASS },
+  { id: 'dashboard', label: '店铺详情', href: ROUTES.DASHBOARD },
+  { id: 'data-analysis', label: '数据分析', href: ROUTES.DATA_ANALYSIS },
+  { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
+  { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
+  { id: 'risk-alert', label: '风险预警', href: ROUTES.RISK_ALERT },
+  { id: 'data-source', label: '数据源管理', href: ROUTES.DATA_SOURCE },
+  { id: 'scraping-rule', label: '采集规则', href: ROUTES.SCRAPING_RULE },
+  { id: 'user-permission', label: '用户管理', href: ROUTES.USER_PERMISSION },
+  { id: 'role-management', label: '角色管理', href: ROUTES.ADMIN_ROLES },
+  { id: 'permission-management', label: '权限管理', href: ROUTES.ADMIN_PERMISSIONS },
+  { id: 'profile', label: '个人信息', href: ROUTES.PROFILE },
+  { id: 'system-settings', label: '系统设置', href: ROUTES.SYSTEM_SETTINGS },
 ];
 
 export function Header() {
@@ -25,7 +30,7 @@ export function Header() {
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-emerald-500 to-orange-400 dark:from-white dark:via-[#C8FDE6] dark:to-[#F4D5BD] drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(200,253,230,0.5)] font-mono uppercase">
-            {currentItem?.label || 'DASHBOARD'}
+            {currentItem?.label || '用户管理'}
           </h1>
           <div className="px-2 py-0.5 rounded-full bg-[#C8FDE6]/20 border border-[#C8FDE6]/30 text-[10px] text-emerald-700 dark:text-[#C8FDE6] font-mono tracking-widest">
             SYS.ONLINE

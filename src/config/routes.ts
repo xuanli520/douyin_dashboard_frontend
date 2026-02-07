@@ -1,0 +1,16 @@
+export const ROUTES = {
+  COMPASS: '/compass',
+  DASHBOARD: '/dashboard',
+  DATA_ANALYSIS: '/data-analysis',
+  TASK_SCHEDULE: '/task-schedule',
+  REPORTS: '/reports',
+  RISK_ALERT: '/risk-alert',
+  DATA_SOURCE: '/data-source',
+  SCRAPING_RULE: '/scraping-rule',
+  USER_PERMISSION: '/user-permission',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_ROLES: '/admin/roles',
+  ADMIN_PERMISSIONS: '/admin/permissions',
+  PROFILE: '/profile',
+  SYSTEM_SETTINGS: '/system-settings',
+} as const;

@@ -99,6 +99,7 @@ function FormLabel({
       data-error={!!error}
       className={cn("data-[error=true]:text-destructive", className)}
       htmlFor={formItemId}
+      suppressHydrationWarning
       {...props}
     />
   );
@@ -118,6 +119,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
+      suppressHydrationWarning
       {...props}
     />
   );
@@ -130,6 +132,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-description"
       id={formDescriptionId}
+      suppressHydrationWarning
       className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
@@ -148,6 +151,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-message"
       id={formMessageId}
+      suppressHydrationWarning
       className={cn("text-destructive text-sm", className)}
       {...props}
     >

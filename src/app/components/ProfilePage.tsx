@@ -8,6 +8,8 @@ import femaleAvatar from '@/assets/female.jpg';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { useUserStore } from '@/stores/userStore';
+import { FormSelect } from '@/app/components/ui/styled-select';
+import { SelectItem } from '@/app/components/ui/select';
 import * as userService from '@/services/userService';
 
 import { toast } from 'sonner';
@@ -257,15 +259,15 @@ export default function ProfilePage() {
                     <UserCheck size={14} /> 性别 (Gender)
                 </label>
                 {isEditing ? (
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-slate-900 dark:text-slate-200 transition-all"
+                  <FormSelect
+                    value={formData.gender || 'unset'}
+                    onValueChange={(val) => setFormData({ ...formData, gender: val === 'unset' ? '' : val })}
+                    placeholder="请选择..."
                   >
-                    <option value="">未设置</option>
-                    <option value="male">男</option>
-                    <option value="female">女</option>
-                  </select>
+                    <SelectItem value="unset">未设置</SelectItem>
+                    <SelectItem value="male">男</SelectItem>
+                    <SelectItem value="female">女</SelectItem>
+                  </FormSelect>
                 ) : (
                    <div className="px-4 py-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-mono">
                     {formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '未设置'}

@@ -152,7 +152,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         if (onLogin) {
           onLogin();
         } else {
-          const redirectPath = searchParams.get('redirect') || '/dashboard';
+          const redirectPath = searchParams.get('redirect') || '/compass';
           router.push(redirectPath);
           toast.success('登录成功', {
             description: '欢迎回到猪鱼数据',
@@ -210,10 +210,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <RegisterPage
         onSwitchToLogin={() => setIsRegisterMode(false)}
         onRegisterSuccess={() => {
-          setIsRegisterMode(false);
           toast.success('注册成功', {
             description: '请使用您的账号登录',
           });
+          setIsRegisterMode(false);
         }}
       />
     );
@@ -401,11 +401,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-                <label className="flex items-center cursor-pointer hover:text-cyan-200 transition-colors">
-                  <input type="checkbox" className="mr-2 rounded border-white/10 bg-white/5 checked:bg-cyan-500" />
-                  <span>记住设备</span>
-                </label>
+              <div className="flex items-center justify-end text-xs text-slate-400 mt-2">
                 <a href="#" className="hover:text-cyan-200 transition-colors border-b border-transparent hover:border-cyan-200/30 pb-0.5">忘记密钥?</a>
               </div>
 

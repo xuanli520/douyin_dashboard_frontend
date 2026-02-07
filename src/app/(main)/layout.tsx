@@ -20,6 +20,12 @@ export default function MainLayout({
 
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+        {/* 背景光效 */}
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-30 dark:opacity-40 overflow-hidden">
+           <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary blur-[120px] opacity-20 animate-pulse"></div>
+           <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-secondary blur-[150px] opacity-20"></div>
+        </div>
+
         {/* 顶部导航栏 */}
         <Header />
 

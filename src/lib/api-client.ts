@@ -4,6 +4,15 @@ import { getAccessToken, setAccessToken, clearTokens, getRefreshToken } from './
 import { post } from './api';
 import { API_ENDPOINTS } from '@/config/api';
 
+/**
+ * 后端统一响应格式
+ */
+export interface ApiResponse<T> {
+  code: number;
+  msg: string;
+  data: T;
+}
+
 interface RequestOptions extends RequestInit {
   _retry?: boolean;
 }
@@ -85,14 +94,14 @@ export function createAuthenticatedClient() {
             throw new Error('No refresh token available');
           }
 
-          const refreshResponse = await post<{ access_token: string; token_type: string }>(
+          const refreshResponse = await post<ApiResponse<{ access_token: string; token_type: string }>>(
             `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
           );
 
-          setAccessToken(refreshResponse.access_token);
+          setAccessToken(refreshResponse.data.access_token);
 
           // 处理等待刷新的请求
-          processQueue(refreshResponse.access_token, null);
+          processQueue(refreshResponse.data.access_token, null);
 
           // 重新执行原请求
           const retryConfig: RequestOptions = {
@@ -100,7 +109,7 @@ export function createAuthenticatedClient() {
             _retry: true,
             headers: {
               ...options.headers,
-              Authorization: `Bearer ${refreshResponse.access_token}`,
+              Authorization: `Bearer ${refreshResponse.data.access_token}`,
             },
           };
 
@@ -197,4 +206,28 @@ export async function authPatch<T>(
 
 export async function authDel<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return authClient.authRequest<T>(endpoint, { method: 'DELETE', ...options });
+}
+
+export async function authPut<T>(
+  endpoint: string,
+  data?: unknown,
+  options?: RequestInit
+): Promise<T> {
+  const body =
+    data instanceof URLSearchParams ||
+    data instanceof FormData ||
+    typeof data === 'string'
+      ? data
+      : data === undefined
+      ? undefined
+      : JSON.stringify(data);
+
+  const headers = { ...options?.headers };
+  if (data instanceof URLSearchParams) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
+  } else if (typeof data === 'object' && data !== null && !(data instanceof FormData)) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
+  return authClient.authRequest<T>(endpoint, { method: 'PUT', body, headers, ...options });
 }

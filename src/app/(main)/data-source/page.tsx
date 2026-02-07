@@ -1,5 +1,5 @@
-import DataSourcePage from '@/app/components/DataSourcePage';
+import DataSourceList from '@/features/data-source/components/DataSourceList';
 
 export default function Page() {
-  return <DataSourcePage />;
+  return <DataSourceList />;
 }

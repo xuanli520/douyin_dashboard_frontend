@@ -10,8 +10,18 @@ export interface User {
   is_active: boolean;
   is_superuser: boolean;
   is_verified: boolean;
+  permissions?: string[];
   created_at?: string;
   updated_at?: string;
+  /** 用户角色列表 */
+  roles?: Array<{
+    id: number;
+    name: string;
+    description?: string | null;
+    is_system: boolean;
+  }>;
+  /** 角色ID列表（用于快速判断） */
+  role_ids?: number[];
 }
 
 export interface UserCreate {

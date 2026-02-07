@@ -13,14 +13,14 @@ describe('api-client 401 拦截器参数修复验证', () => {
       const refreshUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
       expect(refreshUrl).toContain('refresh_token=');
-      expect(refreshUrl).toBe('/auth/jwt/refresh?refresh_token=test-refresh-token');
+      expect(refreshUrl).toBe('/v1/auth/jwt/refresh?refresh_token=test-refresh-token');
     });
 
     it('应该正确编码特殊字符', () => {
       const refreshTokenValue = 'token/with=special&chars';
       const refreshUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
 
-      expect(refreshUrl).toBe('/auth/jwt/refresh?refresh_token=token%2Fwith%3Dspecial%26chars');
+      expect(refreshUrl).toBe('/v1/auth/jwt/refresh?refresh_token=token%2Fwith%3Dspecial%26chars');
     });
   });
 
@@ -41,21 +41,21 @@ describe('api-client 401 拦截器参数修复验证', () => {
       const url = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(token)}`;
 
       // 验证 URL 以 ?refresh_token= 开头，说明是查询参数
-      expect(url).toMatch(/^\/auth\/jwt\/refresh\?refresh_token=.+$/);
+      expect(url).toMatch(/^\/v1\/auth\/jwt\/refresh\?refresh_token=.+$/);
     });
   });
 
   describe('端点路径验证', () => {
     it('JWT_REFRESH 端点路径正确', () => {
-      expect(API_ENDPOINTS.JWT_REFRESH).toBe('/auth/jwt/refresh');
+      expect(API_ENDPOINTS.JWT_REFRESH).toBe('/v1/auth/jwt/refresh');
     });
 
     it('JWT_LOGOUT 端点路径正确', () => {
-      expect(API_ENDPOINTS.JWT_LOGOUT).toBe('/auth/jwt/logout');
+      expect(API_ENDPOINTS.JWT_LOGOUT).toBe('/v1/auth/jwt/logout');
     });
 
     it('JWT_LOGIN 端点路径正确', () => {
-      expect(API_ENDPOINTS.JWT_LOGIN).toBe('/auth/jwt/login');
+      expect(API_ENDPOINTS.JWT_LOGIN).toBe('/v1/auth/jwt/login');
     });
   });
 });
