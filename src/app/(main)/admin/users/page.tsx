@@ -184,8 +184,8 @@ export default function UsersPage() {
           
         </h1>
         <PermissionGate require="user:create" mode="hide">
-          <CyberButton onClick={handleCreate} className="shadow-lg shadow-cyan-500/20">
-            <Plus className="w-4 h-4 mr-2" />
+          <CyberButton onClick={handleCreate} className="shadow-lg shadow-cyan-500/20 group">
+            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
             新建用户
           </CyberButton>
         </PermissionGate>
