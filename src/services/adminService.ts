@@ -35,7 +35,8 @@ export interface UserStats {
 
 async function wrappedRequest<T>(promise: Promise<ApiResponse<T>>): Promise<T> {
   const response = await promise;
-  if (response.code !== SUCCESS_CODE) {
+  const successCodes: number[] = [200, 201, 202, 203, 204, 205, 206, 207, 208, 209];
+  if (!successCodes.includes(response.code)) {
     throw new Error(response.msg || `Request failed with code ${response.code}`);
   }
   return response.data;

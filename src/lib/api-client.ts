@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from '@/config/api';
 /**
  * 后端统一响应格式
  */
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   code: number;
   msg: string;
   data: T;
@@ -101,7 +101,7 @@ export function createAuthenticatedClient() {
           setAccessToken(refreshResponse.data.access_token);
 
           // 处理等待刷新的请求
-          processQueue(refreshResponse.access_token, null);
+          processQueue(refreshResponse.data.access_token, null);
 
           // 重新执行原请求
           const retryConfig: RequestOptions = {
@@ -109,7 +109,7 @@ export function createAuthenticatedClient() {
             _retry: true,
             headers: {
               ...options.headers,
-              Authorization: `Bearer ${refreshResponse.access_token}`,
+              Authorization: `Bearer ${refreshResponse.data.access_token}`,
             },
           };
 

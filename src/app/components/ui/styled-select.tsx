@@ -95,16 +95,18 @@ export function SettingSelect({
 export function DataSourceSelect({
   value,
   onValueChange,
+  defaultValue,
   children,
   className,
 }: {
   value?: string;
   onValueChange?: (value: string) => void;
+  defaultValue?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value} onValueChange={onValueChange} defaultValue={defaultValue}>
       <SelectTrigger
         className={`px-3 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:border-cyan-500/50 transition-all ${className || ''}`}
       >

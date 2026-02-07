@@ -6,6 +6,7 @@ export const ROUTES = {
   REPORTS: '/reports',
   RISK_ALERT: '/risk-alert',
   DATA_SOURCE: '/data-source',
+  SCRAPING_RULE: '/scraping-rule',
   USER_PERMISSION: '/user-permission',
   ADMIN_USERS: '/admin/users',
   ADMIN_ROLES: '/admin/roles',

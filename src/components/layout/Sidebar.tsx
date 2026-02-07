@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key } from 'lucide-react';
+import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import { useUserStore } from '@/stores/userStore';
 import { can } from '@/lib/rbac';
@@ -13,7 +13,7 @@ import { ROUTES } from '@/config/routes';
 interface MenuItem {
   id: string;
   label: string;
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  icon?: any;
   href?: string;
   perm?: string;
   subItems?: MenuItem[];
@@ -26,6 +26,7 @@ const menuItems: MenuItem[] = [
   { id: 'reports', label: '定期报表', icon: FileText, href: ROUTES.REPORTS },
   { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: ROUTES.RISK_ALERT },
   { id: 'data-source', label: '数据源管理', icon: Database, href: ROUTES.DATA_SOURCE },
+  { id: 'scraping-rule', label: '采集规则', icon: Workflow, href: ROUTES.SCRAPING_RULE },
   // 系统管理
   {
     id: 'system-management',
@@ -112,7 +113,7 @@ export function Sidebar() {
 
             const isExpanded = expandedMenus.includes(item.id);
             const Icon = item.icon;
-            const isAnyActive = item.subItems.some(subItem => pathname.startsWith(subItem.href));
+            const isAnyActive = item.subItems.some(subItem => pathname.startsWith(subItem.href || ''));
 
             return (
               <div key={item.id} className="flex flex-col">
@@ -143,11 +144,11 @@ export function Sidebar() {
                       return can({ is_superuser: isSuperuser, permissions: currentUser?.permissions }, subItem.perm);
                     }).map(subItem => {
                       const SubIcon = subItem.icon;
-                      const isActive = pathname.startsWith(subItem.href);
+                      const isActive = pathname.startsWith(subItem.href || '');
                       return (
                         <Link
                           key={subItem.id}
-                          href={subItem.href}
+                          href={subItem.href || '#'}
                           className={`relative px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 group/subitem ${
                             isActive
                               ? 'bg-gradient-to-r from-[#C8FDE6]/20 to-[#F4D5BD]/20 text-slate-900 dark:text-[#C8FDE6] shadow-sm'
@@ -171,11 +172,11 @@ export function Sidebar() {
           }
 
           const Icon = item.icon;
-          const isActive = pathname.startsWith(item.href);
+          const isActive = pathname.startsWith(item.href || '');
           return (
             <Link
               key={item.id}
-              href={item.href}
+              href={item.href || '#'}
               className={`relative px-4 py-3 mx-3 rounded-xl flex items-center gap-4 transition-all duration-300 group/item overflow-hidden ${
                 isActive
                   ? 'bg-gradient-to-r from-[#C8FDE6]/30 to-[#F4D5BD]/30 text-slate-900 dark:text-[#C8FDE6] shadow-sm dark:shadow-[0_0_20px_rgba(200,253,230,0.15)] border border-[#C8FDE6]/40'

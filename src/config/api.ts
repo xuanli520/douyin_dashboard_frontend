@@ -30,6 +30,18 @@ export const API_ENDPOINTS = {
 
   // Admin Permissions
   ADMIN_PERMISSIONS: '/v1/admin/permissions',
+
+  // Data Sources
+  DATA_SOURCES: '/v1/data-sources',
+  DATA_SOURCE_DETAIL: (id: number) => `/v1/data-sources/${id}`,
+  DATA_SOURCE_VALIDATE: '/v1/data-sources/validate',
+  DATA_SOURCE_ACTIVATE: (id: number) => `/v1/data-sources/${id}/activate`,
+  DATA_SOURCE_RULES: (id: number) => `/v1/data-sources/${id}/rules`,
+
+  // Scraping Rules
+  SCRAPING_RULES: '/v1/scraping-rules',
+  SCRAPING_RULE_DETAIL: (id: number) => `/v1/scraping-rules/${id}`,
+  SCRAPING_RULE_ACTIVATE: (id: number) => `/v1/scraping-rules/${id}/activate`,
 } as const;
 
 /** 成功响应状态码范围 (200-209) */

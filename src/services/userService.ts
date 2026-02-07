@@ -114,7 +114,8 @@ async function wrappedRequest<T>(
       break;
   }
 
-  // 验证响应状态码 (200-209 都为成功)
+
+
   if (!SUCCESS_CODES.includes(response.code)) {
     throw new ApiError(
       response.msg || `请求失败: ${response.code}`,
@@ -126,7 +127,6 @@ async function wrappedRequest<T>(
   return response.data;
 }
 
-// 便捷方法（保持向后兼容）
 async function wrappedGet<T>(url: string, options?: RequestInit): Promise<T> {
   return wrappedRequest<T>(url, 'GET', undefined, options);
 }
@@ -340,6 +340,13 @@ export async function checkIsSuperuser(): Promise<boolean> {
 const ERROR_MSG_MAP: Record<string, string> = {
   REGISTER_USER_ALREADY_EXISTS: '用户已存在',
   REGISTER_INVALID_EMAIL: '邮箱格式错误',
+  REGISTER_INVALID_PASSWORD: '密码强度不足',
+  UPDATE_USER_EMAIL_ALREADY_EXISTS: '邮箱已被使用',
+  UPDATE_USER_INVALID_PASSWORD: '密码强度不足',
+  RESET_PASSWORD_BAD_TOKEN: '重置链接已过期',
+  RESET_PASSWORD_INVALID_PASSWORD: '密码强度不足',
+  VERIFY_USER_BAD_TOKEN: '验证链接无效',
+  VERIFY_USER_ALREADY_VERIFIED: '用户已验证',
 };
 
 /**
@@ -445,11 +452,5 @@ export function checkPasswordStrength(password: string): PasswordStrength {
 
   return { score, label, color, requirements };
 }
-
-// 导出类型供外部使用
-export type { ApiResponse, NetworkError, TimeoutError, ApiError };
-
-
-
 
 
