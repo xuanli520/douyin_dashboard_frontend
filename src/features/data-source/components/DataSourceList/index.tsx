@@ -14,6 +14,7 @@ import { SelectItem } from '@/app/components/ui/select';
 import { Search, Database, Plus } from 'lucide-react';
 import { DataSourceType, DataSourceStatus, DataSourceCreateDTO, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
 
 export default function DataSourceList() {
@@ -26,6 +27,8 @@ export default function DataSourceList() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingSource, setEditingSource] = useState<DataSource | undefined>(undefined);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -75,16 +78,21 @@ export default function DataSourceList() {
     }
   };
 
-  const handleDeleteClick = async (id: number) => {
-    if (confirm('确定要删除此数据源吗？')) {
-      try {
-        await remove(id);
-        toast.success('数据源删除成功');
-        refresh();
-      } catch (error) {
-        toast.error('删除数据源失败');
-        console.error(error);
-      }
+  const handleDeleteClick = (id: number) => {
+    setSourceToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!sourceToDelete) return;
+    try {
+      await remove(sourceToDelete);
+      toast.success('数据源删除成功');
+      setDeleteDialogOpen(false);
+      refresh();
+    } catch (error) {
+      toast.error('删除数据源失败');
+      console.error(error);
     }
   };
 
@@ -196,6 +204,16 @@ export default function DataSourceList() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        isLoading={deleting}
+        title="确认删除数据源？"
+        description="此操作无法撤销，将永久删除该数据源及其所有配置。"
+      />
     </div>
   );
 }

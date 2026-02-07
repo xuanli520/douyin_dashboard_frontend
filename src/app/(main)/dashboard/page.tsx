@@ -6,7 +6,7 @@ import { WidthProvider } from '@/components/dashboard/WidthProvider';
 import { useTheme } from 'next-themes';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { 
-  Moon, Sun, LayoutDashboard, LayoutTemplate, ChevronDown
+  Moon, Sun, LayoutDashboard, LayoutTemplate
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -36,7 +36,7 @@ const GlassPanel = ({ children, className = "", noBorder = false }: { children: 
   </div>
 );
 
-// --- 布局预设数据 (Layout Presets) ---
+// --- 布局预设数据 ---
 const LAYOUT_PRESETS: Record<string, any> = {
   standard: {
     lg: [
@@ -66,7 +66,7 @@ const LAYOUT_PRESETS: Record<string, any> = {
       { i: 'card-service', x: 0, y: 48, w: 6, h: 6 },
     ]
   },
-  focus: { // 聚焦模式：上方两个大指标，下方详细卡片平铺
+  focus: { 
     lg: [
       { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
       { i: 'trend-chart', x: 0, y: 4, w: 8, h: 8 },
@@ -94,7 +94,7 @@ const LAYOUT_PRESETS: Record<string, any> = {
       { i: 'card-service', x: 4, y: 30, w: 2, h: 8 },
     ]
   },
-  grid: { // 网格模式：均匀分布
+  grid: { 
     lg: [
       { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
       { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
@@ -124,7 +124,6 @@ const LAYOUT_PRESETS: Record<string, any> = {
   }
 };
 
-// --- 新组件的默认布局配置 ---
 const DEFAULT_LAYOUTS: Record<string, any> = {
   lg: { w: 6, h: 10 },
   md: { w: 6, h: 10 },
@@ -147,59 +146,58 @@ interface WidgetItem {
   data?: WidgetData;
 }
 
+// --- WIDGETS 配置修改重点 ---
+// 根据您的要求，明确写出“xxx得分”以及各分项的得分标签
 const WIDGETS: WidgetItem[] = [
   { id: 'gauge-merchant', title: '商家体验分', type: 'gauge', data: { score: 100 } },
-  { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 99 } },
+  { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 100 } },
   { id: 'kpi-cards', title: '核心指标', type: 'kpi' },
   { id: 'trend-chart', title: '运营趋势', type: 'trend' },
   { id: 'channel-pie', title: '渠道分布', type: 'channel' },
   { id: 'risk-alerts', title: '风险预警', type: 'risk' },
   { id: 'task-monitor', title: '任务状态', type: 'task' },
   {
-    id: 'card-merchant', title: '商家体验详情', type: 'metric',
-    data: {
-      totalScore: 100, totalLabel: '体验总分',
-      items: [
-        { label: '商品体验', score: 99 },
-        { label: '物流体验', score: 100 },
-        { label: '服务体验', score: 100 },
-        { label: '纠纷投诉', score: 100 },
-      ]
-    }
-  },
-  {
     id: 'card-product', title: '商品体验详情', type: 'metric',
     data: {
-      totalScore: 89, totalLabel: '综合评分',
+      totalScore: 100, totalLabel: '商品体验得分',
       items: [
-        { label: '好评率', score: 95 },
-        { label: '品质退货率', score: 70, isWarning: true },
-        { label: '品退率(行业)', score: 90 },
+        // 明确等于：商品综合评分得分 + 商品品质退货率得分
+        { label: '商品综合评分得分', score: 100 },
+        { label: '商品品质退货率得分', score: 100 },
       ]
     }
   },
   {
     id: 'card-logistics', title: '物流体验详情', type: 'metric',
     data: {
-      totalScore: 92, totalLabel: '物流总分',
+      totalScore: 100, totalLabel: '物流体验得分',
       items: [
-        { label: '揽收时效', score: 100 },
-        { label: '配送时效', score: 50, isWarning: true },
-        { label: '物流退货率', score: 80 },
-        { label: '承诺达标率', score: 98 },
-        { label: '发货及时率', score: 100 },
+        // 明确等于：揽收时效 + 运单配送时效 + 发货物流品退率
+        { label: '揽收时效达成率得分', score: 100 },
+        { label: '运单配送时效达成率得分', score: 100 },
+        { label: '发货物流品退率得分', score: 100 },
       ]
     }
   },
   {
     id: 'card-service', title: '服务体验详情', type: 'metric',
     data: {
-      totalScore: 100, totalLabel: '服务总分',
+      totalScore: 100, totalLabel: '服务体验得分',
       items: [
-        { label: '飞鸽响应', score: 100 },
-        { label: '仅退款时长', score: 100 },
-        { label: '售后满意度', score: 98 },
-        { label: '平台介入率', score: 100 },
+        // 明确等于：飞鸽响应 + 售后处理时长
+        { label: '飞鸽平均响应时长得分', score: 100 },
+        { label: '售后处理时长达成率得分', score: 100 },
+      ]
+    }
+  },
+  {
+    id: 'card-merchant', title: '差行为详情', type: 'metric',
+    data: {
+      totalScore: 0, totalLabel: '差行为扣分',
+      items: [
+        // 明确等于：虚假交易扣分 + 影响消费者体验扣分
+        { label: '虚假交易刷体验分扣分', score: 0 },
+        { label: '影响消费者体验扣分', score: 0 },
       ]
     }
   },
@@ -236,7 +234,6 @@ export default function DashboardPage() {
     setMounted(true);
     const savedLayouts = localStorage.getItem('compass_layouts');
     const savedVisibility = localStorage.getItem('compass_visibility');
-    // 如果本地没有存Layout，默认使用 Standard
     if (savedLayouts) {
         try { setLayouts(JSON.parse(savedLayouts)); } catch (e) {}
     }
@@ -256,7 +253,6 @@ export default function DashboardPage() {
     if (newLayout) {
         setLayouts(newLayout);
         localStorage.setItem('compass_layouts', JSON.stringify(newLayout));
-        // 切换预设时，通常希望重置所有Widget为可见，或者保持当前可见性，这里保持当前可见性
     }
   };
 
@@ -264,7 +260,6 @@ export default function DashboardPage() {
   const addWidgetLayout = useCallback((id: string, currentLayouts: any) => {
     const newLayouts = { ...currentLayouts };
     const breakpoints = ['lg', 'md', 'sm', 'xs', 'xxs'];
-    // 每行显示数量（根据当前预设计算）
     const itemsPerRow = parseInt(currentPreset) || 3;
     const cols = 12;
     const cardWidth = cols / itemsPerRow;
@@ -294,8 +289,6 @@ export default function DashboardPage() {
 
   const toggleWidget = useCallback((id: string, visible: boolean) => {
     let newLayouts = { ...layouts };
-
-    // 如果是添加组件，为其设置默认布局
     if (visible) {
       const hasLayout = layouts.lg?.some((item: any) => item.i === id);
       if (!hasLayout) {
@@ -304,7 +297,6 @@ export default function DashboardPage() {
         localStorage.setItem('compass_layouts', JSON.stringify(newLayouts));
       }
     }
-
     const newVisibility = { ...visibleWidgets, [id]: visible };
     setVisibleWidgets(newVisibility);
     localStorage.setItem('compass_visibility', JSON.stringify(newVisibility));
@@ -336,7 +328,7 @@ export default function DashboardPage() {
               </SelectContent>
             </Select>
 
-            {/* --- 新增：Layout Preset Selector --- */}
+            {/* Layout Preset Selector */}
             <Select value={currentPreset} onValueChange={handlePresetChange}>
               <SelectTrigger className="w-[140px] border-none bg-transparent hover:bg-surface/10 text-text-muted hover:text-text-primary focus:ring-0 transition-all rounded-lg h-9 text-xs font-medium shadow-none pl-2 flex gap-2">
                  <LayoutTemplate size={14} />
@@ -352,8 +344,7 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             
-            {/* --- 重点修复: Time Filter Tabs (高对比度优化) --- */}
-            {/* 增加背景色深度，文字颜色改为 slate-500，选中状态改为强对比（白底黑字/深色模式下反转） */}
+            {/* Time Filter Tabs */}
             <Tabs defaultValue="day" className="w-[140px] hidden md:block">
               <TabsList className="grid w-full grid-cols-2 h-9 bg-slate-100/80 dark:bg-slate-800/60 rounded-lg p-1 border border-black/5 dark:border-white/5">
                 <TabsTrigger 
@@ -425,7 +416,6 @@ export default function DashboardPage() {
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 6, sm: 4, xs: 2, xxs: 2 }}
             rowHeight={40}
-            // --- v2 API: 使用 dragConfig/resizeConfig 对象式 API ---
             dragConfig={{ enabled: isEditMode, handle: '.drag-handle' }}
             resizeConfig={{ enabled: isEditMode }}
             onLayoutChange={onLayoutChange}
@@ -433,20 +423,18 @@ export default function DashboardPage() {
           >
             {activeWidgets.map((widget) => (
               <div key={widget.id} className={isEditMode ? 'is-edit-mode' : ''}>
-                {/* 卡片容器 */}
                 <GlassPanel className={`h-full flex flex-col group transition-all duration-300 ${
-                    isEditMode 
-                    ? 'border-primary border-dashed bg-primary/5 ring-1 ring-primary/20 z-20' // 编辑模式样式加强
-                    : 'hover:border-primary/30'
+                  isEditMode 
+                  ? 'border-primary border-dashed bg-primary/5 ring-1 ring-primary/20 z-20' 
+                  : 'hover:border-primary/30'
                 }`}>
                   <CompassWidget
                     title={widget.title}
                     isEditMode={isEditMode}
                     onRemove={() => toggleWidget(widget.id, false)}
                     className="h-full bg-transparent p-0 shadow-none border-none"
-                    // --- 核心修复：只有在 EditMode 时，才添加 cursor-move 类名 ---
                     headerClassName={`px-5 py-4 flex items-center justify-between border-b border-border/10 transition-colors ${
-                        isEditMode ? 'drag-handle cursor-move bg-primary/5' : 'cursor-default'
+                      isEditMode ? 'drag-handle cursor-move bg-primary/5' : 'cursor-default'
                     }`}
                   >
                     <div className="p-5 flex-1 h-full overflow-hidden relative select-none">

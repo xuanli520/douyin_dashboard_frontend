@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Activity, Zap, Radio, GripHorizontal } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 
 export interface ShopData {
@@ -9,15 +8,18 @@ export interface ShopData {
   name: string;
   score: number;
   status: 'live' | 'offline' | 'warning' | 'critical';
-  risk: number; // > 0 means risk
-  trend: number[]; // Array of numbers for sparkline
+  risk: number;
+  trend: number[];
+  serviceScore: number;
+  productScore: number;
+  logisticsScore: number;
+  comprehensiveScore: number;
 }
 
 interface ShopCardProps extends React.HTMLAttributes<HTMLDivElement> {
   shop: ShopData;
   isEditing: boolean;
   onClick?: () => void;
-  // React-grid-layout props
   style?: React.CSSProperties;
   className?: string;
   onMouseDown?: React.MouseEventHandler;
@@ -25,38 +27,68 @@ interface ShopCardProps extends React.HTMLAttributes<HTMLDivElement> {
   onTouchEnd?: React.TouchEventHandler;
 }
 
-// Sparkline Component
-const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
-  const chartData = data.map((val, i) => ({ i, val }));
+// 四宫格单项组件
+const GridItem = ({ 
+  label, 
+  score, 
+  icon: Icon,
+  colorIndex,
+}: { 
+  label: string; 
+  score: number; 
+  icon: React.ElementType;
+  colorIndex: number;
+}) => {
+  // 根据索引获取固定颜色（橙色、蓝色、紫色、绿色）
+  const getColorConfig = (index: number) => {
+    const configs = [
+      { bg: 'bg-orange-400', lightBg: 'bg-orange-100', text: 'text-orange-500', shadow: 'shadow-orange-200' },
+      { bg: 'bg-sky-400', lightBg: 'bg-sky-100', text: 'text-sky-500', shadow: 'shadow-sky-200' },
+      { bg: 'bg-purple-400', lightBg: 'bg-purple-100', text: 'text-purple-500', shadow: 'shadow-purple-200' },
+      { bg: 'bg-emerald-400', lightBg: 'bg-emerald-100', text: 'text-emerald-500', shadow: 'shadow-emerald-200' },
+    ];
+    return configs[index % 4];
+  };
+
+  const config = getColorConfig(colorIndex);
+
   return (
-    <div className="h-10 w-full opacity-70">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData}>
-          <Line
-            type="monotone"
-            dataKey="val"
-            stroke={color}
-            strokeWidth={2}
-            dot={false}
-            isAnimationActive={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col items-start justify-start p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/30 hover:shadow-lg transition-all duration-200">
+      {/* 圆形图标 */}
+      <div className={cn(
+        "w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-lg",
+        config.bg
+      )}>
+        <Icon size={24} className="text-white" />
+      </div>
+      
+      {/* 指标名称 */}
+      <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        {label}
+      </span>
+      
+      {/* 得分 */}
+      <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        {score}
+      </span>
     </div>
   );
 };
 
 const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
   ({ shop, style, className, onMouseDown, onMouseUp, onTouchEnd, isEditing, onClick, ...props }, ref) => {
-    // Determine Color Theme based on status/score
     const isHealthy = shop.score >= 90;
     const isRisk = shop.risk > 0 || shop.score < 60;
     
-    // Status Indicator
     const StatusIcon = shop.status === 'live' ? Zap : shop.status === 'warning' ? AlertTriangle : Radio;
-    
-    // Colors for Sparkline
-    const accentColor = isHealthy ? '#06b6d4' : isRisk ? '#ef4444' : '#94a3b8';
+
+    // 四宫格数据 - 从左到右，从上到下：商品体验、物流体验、服务体验、差行为
+    const gridItems = [
+      { label: '商品体验', score: shop.productScore, icon: Package },
+      { label: '物流体验', score: shop.logisticsScore, icon: Truck },
+      { label: '服务体验', score: shop.serviceScore, icon: HeadphonesIcon },
+      { label: '差行为', score: shop.risk, icon: AlertTriangle },
+    ];
 
     return (
       <div
@@ -64,11 +96,9 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
         style={style}
         className={cn(
           "flex flex-col relative group overflow-hidden rounded-xl border transition-all duration-300",
-          // Dark Mode
           "dark:bg-slate-900/60 dark:backdrop-blur-md dark:border-slate-700/50 dark:hover:bg-slate-800/50",
           isHealthy && "dark:border-cyan-500/30 dark:shadow-[0_0_15px_rgba(6,182,212,0.1)]",
           isRisk && "dark:border-red-500/30 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)]",
-          // Light Mode
           "bg-white border-slate-200 shadow-sm hover:shadow-md",
           className
         )}
@@ -78,7 +108,7 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
         onClick={!isEditing ? onClick : undefined}
         {...props}
       >
-        {/* Header - drag-handle class for react-grid-layout (only in edit mode) */}
+        {/* Header */}
         <div className={cn(
           "flex items-center justify-between px-4 py-3 border-b transition-colors select-none",
           "dark:border-white/5 border-slate-100",
@@ -93,7 +123,6 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
              }`}>
                 <StatusIcon size={14} />
              </div>
-             {/* Title: Matching CompassWidget font style */}
              <span className="font-semibold text-sm tracking-wide text-slate-700 dark:text-slate-100 truncate">
                {shop.name}
              </span>
@@ -112,40 +141,19 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 p-4 flex flex-col justify-between relative z-10 min-h-0">
-          <div className="flex items-end justify-between mb-4">
-             <div className="flex flex-col">
-                <span className="text-xs text-slate-500 uppercase tracking-wider mb-1">Health Score</span>
-                <div className="flex items-baseline gap-1">
-                   <span className={cn(
-                     "text-3xl font-bold font-mono",
-                     isHealthy ? "text-cyan-600 dark:text-cyan-400 dark:drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]" : 
-                     isRisk ? "text-red-600 dark:text-red-400 dark:drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" : 
-                     "text-slate-700 dark:text-slate-200"
-                   )}>
-                     {shop.score}
-                   </span>
-                   <span className="text-sm text-slate-400">/100</span>
-                </div>
-             </div>
-             
-             {/* Risk Badge */}
-             {shop.risk > 0 && (
-               <div className="flex items-center gap-1 px-2 py-1 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
-                 <AlertTriangle size={12} className="text-red-500 dark:text-red-400" />
-                 <span className="text-xs text-red-600 dark:text-red-300 font-mono">RISK</span>
-               </div>
-             )}
-          </div>
-
-          {/* Sparkline */}
-          <div className="mt-auto">
-             <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] text-slate-400 uppercase">7-Day Trend</span>
-                <Activity size={12} className="text-slate-400" />
-             </div>
-             <Sparkline data={shop.trend} color={accentColor} />
+        {/* Body - 四宫格布局 */}
+        <div className="flex-1 p-3 relative z-10 min-h-0 bg-slate-50/50 dark:bg-slate-900/30">
+          {/* 2x2 网格 */}
+          <div className="grid grid-cols-2 gap-3 h-full">
+            {gridItems.map((item, index) => (
+              <GridItem
+                key={index}
+                label={item.label}
+                score={item.score}
+                icon={item.icon}
+                colorIndex={index}
+              />
+            ))}
           </div>
         </div>
       </div>

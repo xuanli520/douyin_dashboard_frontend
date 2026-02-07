@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
@@ -7,6 +7,7 @@ import { Button } from '@/app/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/app/components/ui/input';
+import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 
 export function ScrapingRuleList() {
   const router = useRouter();
@@ -14,11 +15,19 @@ export function ScrapingRuleList() {
   const { remove } = useDeleteScrapingRule();
   const { activate } = useActivateScrapingRule();
 
-  const handleDelete = async (id: number) => {
-    if (confirm('确定要删除此规则吗？')) {
-      await remove(id);
-      refresh();
-    }
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
+
+  const handleDelete = (id: number) => {
+    setRuleToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (ruleToDelete === null) return;
+    await remove(ruleToDelete);
+    refresh();
+    setDeleteDialogOpen(false);
   };
 
   const handleToggleActive = async (id: number, active: boolean) => {
@@ -45,12 +54,19 @@ export function ScrapingRuleList() {
       {error && <div className="text-left text-red-500">错误: {error.message}</div>}
       
       {!loading && !error && (
-        <RuleTable 
-          data={data.list} 
+        <RuleTable
+          data={data.list}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
         />
       )}
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        description="确定要删除此规则吗？此操作无法撤销。"
+      />
     </div>
   );
 }

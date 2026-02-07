@@ -8,6 +8,11 @@ export const MOCK_SHOPS: Record<string, ShopData> = {
     status: 'live',
     risk: 0,
     trend: [80, 85, 90, 88, 92, 95, 100],
+    // 4个体验分指标
+    serviceScore: 100,
+    productScore: 100,
+    logisticsScore: 100,
+    comprehensiveScore: 100,
   },
   c2: {
     id: 'c2',
@@ -16,6 +21,11 @@ export const MOCK_SHOPS: Record<string, ShopData> = {
     status: 'warning',
     risk: 15,
     trend: [60, 55, 62, 58, 65, 60, 66],
+    // 4个体验分指标
+    serviceScore: 85,
+    productScore: 75,
+    logisticsScore: 90,
+    comprehensiveScore: 80,
   },
   c3: {
     id: 'c3',
@@ -24,6 +34,11 @@ export const MOCK_SHOPS: Record<string, ShopData> = {
     status: 'critical',
     risk: 0,
     trend: [20, 15, 10, 5, 2, 0, 0],
+    // 4个体验分指标
+    serviceScore: 45,
+    productScore: 30,
+    logisticsScore: 55,
+    comprehensiveScore: 40,
   },
   c4: {
     id: 'c4',
@@ -32,6 +47,11 @@ export const MOCK_SHOPS: Record<string, ShopData> = {
     status: 'offline',
     risk: 0,
     trend: [10, 10, 10, 10, 10, 10, 10],
+    // 4个体验分指标
+    serviceScore: 0,
+    productScore: 0,
+    logisticsScore: 0,
+    comprehensiveScore: 0,
   },
 };
 
