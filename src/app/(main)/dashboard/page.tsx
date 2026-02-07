@@ -447,6 +447,16 @@ export default function DashboardPage() {
                           totalScore={widget.data?.totalScore ?? 0}
                           totalLabel={widget.data?.totalLabel ?? ''}
                           items={widget.data?.items ?? []}
+                          onItemClick={() => {
+                            const typeMap: Record<string, string> = {
+                              'card-product': 'product',
+                              'card-logistics': 'logistics',
+                              'card-service': 'service',
+                              'card-merchant': 'risk'
+                            };
+                            const type = typeMap[widget.id] || 'product';
+                            router.push(`/metric-detail?type=${type}`);
+                          }}
                         />
                       ) : widget.type === 'kpi' ? (
                         <KPIWidget />

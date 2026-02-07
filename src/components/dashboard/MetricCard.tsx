@@ -12,9 +12,10 @@ interface MetricCardProps {
   totalLabel: string;
   items: MetricItem[];
   className?: string;
+  onItemClick?: (item: MetricItem) => void;
 }
 
-export default function MetricCard({ totalScore, totalLabel, items, className }: MetricCardProps) {
+export default function MetricCard({ totalScore, totalLabel, items, className, onItemClick }: MetricCardProps) {
   // 辅助函数：统一管理颜色逻辑
   const getColorConfig = (score: number) => {
     if (score >= 90) {
@@ -94,7 +95,14 @@ export default function MetricCard({ totalScore, totalLabel, items, className }:
           const isWarningState = item.isWarning || item.score < 60;
 
           return (
-            <div key={index} className="group flex flex-col gap-1.5">
+            <div 
+              key={index} 
+              onClick={() => onItemClick?.(item)}
+              className={cn(
+                "group flex flex-col gap-1.5 transition-colors duration-200 rounded-lg p-1 -m-1",
+                onItemClick ? "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50" : ""
+              )}
+            >
               <div className="flex justify-between items-end text-xs">
                 <span className={cn(
                   "font-medium transition-colors duration-300 truncate pr-2",

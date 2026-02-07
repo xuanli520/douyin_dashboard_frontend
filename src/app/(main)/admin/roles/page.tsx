@@ -18,7 +18,7 @@ import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/cyber/CyberDialog';
-import { Users, Plus, ShieldAlert } from 'lucide-react';
+import { Plus, ShieldAlert, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { RoleTable } from './RoleTable';
 
@@ -188,7 +188,7 @@ export default function RolesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-muted-foreground dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Shield className="w-4 h-4" />
             定义角色并分配访问级别
           </p>
         </div>

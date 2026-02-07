@@ -6,7 +6,7 @@ import { CyberCard } from '@/components/ui/cyber/CyberCard';
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import { CyberBadge } from '@/components/ui/cyber/CyberBadge';
 import { DataTable, DataTableColumn } from '../_components/common/DataTable';
-import { Shield, Search, Lock, Copy } from 'lucide-react';
+import { Search, Lock, Copy, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PermissionsPage() {
@@ -113,7 +113,7 @@ export default function PermissionsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-muted-foreground dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Shield className="w-4 h-4" />
+            <Key className="w-4 h-4" />
             系统访问控制定义
           </p>
         </div>
