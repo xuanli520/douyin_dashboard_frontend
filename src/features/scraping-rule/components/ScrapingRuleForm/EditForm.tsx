@@ -1,37 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/app/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/app/components/ui/form';
-import { Input } from '@/app/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { RuleConfigFields } from './RuleConfigFields';
+import React, { useEffect, useState } from 'react';
+import { BaseForm } from './BaseForm';
 import { useUpdateScrapingRule } from '../../hooks/useUpdateScrapingRule';
 import { useScrapingRule } from '../../hooks/useScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
 import { useRouter } from 'next/navigation';
-import { ScrapingRule } from '../../services/types';
-
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "名称至少需要2个字符。",
-  }),
-  description: z.string().optional(),
-  rule_type: z.enum(['orders', 'products', 'users', 'comments']),
-  data_source_id: z.coerce.number(),
-  schedule_type: z.enum(['cron', 'interval', 'once']),
-  schedule_value: z.string().min(1, "调度值为必填项"),
-  config: z.object({
-    target_url: z.string().url("必须是有效的URL").optional(),
-    timeout: z.number().default(30000),
-    retry_count: z.number().default(3),
-    max_pages: z.number().optional(),
-    selectors: z.record(z.string(), z.string()).optional(),
-  }).passthrough(),
-});
 
 interface EditFormProps {
   id: number;
@@ -42,183 +16,42 @@ export function EditForm({ id }: EditFormProps) {
   const { rule, loading: loadingRule } = useScrapingRule(id);
   const { update, loading: saving } = useUpdateScrapingRule();
   const { data: dataSources } = useDataSources({ pageSize: 100 });
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      rule_type: "orders",
-      schedule_type: "once",
-      schedule_value: "0",
-      config: {
-        target_url: "",
-        timeout: 30000,
-        retry_count: 3,
-        selectors: {},
-      },
-    },
-  });
+  const [initialData, setInitialData] = useState<any>(null);
 
   useEffect(() => {
     if (rule) {
-      form.reset({
+      setInitialData({
         name: rule.name,
         description: rule.description,
         rule_type: rule.rule_type,
-        data_source_id: rule.data_source_id.toString() as any,
+        data_source_id: rule.data_source_id,
         schedule_type: rule.schedule_type,
         schedule_value: rule.schedule_value,
         config: rule.config,
       });
     }
-  }, [rule, form]);
+  }, [rule]);
 
-  const ruleType = form.watch("rule_type");
+  const handleSubmit = async (values: any) => {
+    await update(id, values);
+    router.push('/scraping-rule');
+  };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      await update(id, values as any);
-      router.push('/scraping-rule');
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const handleCancel = () => {
+    router.back();
+  };
 
   if (loadingRule) return <div>加载中...</div>;
   if (!rule) return <div>未找到规则</div>;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>名称</FormLabel>
-              <FormControl>
-                <Input placeholder="规则名称" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>描述</FormLabel>
-              <FormControl>
-                <Input placeholder="描述" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="rule_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="orders">订单</SelectItem>
-                    <SelectItem value="products">商品</SelectItem>
-                    <SelectItem value="users">用户</SelectItem>
-                    <SelectItem value="comments">评论</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="data_source_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>数据源</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择数据源" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {dataSources?.list?.map((ds) => (
-                      <SelectItem key={ds.id} value={ds.id.toString()}>
-                        {ds.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="schedule_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择调度类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="once">一次</SelectItem>
-                    <SelectItem value="interval">间隔</SelectItem>
-                    <SelectItem value="cron">Cron表达式</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="schedule_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度值</FormLabel>
-                <FormControl>
-                  <Input placeholder="例如: 3600 或 0 * * * *" {...field} />
-                </FormControl>
-                <FormDescription>间隔为秒数，Cron为Cron表达式。</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <RuleConfigFields form={form} type={ruleType} />
-
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.back()}>取消</Button>
-          <Button type="submit" disabled={saving}>
-            {saving ? "保存中..." : "保存更改"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <BaseForm
+      initialData={initialData}
+      dataSources={dataSources?.list}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      submitLabel="保存更改"
+      isLoading={saving}
+    />
   );
 }

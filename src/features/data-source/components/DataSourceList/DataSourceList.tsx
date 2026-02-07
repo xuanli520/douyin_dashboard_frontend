@@ -21,8 +21,8 @@ import {
   SelectValue,
 } from '@/app/components/ui/select';
 
-export default function DataSourceList() {
-  const { data, loading, filters, updateFilters, refresh } = useDataSources();
+export function DataSourceList() {
+  const { data, loading, filters, updateFilters, refetch } = useDataSources();
   const { create, loading: creating } = useCreateDataSource();
   const { update, loading: updating } = useUpdateDataSource();
   const { remove, loading: deleting } = useDeleteDataSource();
@@ -52,7 +52,7 @@ export default function DataSourceList() {
       await create(formData);
       toast.success('数据源创建成功');
       setIsCreateOpen(false);
-      refresh();
+      refetch();
     } catch (error) {
       toast.error('创建数据源失败');
       console.error(error);
@@ -66,7 +66,7 @@ export default function DataSourceList() {
       toast.success('数据源更新成功');
       setEditingId(null);
       setEditingSource(undefined);
-      refresh();
+      refetch();
     } catch (error) {
       toast.error('更新数据源失败');
       console.error(error);
@@ -92,7 +92,7 @@ export default function DataSourceList() {
       await remove(sourceToDelete);
       toast.success('数据源删除成功');
       setDeleteDialogOpen(false);
-      refresh();
+      refetch();
     } catch (error) {
       toast.error('删除数据源失败');
       console.error(error);
@@ -165,7 +165,7 @@ export default function DataSourceList() {
       <DataSourceTable
         data={data?.list || []}
         loading={loading || deleting}
-        pagination={{ page: data?.page || 1, size: filters.pageSize || 10, total: data?.total || 0 }}
+        pagination={{ page: data?.page || 1, size: data?.pageSize || 10, total: data?.total || 0 }}
         onPageChange={handlePageChange}
         onSizeChange={handleSizeChange}
         onEdit={handleEditClick}

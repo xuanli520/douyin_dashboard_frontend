@@ -79,16 +79,14 @@ export const dataSourceApi = {
       ? `${API_ENDPOINTS.DATA_SOURCES}?${queryString}`
       : API_ENDPOINTS.DATA_SOURCES;
 
-    const response = await authGet<ApiResponse<{ items: DataSource[]; total: number }>>(url);
-    const page = params?.page || 1;
-    const pageSize = params?.pageSize || 10;
-    return {
-      list: response.data.items.map(normalizeDataSource),
-      total: response.data.total,
-      page,
-      pageSize,
-      pages: Math.ceil(response.data.total / pageSize)
-    };
+     const response = await authGet<ApiResponse<{ items: DataSource[]; total: number; page: number; size: number; pages: number }>>(url);
+     return {
+       list: response.data.items.map(normalizeDataSource),
+       total: response.data.total,
+       page: response.data.page,
+       pageSize: response.data.size,
+       pages: response.data.pages
+     };
   },
 
   /**
