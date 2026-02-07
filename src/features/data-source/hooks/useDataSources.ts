@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
 import { DataSource, DataSourceFilter, PaginatedResponse } from '../services/types';
 
@@ -25,6 +25,13 @@ export function useDataSources(
     page: 1,
     pageSize: 10,
   });
+
+  // 使用 ref 来存储当前 filters
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+  
+  // 标记是否已经执行过初始获取
+  const hasFetchedInitially = useRef(false);
 
   // 定义获取数据的函数
   const fetchData = useCallback(async (currentFilters: DataSourceFilter = filters) => {
