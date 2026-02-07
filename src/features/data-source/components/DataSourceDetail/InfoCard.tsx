@@ -1,26 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DataSource } from '../../services/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/card';
 import { StatusTag } from '../common/StatusTag';
 import { TypeTag } from '../common/TypeTag';
 import { Button } from '@/app/components/ui/button';
-import { RefreshCw, Power, PowerOff, Activity } from 'lucide-react';
+import { Power, PowerOff, Activity } from 'lucide-react';
 import { useActivateDataSource } from '../../hooks/useActivateDataSource';
 import { useValidateDataSource } from '../../hooks/useValidateDataSource';
+import { toast } from 'sonner';
 
 interface InfoCardProps {
   dataSource: DataSource;
-  onRefresh: () => void;
 }
 
-export function InfoCard({ dataSource, onRefresh }: InfoCardProps) {
+export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
+  const [dataSource, setDataSource] = useState<DataSource>(initialDataSource);
   const { activate, loading: activating } = useActivateDataSource();
   const { validate, validating, validationResult } = useValidateDataSource();
 
+  const isActive = dataSource.status === 'active';
+
   const handleToggleActive = async () => {
-    const newStatus = dataSource.status === 'active' ? false : true;
-    await activate(dataSource.id, newStatus);
-    onRefresh();
+    try {
+      await activate(dataSource.id, !isActive);
+      setDataSource(prev => ({ ...prev, status: isActive ? 'inactive' : 'active' }));
+      toast.success(isActive ? '数据源已停用' : '数据源已启用');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '操作失败');
+    }
   };
 
   const handleValidate = async () => {

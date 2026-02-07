@@ -36,7 +36,8 @@ export const API_ENDPOINTS = {
   DATA_SOURCE_DETAIL: (id: number) => `/v1/data-sources/${id}`,
   DATA_SOURCE_VALIDATE: '/v1/data-sources/validate',
   DATA_SOURCE_ACTIVATE: (id: number) => `/v1/data-sources/${id}/activate`,
-  DATA_SOURCE_RULES: (id: number) => `/v1/data-sources/${id}/rules`,
+  DATA_SOURCE_DEACTIVATE: (id: number) => `/v1/data-sources/${id}/deactivate`,
+  DATA_SOURCE_RULES: (id: number) => `/v1/data-sources/${id}/scraping-rules`,
 
   // Scraping Rules
   SCRAPING_RULES: '/v1/scraping-rules',

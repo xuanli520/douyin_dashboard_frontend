@@ -70,12 +70,15 @@ export const dataSourceApi = {
   },
 
   /**
-   * Activate/Deactivate data source
-   */
-  activate: async (id: number, active: boolean): Promise<DataSource> => {
-    const response = await authPost<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id), { active });
-    return response.data;
-  },
+    * Activate/Deactivate data source
+    */
+   activate: async (id: number, active: boolean): Promise<DataSource> => {
+     const endpoint = active 
+       ? API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id) 
+       : API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id);
+     const response = await authPost<ApiResponse<DataSource>>(endpoint);
+     return response.data;
+   },
 
   /**
    * Get rules associated with data source

@@ -11,7 +11,7 @@ export default function DataSourceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params.id);
-  const { dataSource, loading, error, refresh } = useDataSource(id);
+  const { dataSource, loading, error } = useDataSource(id);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Error: {error.message}</div>;
@@ -27,7 +27,7 @@ export default function DataSourceDetailPage() {
         <h1 className="text-2xl font-bold tracking-tight">数据源详情</h1>
       </div>
 
-      <DataSourceDetail dataSource={dataSource} onRefresh={refresh} />
+      <DataSourceDetail dataSource={dataSource} />
     </div>
   );
 }

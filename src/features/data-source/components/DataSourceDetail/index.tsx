@@ -5,13 +5,12 @@ import { AssociatedRules } from './AssociatedRules';
 
 interface DataSourceDetailProps {
   dataSource: DataSource;
-  onRefresh: () => void;
 }
 
-export function DataSourceDetail({ dataSource, onRefresh }: DataSourceDetailProps) {
+export function DataSourceDetail({ dataSource }: DataSourceDetailProps) {
   return (
     <div className="space-y-6">
-      <InfoCard dataSource={dataSource} onRefresh={onRefresh} />
+      <InfoCard dataSource={dataSource} />
       <AssociatedRules dataSourceId={dataSource.id} />
     </div>
   );

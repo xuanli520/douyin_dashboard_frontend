@@ -45,7 +45,7 @@ export function RuleTable({ data, onDelete, onToggleActive }: RuleTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.length === 0 ? (
+          {(!data || data.length === 0) ? (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
                 未找到规则。
