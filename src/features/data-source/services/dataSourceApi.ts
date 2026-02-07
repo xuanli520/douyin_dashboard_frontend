@@ -1,4 +1,4 @@
-import { authGet, authPost, authPatch, authDel, ApiResponse } from '@/lib/api-client';
+import { authGet, authPost, authPut, authDel, ApiResponse } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/config/api';
 import { 
   DataSource, 
@@ -121,7 +121,7 @@ export const dataSourceApi = {
        type: data.type ? toUpperCaseType(data.type) : undefined,
        status: data.status ? toUpperCaseStatus(data.status) : undefined
      };
-     const response = await authPatch<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), payload);
+      const response = await authPut<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), payload);
      return normalizeDataSource(response.data);
    },
 
