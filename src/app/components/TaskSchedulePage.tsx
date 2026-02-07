@@ -2,8 +2,15 @@
 
 import { useState } from 'react';
 import { Play, Edit, Copy, X, Terminal, Clock, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
-import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/app/components/ui/table';
 
 const tasks = [
   {
@@ -70,10 +77,9 @@ export default function TaskSchedulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-foreground p-6 relative">
+    <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
       
-      <GlassCard className="min-h-[80vh] flex flex-col">
-        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+      <div className="flex items-center justify-between">
            <NeonTitle icon={Clock}>任务调度中心 (Cron Command)</NeonTitle>
           
            <div className="flex gap-3">
@@ -90,64 +96,63 @@ export default function TaskSchedulePage() {
                 Create Task
               </button>
            </div>
-        </div>
+      </div>
 
-        {/* 任务表格 */}
-        <div className="flex-1 overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100 dark:border-white/5">
-                {['任务名称', '运行状态', '上次运行', '耗时', '操作'].map((h) => (
-                    <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
-                        {h}
-                    </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {tasks.map((task) => (
-                <tr key={task.id} className="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                          <Activity size={16} className="text-slate-600 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors" />
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white font-mono">{task.name}</span>
-                      </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${ 
-                      task.lastStatus === '成功' 
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
-                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
-                    }`}>
-                       {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                      {task.lastStatus === '成功' ? 'SUCCESS' : 'FAILED'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-mono">{task.lastRun}</td>
-                  <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-mono">{task.duration}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => handleViewLog(task)}
-                        className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 rounded transition-colors"
-                        title="View Logs"
-                      >
-                        <Terminal size={14} />
-                      </button>
-                      <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Edit">
-                        <Edit size={14} />
-                      </button>
-                      <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Clone">
-                        <Copy size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+      {/* 任务表格 */}
+      <div className="flex-1 overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {['任务名称', '运行状态', '上次运行', '耗时', '操作'].map((h) => (
+                  <TableHead key={h}>
+                      {h}
+                  </TableHead>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </GlassCard>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tasks.map((task) => (
+              <TableRow key={task.id}>
+                <TableCell>
+                    <div className="flex items-center gap-3">
+                        <Activity size={16} className="text-slate-600 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors" />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white font-mono">{task.name}</span>
+                    </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${ 
+                    task.lastStatus === '成功' 
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
+                  }`}>
+                     {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                    {task.lastStatus === '成功' ? 'SUCCESS' : 'FAILED'}
+                  </span>
+                </TableCell>
+                <TableCell>{task.lastRun}</TableCell>
+                <TableCell>{task.duration}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => handleViewLog(task)}
+                      className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 rounded transition-colors"
+                      title="View Logs"
+                    >
+                      <Terminal size={14} />
+                    </button>
+                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Edit">
+                      <Edit size={14} />
+                    </button>
+                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Clone">
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Terminal Log Modal */}
       {showLog && (

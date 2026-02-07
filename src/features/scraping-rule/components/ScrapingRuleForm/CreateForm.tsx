@@ -31,10 +31,10 @@ const formSchema = z.object({
   }).passthrough(),
 });
 
-export function CreateForm() {
+export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
   const router = useRouter();
   const { create, loading } = useCreateScrapingRule();
-  const { data: dataSources } = useDataSources({ pageSize: 100 }); // Fetch all/many
+  const { data: dataSources } = useDataSources({ pageSize: 100 });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -58,16 +58,19 @@ export function CreateForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await create(values as any);
-      router.push('/scraping-rule');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push('/scraping-rule');
+      }
     } catch (error) {
       console.error(error);
-      // Handle error (toast or alert)
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="name"
@@ -191,7 +194,9 @@ export function CreateForm() {
         <RuleConfigFields form={form} type={ruleType} />
 
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.back()}>取消</Button>
+          <Button type="button" variant="outline" onClick={onCancel || (() => router.back())}>
+            取消
+          </Button>
           <Button type="submit" disabled={loading}>
             {loading ? "创建中..." : "创建规则"}
           </Button>

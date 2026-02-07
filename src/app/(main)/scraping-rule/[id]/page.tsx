@@ -15,7 +15,7 @@ export default function ScrapingRuleDetailPage() {
   if (!rule) return <div className="p-6">未找到规则。</div>;
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="py-6">
       <ScrapingRuleDetail rule={rule} />
     </div>
   );

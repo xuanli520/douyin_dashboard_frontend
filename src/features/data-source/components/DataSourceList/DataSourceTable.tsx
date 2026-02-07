@@ -3,6 +3,14 @@ import { DataSource } from '../../services/types';
 import { StatusTag } from '../common/StatusTag';
 import { TypeTag } from '../common/TypeTag';
 import { useRouter } from 'next/navigation';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/app/components/ui/table';
 
 interface DataSourceTableProps {
   data: DataSource[];
@@ -32,34 +40,34 @@ export function DataSourceTable({ data, loading, onEdit, onDelete }: DataSourceT
 
   return (
     <div className="flex-1 overflow-x-auto">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="border-b border-slate-100 dark:border-white/5">
+      <Table>
+        <TableHeader>
+          <TableRow>
             {['名称', '类型', '状态', '操作'].map((h) => (
-              <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
+              <TableHead key={h}>
                 {h}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.map((source) => (
-            <tr key={source.id} className="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-              <td className="px-6 py-4">
+            <TableRow key={source.id}>
+              <TableCell>
                 <div className="flex items-center gap-3">
                   <TypeTag type={source.type} />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                     {source.name}
                   </span>
                 </div>
-              </td>
-              <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono capitalize">
+              </TableCell>
+              <TableCell className="text-sm text-slate-500 dark:text-slate-400 font-mono capitalize">
                 {source.type}
-              </td>
-              <td className="px-6 py-4">
+              </TableCell>
+              <TableCell>
                 <StatusTag status={source.status} />
-              </td>
-              <td className="px-6 py-4">
+              </TableCell>
+              <TableCell>
                 <div className="flex items-center gap-4 text-sm font-mono">
                   <button
                     onClick={() => router.push(`/data-source/${source.id}`)}
@@ -80,11 +88,11 @@ export function DataSourceTable({ data, loading, onEdit, onDelete }: DataSourceT
                     删除
                   </button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

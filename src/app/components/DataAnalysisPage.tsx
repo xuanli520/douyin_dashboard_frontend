@@ -5,6 +5,15 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Respons
 import { X, ChevronDown, Calendar, Filter, BarChart2 } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableFooter,
+} from '@/app/components/ui/table';
 
 const chartData = [
   { month: '1月', sales: 220, profit: 150, profitRate: 35 },
@@ -213,59 +222,61 @@ export default function DataAnalysisPage() {
       </GlassCard>
 
       {/* 数据表格 */}
-      <GlassCard className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-white/10">
-                {['日期', '店铺', '商品类目', '销售额', '销售占比', '毛利率', '动销率', '客单价', '复购金额'].map((header) => (
-                  <th key={header} className="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {tableData.map((row, index) => (
-                <tr key={index} className="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors relative">
-                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.date}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.store}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                    <span className="px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs border border-slate-300 dark:border-slate-700">
-                        {row.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-mono font-bold text-cyan-600 dark:text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">
-                    {row.sales}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.salesRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-emerald-600 dark:text-emerald-400">{row.profitRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.moveRate}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.productUser}</td>
-                  <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{row.count}</td>
-                  
-                  {/* Hover Scan Effect Line */}
-                   <td className="absolute inset-0 border-y border-transparent pointer-events-none group-hover:border-cyan-500/20 group-hover:shadow-[inset_0_0_20px_rgba(34,211,238,0.05)] transition-all duration-300" aria-hidden="true" />
-                </tr>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {['日期', '店铺', '商品类目', '销售额', '销售占比', '毛利率', '动销率', '客单价', '复购金额'].map((header) => (
+                <TableHead key={header}>
+                  {header}
+                </TableHead>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
-           <span className="text-xs text-slate-500 font-mono">Showing 1 to 2 of 2 entries</span>
-           <div className="flex gap-2">
-              <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-30">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button className="px-3 py-1 bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</button>
-               <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
-           </div>
-        </div>
-      </GlassCard>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tableData.map((row, index) => (
+              <TableRow key={index} className="relative">
+                <TableCell>{row.date}</TableCell>
+                <TableCell>{row.store}</TableCell>
+                <TableCell>
+                  <span className="px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs border border-slate-300 dark:border-slate-700">
+                      {row.category}
+                  </span>
+                </TableCell>
+                <TableCell className="font-bold text-cyan-600 dark:text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">
+                  {row.sales}
+                </TableCell>
+                <TableCell>{row.salesRate}</TableCell>
+                <TableCell className="text-emerald-600 dark:text-emerald-400">{row.profitRate}</TableCell>
+                <TableCell>{row.moveRate}</TableCell>
+                <TableCell>{row.productUser}</TableCell>
+                <TableCell>{row.count}</TableCell>
+                
+                {/* Hover Scan Effect Line */}
+                 <TableCell className="absolute inset-0 border-y border-transparent pointer-events-none group-hover:border-cyan-500/20 group-hover:shadow-[inset_0_0_20px_rgba(34,211,238,0.05)] transition-all duration-300 p-0" aria-hidden="true" />
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+             <TableRow>
+                <TableCell colSpan={9}>
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-500 font-mono">Showing 1 to 2 of 2 entries</span>
+                        <div className="flex gap-2">
+                            <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-30">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button className="px-3 py-1 bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</button>
+                            <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </TableCell>
+             </TableRow>
+          </TableFooter>
+        </Table>
+      </div>
     </div>
   );
 }

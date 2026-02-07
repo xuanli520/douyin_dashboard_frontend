@@ -9,7 +9,7 @@ export default function EditScrapingRulePage() {
   const id = Number(params.id);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="py-6 space-y-6">
       <EditForm id={id} />
     </div>
   );

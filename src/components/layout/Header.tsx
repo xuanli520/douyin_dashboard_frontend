@@ -30,7 +30,7 @@ export function Header() {
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-emerald-500 to-orange-400 dark:from-white dark:via-[#C8FDE6] dark:to-[#F4D5BD] drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(200,253,230,0.5)] font-mono uppercase">
-            {currentItem?.label || '采集规则'}
+            {currentItem?.label || '用户管理'}
           </h1>
           <div className="px-2 py-0.5 rounded-full bg-[#C8FDE6]/20 border border-[#C8FDE6]/30 text-[10px] text-emerald-700 dark:text-[#C8FDE6] font-mono tracking-widest">
             SYS.ONLINE

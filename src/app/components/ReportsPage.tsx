@@ -3,6 +3,15 @@
 import { FileText, MoreVertical, FileSpreadsheet, Download, Clock } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableFooter,
+} from '@/app/components/ui/table';
 
 const reports = [
   { id: 1, name: '2023年10月销售月报', date: '2023-11-01 10:00', type: 'pdf' },
@@ -74,42 +83,56 @@ export default function ReportsPage() {
         </div>
 
         {/* 文件下载中心 */}
-        <GlassCard className="h-fit">
-          <div className="p-6 border-b border-slate-200 dark:border-white/10">
+        <div className="h-fit flex flex-col gap-4">
+          <div>
              <NeonTitle icon={Download}>文件下载中心</NeonTitle>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-white/5">
-            <div className="px-6 py-3 bg-slate-50 dark:bg-white/[0.02] grid grid-cols-3 gap-4 text-[10px] font-mono font-medium text-slate-500 uppercase tracking-wider">
-              <div>Filename</div>
-              <div>Size</div>
-              <div className="text-right">Status</div>
-            </div>
-
-            {downloadFiles.map((file, index) => (
-              <div key={index} className="px-6 py-4 grid grid-cols-3 gap-4 text-xs hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors group">
-                <div className="text-slate-600 dark:text-slate-300 truncate flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 group-hover:bg-cyan-400 transition-colors" />
-                    {file.name}
-                </div>
-                <div className="text-slate-500 font-mono">{file.size}</div>
-                <div className="flex items-center justify-end gap-3">
-                  <span className={`font-mono text-[10px] px-2 py-0.5 rounded ${
-                    file.status === '生成中' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-950/30' :
-                    file.status === '已完成' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-950/30' :
-                    'text-slate-500 bg-slate-200/50 dark:bg-slate-800/50'
-                  }`}>
-                    {file.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-           <div className="p-4 border-t border-slate-200 dark:border-white/10 text-center">
-                <button className="text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 font-mono transition-colors">View All History &rarr;</button>
-           </div>
-        </GlassCard>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Filename</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead className="text-right">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {downloadFiles.map((file, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div className="text-slate-600 dark:text-slate-300 truncate flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 group-hover:bg-cyan-400 transition-colors" />
+                        {file.name}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-slate-500 font-mono">{file.size}</div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <span className={`font-mono text-[10px] px-2 py-0.5 rounded ${
+                        file.status === '生成中' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-950/30' :
+                        file.status === '已完成' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-950/30' :
+                        'text-slate-500 bg-slate-200/50 dark:bg-slate-800/50'
+                      }`}>
+                        {file.status}
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+                <TableRow>
+                    <TableCell colSpan={3}>
+                        <div className="text-center">
+                            <button className="text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 font-mono transition-colors">View All History &rarr;</button>
+                        </div>
+                    </TableCell>
+                </TableRow>
+            </TableFooter>
+          </Table>
+        </div>
       </div>
     </div>
   );

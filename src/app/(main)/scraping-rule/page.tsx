@@ -5,7 +5,7 @@ import { ScrapingRuleList } from '@/features/scraping-rule/components/ScrapingRu
 
 export default function ScrapingRulePage() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="p-6 space-y-6">
       <ScrapingRuleList />
     </div>
   );
