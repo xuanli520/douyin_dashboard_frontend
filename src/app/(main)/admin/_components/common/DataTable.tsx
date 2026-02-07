@@ -91,7 +91,7 @@ export function DataTable<T>({
   const isPartiallySelected = rowSelection && data.length > 0 && !isAllSelected && data.some(row => rowSelection.selectedKeys.includes(rowKey(row)));
 
   const renderPagination = () => {
-    if (totalPages <= 1 && pagination.page === 1) return null;
+    if (pagination.total <= 0) return null;
 
     // Simple pagination logic: show current, prev, next, first, last
     const pages: (number | 'ellipsis')[] = [];
@@ -108,52 +108,49 @@ export function DataTable<T>({
     }
 
     return (
-      <div className="flex items-center justify-between px-2 py-4">
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <span>
-                共 {pagination.total} 条
-            </span>
-            <div className="flex items-center space-x-1">
-                <span>每页</span>
-                <Select
-                    value={pagination.size.toString()}
-                    onValueChange={(val) => onSizeChange(Number(val))}
-                >
-                    <SelectTrigger className="h-8 w-[70px] border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg font-medium shadow-none">
-                        <SelectValue placeholder={pagination.size} />
-                    </SelectTrigger>
-                    <SelectContent side="top" className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
-                        {[10, 20, 50, 100].map(size => (
-                            <SelectItem key={size} value={size.toString()}>
-                                {size}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <span>条</span>
-            </div>
+      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          <span>共 {pagination.total} 条</span>
+          <div className="flex items-center gap-1">
+            <span>每页</span>
+            <Select
+              value={pagination.size.toString()}
+              onValueChange={(val) => onSizeChange(Number(val))}
+            >
+              <SelectTrigger className="h-8 min-w-[50px] px-2 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top" className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg">
+                {[10, 20, 50, 100].map(size => (
+                  <SelectItem key={size} value={size.toString()} className="cursor-pointer">
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span>条</span>
+          </div>
         </div>
 
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent>
+        <Pagination className="mx-0">
+          <PaginationContent className="gap-1">
             <PaginationItem>
-              <PaginationPrevious 
-                href="#" 
-                onClick={(e) => { e.preventDefault(); if(pagination.page > 1) onPageChange(pagination.page - 1); }} 
+              <PaginationPrevious
+                onClick={(e) => { e.preventDefault(); if(pagination.page > 1) onPageChange(pagination.page - 1); }}
                 aria-disabled={pagination.page <= 1}
-                className={pagination.page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={pagination.page <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
-            
+
             {pages.map((p, i) => (
               <PaginationItem key={i}>
                 {p === 'ellipsis' ? (
                   <PaginationEllipsis />
                 ) : (
-                  <PaginationLink 
-                    href="#" 
+                <PaginationLink
                     isActive={pagination.page === p}
                     onClick={(e) => { e.preventDefault(); onPageChange(p as number); }}
+                    className={pagination.page === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
                   >
                     {p}
                   </PaginationLink>
@@ -162,11 +159,10 @@ export function DataTable<T>({
             ))}
 
             <PaginationItem>
-              <PaginationNext 
-                href="#" 
+              <PaginationNext
                 onClick={(e) => { e.preventDefault(); if(pagination.page < totalPages) onPageChange(pagination.page + 1); }}
                 aria-disabled={pagination.page >= totalPages}
-                className={pagination.page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={pagination.page >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
           </PaginationContent>

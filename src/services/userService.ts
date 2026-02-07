@@ -112,6 +112,8 @@ async function wrappedRequest<T>(
     case 'DELETE':
       response = await authDel<ApiResponse<T>>(url, options);
       break;
+    default:
+      throw new Error(`Invalid HTTP method: ${method}`);
   }
 
 

@@ -2,27 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { 
-  getRolesList, 
+import {
+  getRolesList,
   getRole,
-  createRole, 
-  updateRole, 
-  deleteRole, 
-  getPermissions, 
+  createRole,
+  updateRole,
+  deleteRole,
+  getPermissions,
   assignPermissions,
-  Role, 
-  Permission 
+  Role,
+  Permission
 } from '@/services/adminService';
-import { CyberCard } from '@/components/ui/cyber/CyberCard';
-import { CyberTable, CyberTableHeader, CyberTableBody, CyberTableRow, CyberTableHead, CyberTableCell } from '@/components/ui/cyber/CyberTable';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
-import { CyberBadge } from '@/components/ui/cyber/CyberBadge';
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/cyber/CyberDialog';
-import { Users, Plus, Edit2, Trash2, Key, ShieldAlert } from 'lucide-react';
+import { Users, Plus, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
+import { RoleTable } from './RoleTable';
 
 interface RoleFormValues {
   name: string;
@@ -33,18 +31,20 @@ export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // Dialog States
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null); // If null, creating
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   // Form handling
-  const { 
-    register, 
-    handleSubmit, 
-    reset, 
-    setValue, 
-    formState: { errors, isSubmitting: isFormSubmitting } 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, isSubmitting: isFormSubmitting }
   } = useForm<RoleFormValues>();
 
   // Permission Assignment State
@@ -65,13 +65,11 @@ export default function RolesPage() {
         getPermissions()
       ]);
 
-      // 为每个角色获取详细权限信息，因为角色列表API可能不返回权限
       const rolesWithPermissions = await Promise.all(
         rolesData.map(async (role) => {
           try {
             return await getRole(role.id);
           } catch {
-            // 如果获取失败，返回原始角色数据
             return role;
           }
         })
@@ -112,7 +110,8 @@ export default function RolesPage() {
         toast.success('角色已创建');
       }
       setIsRoleDialogOpen(false);
-      fetchData(); // Refresh list
+      fetchData();
+      setPage(1);
     } catch (error) {
       toast.error('操作失败');
     }
@@ -130,11 +129,19 @@ export default function RolesPage() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+  };
+
   // --- Permission Assignment ---
 
   const handlePermsClick = (role: Role) => {
     setSelectedRoleForPerms(role);
-    // Pre-select existing permissions
     const currentIds = new Set(role.permissions?.map(p => p.id) || []);
     setSelectedPermIds(currentIds);
     setIsPermDialogOpen(true);
@@ -157,12 +164,10 @@ export default function RolesPage() {
       await assignPermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
       toast.success('权限已更新');
       setIsPermDialogOpen(false);
-      
-      // Update local state by fetching the single role with fresh permissions
-      // This avoids issues where the list endpoint might not return detailed permissions
+
       const updatedRole = await getRole(selectedRoleForPerms.id);
       setRoles(prev => prev.map(r => r.id === updatedRole.id ? updatedRole : r));
-      
+
     } catch (error) {
       toast.error('更新权限失败');
     } finally {
@@ -193,70 +198,16 @@ export default function RolesPage() {
         </CyberButton>
       </div>
 
-      <CyberCard className="min-h-[500px]">
-        <CyberTable>
-          <CyberTableHeader>
-            <CyberTableRow>
-              <CyberTableHead>角色名称</CyberTableHead>
-              <CyberTableHead>描述</CyberTableHead>
-              <CyberTableHead>权限</CyberTableHead>
-              <CyberTableHead>状态</CyberTableHead>
-              <CyberTableHead className="text-right">操作</CyberTableHead>
-            </CyberTableRow>
-          </CyberTableHeader>
-          <CyberTableBody>
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <CyberTableRow key={i}>
-                   <CyberTableCell><div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></CyberTableCell>
-                   <CyberTableCell><div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></CyberTableCell>
-                   <CyberTableCell><div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></CyberTableCell>
-                   <CyberTableCell><div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></CyberTableCell>
-                   <CyberTableCell><div className="h-8 w-24 ml-auto bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></CyberTableCell>
-                </CyberTableRow>
-              ))
-            ) : roles.length === 0 ? (
-              <CyberTableRow>
-                <CyberTableCell colSpan={5} className="text-center py-10">暂无角色定义。</CyberTableCell>
-              </CyberTableRow>
-            ) : (
-              roles.map((role) => (
-                <CyberTableRow key={role.id}>
-                  <CyberTableCell className="font-bold text-slate-900 dark:text-white">
-                    {role.name}
-                    {role.is_system && <span className="ml-2 text-[10px] text-slate-400 uppercase border border-slate-200 dark:border-slate-700 px-1 rounded">系统</span>}
-                  </CyberTableCell>
-                  <CyberTableCell className="text-slate-500 dark:text-slate-400">{role.description || '-'}</CyberTableCell>
-                  <CyberTableCell>
-                    <CyberBadge variant="default">
-                      {(role.permissions?.length || 0)} 访问点
-                    </CyberBadge>
-                  </CyberTableCell>
-                  <CyberTableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]" />
-                      <span className="text-xs text-slate-600 dark:text-slate-300">已激活</span>
-                    </div>
-                  </CyberTableCell>
-                  <CyberTableCell className="text-right space-x-2">
-                    <CyberButton size="sm" variant="ghost" onClick={() => handlePermsClick(role)} title="管理权限">
-                      <Key className="w-4 h-4 text-amber-500" />
-                    </CyberButton>
-                    <CyberButton size="sm" variant="ghost" onClick={() => handleEditClick(role)} title="编辑角色">
-                      <Edit2 className="w-4 h-4 text-blue-500" />
-                    </CyberButton>
-                    {!role.is_system && (
-                      <CyberButton size="sm" variant="ghost" onClick={() => handleDeleteClick(role)} title="删除角色">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </CyberButton>
-                    )}
-                  </CyberTableCell>
-                </CyberTableRow>
-              ))
-            )}
-          </CyberTableBody>
-        </CyberTable>
-      </CyberCard>
+      <RoleTable
+        data={roles}
+        loading={loading}
+        pagination={{ page, size: pageSize, total: roles.length }}
+        onPageChange={handlePageChange}
+        onSizeChange={handleSizeChange}
+        onEdit={handleEditClick}
+        onDelete={handleDeleteClick}
+        onAssignPermissions={handlePermsClick}
+      />
 
       {/* Create/Edit Role Dialog */}
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
@@ -279,7 +230,7 @@ export default function RolesPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">描述</label>
-              <CyberInput 
+              <CyberInput
                 {...register('description')}
                 placeholder="职责简述..."
               />
@@ -303,7 +254,7 @@ export default function RolesPage() {
               选择此角色应拥有的功能权限。
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-y-auto pr-2 my-4 space-y-6">
             {Object.entries(permsByModule).map(([module, perms]) => (
               <div key={module} className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-white/5">
@@ -315,20 +266,20 @@ export default function RolesPage() {
                   {perms.map(perm => {
                     const isSelected = selectedPermIds.has(perm.id);
                     return (
-                      <div 
+                      <div
                         key={perm.id}
                         onClick={() => togglePerm(perm.id)}
                         className={`
                           cursor-pointer p-3 rounded border transition-all duration-200 flex items-start gap-3 select-none
-                          ${isSelected 
-                            ? 'bg-blue-50 border-blue-200 dark:bg-cyan-900/20 dark:border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.1)]' 
+                          ${isSelected
+                            ? 'bg-blue-50 border-blue-200 dark:bg-cyan-900/20 dark:border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
                             : 'bg-white border-slate-100 dark:bg-slate-800/50 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/20'}
                         `}
                       >
                         <div className={`
                           mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors
-                          ${isSelected 
-                            ? 'bg-blue-500 border-blue-500 dark:bg-cyan-500 dark:border-cyan-500' 
+                          ${isSelected
+                            ? 'bg-blue-500 border-blue-500 dark:bg-cyan-500 dark:border-cyan-500'
                             : 'border-slate-300 dark:border-slate-600'}
                         `}>
                           {isSelected && <div className="w-2 h-2 bg-white rounded-sm" />}

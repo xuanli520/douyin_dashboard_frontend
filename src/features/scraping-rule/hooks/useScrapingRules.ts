@@ -8,6 +8,7 @@ export function useScrapingRules(initialFilters?: ScrapingRuleFilter) {
     total: 0,
     page: 1,
     pageSize: 10,
+    pages: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
