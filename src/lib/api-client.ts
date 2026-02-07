@@ -207,3 +207,27 @@ export async function authPatch<T>(
 export async function authDel<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return authClient.authRequest<T>(endpoint, { method: 'DELETE', ...options });
 }
+
+export async function authPut<T>(
+  endpoint: string,
+  data?: unknown,
+  options?: RequestInit
+): Promise<T> {
+  const body =
+    data instanceof URLSearchParams ||
+    data instanceof FormData ||
+    typeof data === 'string'
+      ? data
+      : data === undefined
+      ? undefined
+      : JSON.stringify(data);
+
+  const headers = { ...options?.headers };
+  if (data instanceof URLSearchParams) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
+  } else if (typeof data === 'object' && data !== null && !(data instanceof FormData)) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
+  return authClient.authRequest<T>(endpoint, { method: 'PUT', body, headers, ...options });
+}

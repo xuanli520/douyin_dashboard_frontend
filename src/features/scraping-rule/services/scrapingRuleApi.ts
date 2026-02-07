@@ -1,4 +1,4 @@
-import { authGet, authPost, authPatch, authDel, ApiResponse } from '@/lib/api-client';
+import { authGet, authPost, authPatch, authDel, authPut, ApiResponse } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/config/api';
 import {
   ScrapingRule,
@@ -104,11 +104,11 @@ getAll: async (params?: ScrapingRuleFilter): Promise<PaginatedResponse<ScrapingR
      await authDel<ApiResponse<void>>(API_ENDPOINTS.SCRAPING_RULE_DETAIL(id));
    },
 
-  /**
-    * Activate/Deactivate scraping rule
-    */
-   activate: async (id: number, active: boolean): Promise<ScrapingRule> => {
-     const response = await authPost<ApiResponse<ScrapingRule>>(API_ENDPOINTS.SCRAPING_RULE_ACTIVATE(id), { active });
-     return normalizeScrapingRule(response.data);
-   }
+/**
+     * Activate/Deactivate scraping rule
+     */
+    activate: async (id: number, active: boolean): Promise<ScrapingRule> => {
+      const response = await authPut<ApiResponse<ScrapingRule>>(API_ENDPOINTS.SCRAPING_RULE_DETAIL(id), { is_active: active });
+      return normalizeScrapingRule(response.data);
+    }
 };

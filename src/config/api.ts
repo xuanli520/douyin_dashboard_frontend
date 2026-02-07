@@ -39,10 +39,9 @@ export const API_ENDPOINTS = {
   DATA_SOURCE_DEACTIVATE: (id: number) => `/v1/data-sources/${id}/deactivate`,
   DATA_SOURCE_RULES: (id: number) => `/v1/data-sources/${id}/scraping-rules`,
 
-  // Scraping Rules
+// Scraping Rules
   SCRAPING_RULES: '/v1/scraping-rules',
   SCRAPING_RULE_DETAIL: (id: number) => `/v1/scraping-rules/${id}`,
-  SCRAPING_RULE_ACTIVATE: (id: number) => `/v1/scraping-rules/${id}/activate`,
 } as const;
 
 /** 成功响应状态码范围 (200-209) */
