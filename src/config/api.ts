@@ -34,7 +34,7 @@ export const API_ENDPOINTS = {
   // Data Sources
   DATA_SOURCES: '/v1/data-sources',
   DATA_SOURCE_DETAIL: (id: number) => `/v1/data-sources/${id}`,
-  DATA_SOURCE_VALIDATE: '/v1/data-sources/validate',
+  DATA_SOURCE_VALIDATE: (id: number) => `/v1/data-sources/${id}/validate`,
   DATA_SOURCE_ACTIVATE: (id: number) => `/v1/data-sources/${id}/activate`,
   DATA_SOURCE_DEACTIVATE: (id: number) => `/v1/data-sources/${id}/deactivate`,
   DATA_SOURCE_RULES: (id: number) => `/v1/data-sources/${id}/scraping-rules`,

@@ -20,8 +20,6 @@ export interface DataSource {
   config: DataSourceConfig;
   status: DataSourceStatus;
   description?: string;
-  frequency?: string;
-  last_update?: string;
   created_at: string;
   updated_at: string;
 }
@@ -51,4 +49,5 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   pageSize: number;
+  pages: number;
 }

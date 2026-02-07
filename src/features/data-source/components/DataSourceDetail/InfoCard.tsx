@@ -31,7 +31,7 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
   };
 
   const handleValidate = async () => {
-    await validate(dataSource.config);
+    await validate(dataSource.id, dataSource.config);
   };
 
   return (
@@ -48,31 +48,23 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-1 text-muted-foreground">同步频率</h4>
-              <p className="font-mono">{dataSource.frequency}</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium mb-1 text-muted-foreground">最后更新</h4>
-              <p className="font-mono">{dataSource.last_update ? new Date(dataSource.last_update).toLocaleString() : '-'}</p>
-            </div>
-            <div>
+           <div className="space-y-4">
+             <div>
                <h4 className="text-sm font-medium mb-1 text-muted-foreground">创建时间</h4>
                <p className="font-mono">{new Date(dataSource.created_at).toLocaleString()}</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-2 text-muted-foreground">配置</h4>
-              <div className="bg-slate-950 rounded-lg p-3 overflow-x-auto">
-                <pre className="text-xs text-slate-50 font-mono">
-                  {JSON.stringify(dataSource.config, null, 2)}
-                </pre>
-              </div>
-            </div>
-          </div>
+             </div>
+           </div>
+           
+           <div className="space-y-4">
+             <div>
+               <h4 className="text-sm font-medium mb-2 text-muted-foreground">配置</h4>
+               <div className="bg-slate-950 rounded-lg p-3 overflow-x-auto">
+                 <pre className="text-xs text-slate-50 font-mono">
+                   {JSON.stringify(dataSource.config, null, 2)}
+                 </pre>
+               </div>
+             </div>
+           </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 mt-6 border-t pt-4">

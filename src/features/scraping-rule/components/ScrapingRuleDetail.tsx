@@ -37,7 +37,7 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
               <p className="text-sm text-muted-foreground">{rule.description || '暂无描述'}</p>
             </div>
           </div>
-          <RuleStatusTag status={rule.status} />
+          <RuleStatusTag isActive={rule.is_active} />
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -47,8 +47,8 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
                 <ScheduleDisplay type={rule.schedule_type} value={rule.schedule_value} />
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-1 text-muted-foreground">数据源ID</h4>
-                <p className="font-mono">{rule.data_source_id}</p>
+                <h4 className="text-sm font-medium mb-1 text-muted-foreground">数据源</h4>
+                <p className="font-mono">{rule.data_source_name || rule.data_source_id}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1 text-muted-foreground">最后运行</h4>

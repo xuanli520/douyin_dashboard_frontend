@@ -5,9 +5,59 @@ import {
   DataSourceCreateDTO, 
   DataSourceUpdateDTO, 
   DataSourceFilter,
-  PaginatedResponse 
+  PaginatedResponse,
+  DataSourceType,
+  DataSourceStatus
 } from './types';
 import { ScrapingRule } from '@/features/scraping-rule/services/types';
+
+const TYPE_MAPPING: Record<string, string> = {
+  'douyin_api': 'DOUYIN_API',
+  'file_upload': 'FILE_UPLOAD',
+  'database': 'DATABASE',
+  'webhook': 'WEBHOOK'
+};
+
+const STATUS_MAPPING: Record<string, string> = {
+  'active': 'ACTIVE',
+  'inactive': 'INACTIVE',
+  'error': 'ERROR'
+};
+
+const TYPE_MAPPING_REVERSE: Record<string, string> = Object.entries(TYPE_MAPPING).reduce((acc, [k, v]) => {
+  acc[v] = k;
+  return acc;
+}, {} as Record<string, string>);
+
+const STATUS_MAPPING_REVERSE: Record<string, string> = Object.entries(STATUS_MAPPING).reduce((acc, [k, v]) => {
+  acc[v] = k;
+  return acc;
+}, {} as Record<string, string>);
+
+function toUpperCaseType(type: DataSourceType): string {
+  return TYPE_MAPPING[type] || type.toUpperCase();
+}
+
+function toUpperCaseStatus(status?: DataSourceStatus): string | undefined {
+  if (!status) return undefined;
+  return STATUS_MAPPING[status] || status.toUpperCase();
+}
+
+function toLowerCaseType(type: string): DataSourceType {
+  return (TYPE_MAPPING_REVERSE[type] || type.toLowerCase()) as DataSourceType;
+}
+
+function toLowerCaseStatus(status: string): DataSourceStatus {
+  return (STATUS_MAPPING_REVERSE[status] || status.toLowerCase()) as DataSourceStatus;
+}
+
+function normalizeDataSource(ds: DataSource): DataSource {
+  return {
+    ...ds,
+    type: toLowerCaseType(ds.type),
+    status: toLowerCaseStatus(ds.status)
+  };
+}
 
 export const dataSourceApi = {
   /**
@@ -30,37 +80,50 @@ export const dataSourceApi = {
       : API_ENDPOINTS.DATA_SOURCES;
 
     const response = await authGet<ApiResponse<{ items: DataSource[]; total: number }>>(url);
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
     return {
-      list: response.data.items,
+      list: response.data.items.map(normalizeDataSource),
       total: response.data.total,
-      page: params?.page || 1,
-      pageSize: params?.pageSize || 10,
+      page,
+      pageSize,
+      pages: Math.ceil(response.data.total / pageSize)
     };
   },
 
   /**
-   * Get single data source details
-   */
-  getById: async (id: number): Promise<DataSource> => {
-    const response = await authGet<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id));
-    return response.data;
-  },
+    * Get single data source details
+    */
+   getById: async (id: number): Promise<DataSource> => {
+     const response = await authGet<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id));
+     return normalizeDataSource(response.data);
+   },
 
   /**
-   * Create new data source
-   */
-  create: async (data: DataSourceCreateDTO): Promise<DataSource> => {
-    const response = await authPost<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCES, data);
-    return response.data;
-  },
+     * Create new data source
+     */
+    create: async (data: DataSourceCreateDTO): Promise<DataSource> => {
+      const payload = {
+        ...data,
+        type: toUpperCaseType(data.type),
+        status: data.status ? toUpperCaseStatus(data.status) : undefined
+      };
+      const response = await authPost<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCES, payload);
+      return normalizeDataSource(response.data);
+    },
 
   /**
-   * Update data source
-   */
-  update: async (id: number, data: DataSourceUpdateDTO): Promise<DataSource> => {
-    const response = await authPatch<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), data);
-    return response.data;
-  },
+    * Update data source
+    */
+   update: async (id: number, data: DataSourceUpdateDTO): Promise<DataSource> => {
+     const payload = {
+       ...data,
+       type: data.type ? toUpperCaseType(data.type) : undefined,
+       status: data.status ? toUpperCaseStatus(data.status) : undefined
+     };
+     const response = await authPatch<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), payload);
+     return normalizeDataSource(response.data);
+   },
 
   /**
    * Delete data source
@@ -70,15 +133,15 @@ export const dataSourceApi = {
   },
 
   /**
-    * Activate/Deactivate data source
-    */
-   activate: async (id: number, active: boolean): Promise<DataSource> => {
-     const endpoint = active 
-       ? API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id) 
-       : API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id);
-     const response = await authPost<ApiResponse<DataSource>>(endpoint);
-     return response.data;
-   },
+     * Activate/Deactivate data source
+     */
+    activate: async (id: number, active: boolean): Promise<DataSource> => {
+      const endpoint = active 
+        ? API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id) 
+        : API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id);
+      const response = await authPost<ApiResponse<DataSource>>(endpoint);
+      return normalizeDataSource(response.data);
+    },
 
   /**
    * Get rules associated with data source
@@ -89,10 +152,10 @@ export const dataSourceApi = {
   },
 
   /**
-   * Validate connection
-   */
-  validateConnection: async (config: any): Promise<{ success: boolean; message: string }> => {
-    const response = await authPost<ApiResponse<{ success: boolean; message: string }>>(API_ENDPOINTS.DATA_SOURCE_VALIDATE, config);
-    return response.data;
-  }
+    * Validate connection
+    */
+   validateConnection: async (id: number, config: any): Promise<{ success: boolean; message: string }> => {
+     const response = await authPost<ApiResponse<{ valid: boolean; message: string }>>(API_ENDPOINTS.DATA_SOURCE_VALIDATE(id));
+     return { success: response.data.valid, message: response.data.message };
+   }
 };

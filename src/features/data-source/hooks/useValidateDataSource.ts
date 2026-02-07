@@ -6,12 +6,12 @@ export function useValidateDataSource() {
   const [validationResult, setValidationResult] = useState<{ success: boolean; message: string } | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  const validate = async (config: any) => {
+  const validate = async (id: number, config: any) => {
     setValidating(true);
     setValidationResult(null);
     setError(null);
     try {
-      const result = await dataSourceApi.validateConnection(config);
+      const result = await dataSourceApi.validateConnection(id, config);
       setValidationResult(result);
       return result;
     } catch (err) {

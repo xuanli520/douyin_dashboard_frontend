@@ -67,7 +67,7 @@ export function RuleTable({ data, onDelete, onToggleActive }: RuleTableProps) {
                   <ScheduleDisplay type={rule.schedule_type} value={rule.schedule_value} />
                 </TableCell>
                 <TableCell>
-                  <RuleStatusTag status={rule.status} />
+                  <RuleStatusTag isActive={rule.is_active} />
                 </TableCell>
                 <TableCell>
                   {rule.last_run_at ? new Date(rule.last_run_at).toLocaleString() : '-'}
@@ -90,8 +90,8 @@ export function RuleTable({ data, onDelete, onToggleActive }: RuleTableProps) {
                         <Pencil className="mr-2 h-4 w-4" />
                         编辑
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onToggleActive(rule.id, rule.status !== 'active')}>
-                        {rule.status === 'active' ? (
+                      <DropdownMenuItem onClick={() => onToggleActive(rule.id, !rule.is_active)}>
+                        {rule.is_active ? (
                           <>
                             <Pause className="mr-2 h-4 w-4" />
                             停用

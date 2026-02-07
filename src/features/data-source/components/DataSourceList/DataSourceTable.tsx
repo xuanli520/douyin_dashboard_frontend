@@ -2,8 +2,6 @@ import React from 'react';
 import { DataSource } from '../../services/types';
 import { StatusTag } from '../common/StatusTag';
 import { TypeTag } from '../common/TypeTag';
-import { RefreshCw } from 'lucide-react';
-import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 interface DataSourceTableProps {
@@ -37,7 +35,7 @@ export function DataSourceTable({ data, loading, onEdit, onDelete }: DataSourceT
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-slate-100 dark:border-white/5">
-            {['名称', '类型', '同步频率', '最后更新', '状态', '操作'].map((h) => (
+            {['名称', '类型', '状态', '操作'].map((h) => (
               <th key={h} className="px-6 py-4 text-xs font-mono text-slate-500 uppercase tracking-wider">
                 {h}
               </th>
@@ -57,15 +55,6 @@ export function DataSourceTable({ data, loading, onEdit, onDelete }: DataSourceT
               </td>
               <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono capitalize">
                 {source.type}
-              </td>
-              <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono">
-                <div className="flex items-center gap-1.5">
-                  <RefreshCw size={12} className="text-slate-500" />
-                  {source.frequency}
-                </div>
-              </td>
-              <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono">
-                {source.last_update ? format(new Date(source.last_update), 'yyyy-MM-dd HH:mm') : '-'}
               </td>
               <td className="px-6 py-4">
                 <StatusTag status={source.status} />
