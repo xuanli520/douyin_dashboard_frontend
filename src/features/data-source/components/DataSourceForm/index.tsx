@@ -25,10 +25,10 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
       status: initialData.status,
     } : {
       name: '',
-      type: 'douyin_api',
+      type: 'DOUYIN_API',
       description: '',
       config: {},
-      status: 'active',
+      status: 'ACTIVE',
     },
   });
 
@@ -44,9 +44,9 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
 
   const renderConfigFields = () => {
     switch (type) {
-      case 'douyin_api':
+      case 'DOUYIN_API':
         return <ApiConfig form={form} />;
-      case 'database':
+      case 'SELF_HOSTED':
         return <DatabaseConfig form={form} />;
       default:
         return <div className="text-sm text-slate-500">No configuration needed for this type.</div>;
@@ -86,10 +86,10 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="douyin_api">抖音API</SelectItem>
-                    <SelectItem value="database">数据库</SelectItem>
-                    <SelectItem value="file_upload">文件上传</SelectItem>
-                    <SelectItem value="webhook">Webhook</SelectItem>
+                    <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+                    <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+                    <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+                    <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

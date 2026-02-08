@@ -1,77 +1,39 @@
-import { authGet, authPost, authPut, authDel, ApiResponse } from '@/lib/api-client';
+import { authGet, authPost, authPut, authDel, ApiResponse, PaginatedData } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/config/api';
-import { 
-  DataSource, 
-  DataSourceCreateDTO, 
-  DataSourceUpdateDTO, 
-  DataSourceFilter,
-  PaginatedResponse,
-  DataSourceType,
-  DataSourceStatus
-} from './types';
-import { ScrapingRule } from '@/features/scraping-rule/services/types';
+import {
+  DataSource,
+  DataSourceCreate,
+  DataSourceUpdate,
+  DataSourceResponse,
+  PaginatedDataSourceResponse,
+  ScrapingRuleListItem,
+} from '@/types';
 
-const TYPE_MAPPING: Record<string, string> = {
-  'douyin_api': 'DOUYIN_API',
-  'file_upload': 'FILE_UPLOAD',
-  'database': 'DATABASE',
-  'webhook': 'WEBHOOK'
-};
-
-const STATUS_MAPPING: Record<string, string> = {
-  'active': 'ACTIVE',
-  'inactive': 'INACTIVE',
-  'error': 'ERROR'
-};
-
-const TYPE_MAPPING_REVERSE: Record<string, string> = Object.entries(TYPE_MAPPING).reduce((acc, [k, v]) => {
-  acc[v] = k;
-  return acc;
-}, {} as Record<string, string>);
-
-const STATUS_MAPPING_REVERSE: Record<string, string> = Object.entries(STATUS_MAPPING).reduce((acc, [k, v]) => {
-  acc[v] = k;
-  return acc;
-}, {} as Record<string, string>);
-
-function toUpperCaseType(type: DataSourceType): string {
-  return TYPE_MAPPING[type] || type.toUpperCase();
+export interface DataSourceFilter {
+  name?: string;
+  status?: string;
+  source_type?: string;
+  page?: number;
+  size?: number;
 }
 
-function toUpperCaseStatus(status?: DataSourceStatus): string | undefined {
-  if (!status) return undefined;
-  return STATUS_MAPPING[status] || status.toUpperCase();
-}
-
-function toLowerCaseType(type: string): DataSourceType {
-  return (TYPE_MAPPING_REVERSE[type] || type.toLowerCase()) as DataSourceType;
-}
-
-function toLowerCaseStatus(status: string): DataSourceStatus {
-  return (STATUS_MAPPING_REVERSE[status] || status.toLowerCase()) as DataSourceStatus;
-}
-
-function normalizeDataSource(ds: DataSource): DataSource {
-  return {
-    ...ds,
-    type: toLowerCaseType(ds.type),
-    status: toLowerCaseStatus(ds.status)
-  };
+async function wrappedRequest<T>(promise: Promise<ApiResponse<T>>): Promise<T> {
+  const response = await promise;
+  if (![200, 201, 202, 203, 204, 205, 206, 207, 208, 209].includes(response.code)) {
+    throw new Error(response.msg || `Request failed with code ${response.code}`);
+  }
+  return response.data;
 }
 
 export const dataSourceApi = {
-  /**
-   * Get list of data sources
-   */
-  getAll: async (params?: DataSourceFilter): Promise<PaginatedResponse<DataSource>> => {
-    // Construct query string
+  getAll: async (params?: DataSourceFilter): Promise<PaginatedDataSourceResponse> => {
     const query = new URLSearchParams();
     if (params) {
       if (params.name) query.append('name', params.name);
-      if (params.type && params.type !== 'all') query.append('type', params.type);
-      if (params.status && params.status !== 'all') query.append('status', params.status);
+      if (params.status) query.append('status', params.status);
+      if (params.source_type) query.append('source_type', params.source_type);
       if (params.page) query.append('page', params.page.toString());
-      if (params.pageSize) query.append('page_size', params.pageSize.toString());
+      if (params.size) query.append('size', params.size.toString());
     }
 
     const queryString = query.toString();
@@ -79,83 +41,58 @@ export const dataSourceApi = {
       ? `${API_ENDPOINTS.DATA_SOURCES}?${queryString}`
       : API_ENDPOINTS.DATA_SOURCES;
 
-    const response = await authGet<ApiResponse<{ items: DataSource[]; total: number }>>(url);
-    const page = params?.page || 1;
-    const pageSize = params?.pageSize || 10;
-    return {
-      list: response.data.items.map(normalizeDataSource),
-      total: response.data.total,
-      page,
-      pageSize,
-      pages: Math.ceil(response.data.total / pageSize)
-    };
+    return wrappedRequest(
+      authGet<ApiResponse<PaginatedDataSourceResponse>>(url)
+    );
   },
 
-  /**
-    * Get single data source details
-    */
-   getById: async (id: number): Promise<DataSource> => {
-     const response = await authGet<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id));
-     return normalizeDataSource(response.data);
-   },
+  getById: async (id: number): Promise<DataSourceResponse> => {
+    return wrappedRequest(
+      authGet<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id))
+    );
+  },
 
-  /**
-     * Create new data source
-     */
-    create: async (data: DataSourceCreateDTO): Promise<DataSource> => {
-      const payload = {
-        ...data,
-        type: toUpperCaseType(data.type),
-        status: data.status ? toUpperCaseStatus(data.status) : undefined
-      };
-      const response = await authPost<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCES, payload);
-      return normalizeDataSource(response.data);
-    },
+  create: async (data: DataSourceCreate): Promise<DataSourceResponse> => {
+    return wrappedRequest(
+      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCES, data)
+    );
+  },
 
-  /**
-    * Update data source
-    */
-   update: async (id: number, data: DataSourceUpdateDTO): Promise<DataSource> => {
-     const payload = {
-       ...data,
-       type: data.type ? toUpperCaseType(data.type) : undefined,
-       status: data.status ? toUpperCaseStatus(data.status) : undefined
-     };
-      const response = await authPut<ApiResponse<DataSource>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), payload);
-     return normalizeDataSource(response.data);
-   },
+  update: async (id: number, data: DataSourceUpdate): Promise<DataSourceResponse> => {
+    return wrappedRequest(
+      authPut<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), data)
+    );
+  },
 
-  /**
-   * Delete data source
-   */
   delete: async (id: number): Promise<void> => {
-    await authDel<ApiResponse<void>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id));
+    await wrappedRequest(
+      authDel<ApiResponse<void>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id))
+    );
   },
 
-  /**
-     * Activate/Deactivate data source
-     */
-    activate: async (id: number, active: boolean): Promise<DataSource> => {
-      const endpoint = active 
-        ? API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id) 
-        : API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id);
-      const response = await authPost<ApiResponse<DataSource>>(endpoint);
-      return normalizeDataSource(response.data);
-    },
-
-  /**
-   * Get rules associated with data source
-   */
-  getRules: async (id: number): Promise<ScrapingRule[]> => {
-    const response = await authGet<ApiResponse<ScrapingRule[]>>(API_ENDPOINTS.DATA_SOURCE_RULES(id));
-    return response.data;
+  activate: async (id: number): Promise<DataSourceResponse> => {
+    return wrappedRequest(
+      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id))
+    );
   },
 
-  /**
-    * Validate connection
-    */
-   validateConnection: async (id: number, config: any): Promise<{ success: boolean; message: string }> => {
-     const response = await authPost<ApiResponse<{ valid: boolean; message: string }>>(API_ENDPOINTS.DATA_SOURCE_VALIDATE(id));
-     return { success: response.data.valid, message: response.data.message };
-   }
+  deactivate: async (id: number): Promise<DataSourceResponse> => {
+    return wrappedRequest(
+      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id))
+    );
+  },
+
+  validate: async (id: number): Promise<Record<string, unknown>> => {
+    const response = await authPost<ApiResponse<Record<string, unknown>>>(
+      API_ENDPOINTS.DATA_SOURCE_VALIDATE(id)
+    );
+    return wrappedRequest(Promise.resolve(response));
+  },
+
+  getScrapingRules: async (id: number): Promise<ScrapingRuleListItem[]> => {
+    const response = await authGet<ApiResponse<ScrapingRuleListItem[]>>(
+      API_ENDPOINTS.DATA_SOURCE_SCRAPING_RULES(id)
+    );
+    return wrappedRequest(Promise.resolve(response));
+  },
 };

@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
 
+interface ValidationResult {
+  success: boolean;
+  message: string;
+}
+
 export function useValidateDataSource() {
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  const validate = async (id: number, config: any) => {
+  const validate = async (id: number, config: Record<string, unknown>): Promise<ValidationResult> => {
     setValidating(true);
     setValidationResult(null);
     setError(null);
     try {
-      const result = await dataSourceApi.validateConnection(id, config);
-      setValidationResult(result);
-      return result;
+      const result = await dataSourceApi.validate(id);
+      const success = (result as Record<string, unknown>).valid === true;
+      const message = ((result as Record<string, unknown>).message as string) || '';
+      const validationResultData = { success, message };
+      setValidationResult(validationResultData);
+      return validationResultData;
     } catch (err) {
       setError(err as Error);
       return { success: false, message: (err as Error).message };

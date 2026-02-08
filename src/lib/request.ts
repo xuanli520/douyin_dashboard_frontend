@@ -1,6 +1,6 @@
 // 全局请求配置
 // 服务器地址 (通过 Next.js 代理转发，/api/* 路径会被 rewrite 到后端)
-export const API_BASE_URL = '/api';
+export const API_BASE_URL = '';
 
 // 全局请求头
 export const GLOBAL_HEADERS: Record<string, string> = {

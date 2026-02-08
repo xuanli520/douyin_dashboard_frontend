@@ -9,10 +9,9 @@ import {
   updateRole,
   deleteRole,
   getPermissions,
-  assignPermissions,
-  Role,
-  Permission
+  assignRolePermissions
 } from '@/services/adminService';
+import { RoleRead, RoleWithPermissions, PermissionRead } from '@/types';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import {
@@ -28,15 +27,15 @@ interface RoleFormValues {
 }
 
 export default function RolesPage() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [roles, setRoles] = useState<RoleWithPermissions[]>([]);
+  const [permissions, setPermissions] = useState<PermissionRead[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Dialog States
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<RoleRead | null>(null);
 
   // Form handling
   const {
@@ -49,7 +48,7 @@ export default function RolesPage() {
 
   // Permission Assignment State
   const [isPermDialogOpen, setIsPermDialogOpen] = useState(false);
-  const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<Role | null>(null);
+  const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<RoleWithPermissions | null>(null);
   const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(new Set());
   const [isPermSubmitting, setIsPermSubmitting] = useState(false);
 
@@ -66,7 +65,7 @@ export default function RolesPage() {
       ]);
 
       const rolesWithPermissions = await Promise.all(
-        rolesData.map(async (role) => {
+        rolesData.items.map(async (role: RoleRead) => {
           try {
             return await getRole(role.id);
           } catch {
@@ -76,7 +75,7 @@ export default function RolesPage() {
       );
 
       setRoles(rolesWithPermissions);
-      setPermissions(permsData);
+      setPermissions(permsData.items);
     } catch (error) {
       toast.error('加载角色数据失败');
       console.error(error);
@@ -93,7 +92,7 @@ export default function RolesPage() {
     setIsRoleDialogOpen(true);
   };
 
-  const handleEditClick = (role: Role) => {
+  const handleEditClick = (role: RoleRead) => {
     setEditingRole(role);
     setValue('name', role.name);
     setValue('description', role.description || '');
@@ -117,7 +116,7 @@ export default function RolesPage() {
     }
   };
 
-  const handleDeleteClick = async (role: Role) => {
+  const handleDeleteClick = async (role: RoleRead) => {
     if (!confirm(`确定要删除角色 "${role.name}" 吗？此操作无法撤销。`)) return;
 
     try {
@@ -140,7 +139,7 @@ export default function RolesPage() {
 
   // --- Permission Assignment ---
 
-  const handlePermsClick = (role: Role) => {
+  const handlePermsClick = (role: RoleWithPermissions) => {
     setSelectedRoleForPerms(role);
     const currentIds = new Set(role.permissions?.map(p => p.id) || []);
     setSelectedPermIds(currentIds);
@@ -161,7 +160,7 @@ export default function RolesPage() {
     if (!selectedRoleForPerms) return;
     setIsPermSubmitting(true);
     try {
-      await assignPermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
+      await assignRolePermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
       toast.success('权限已更新');
       setIsPermDialogOpen(false);
 
@@ -176,7 +175,7 @@ export default function RolesPage() {
   };
 
   // Group permissions by module
-  const permsByModule = permissions.reduce<Record<string, Permission[]>>((acc, perm) => {
+  const permsByModule = permissions.reduce<Record<string, PermissionRead[]>>((acc, perm) => {
     const module = perm.module || 'Other';
     if (!acc[module]) acc[module] = [];
     acc[module].push(perm);

@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { scrapingRuleApi } from '../services/scrapingRuleApi';
-import { ScrapingRule } from '../services/types';
+import { ScrapingRuleResponse } from '@/types';
 
 export function useScrapingRule(id: number) {
-  const [rule, setRule] = useState<ScrapingRule | null>(null);
+  const [rule, setRule] = useState<ScrapingRuleResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchRule = useCallback(async () => {
     if (!id) return;
-    
+
     setLoading(true);
     setError(null);
     try {

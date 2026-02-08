@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
-import { DataSource } from '../services/types';
+import { DataSourceResponse } from '@/types';
 
 export function useActivateDataSource() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const activate = async (id: number, active: boolean): Promise<DataSource | null> => {
+  const setActive = async (id: number, active: boolean): Promise<DataSourceResponse | null> => {
     setLoading(true);
     setError(null);
     try {
-      const result = await dataSourceApi.activate(id, active);
+      const result = active
+        ? await dataSourceApi.activate(id)
+        : await dataSourceApi.deactivate(id);
       return result;
     } catch (err) {
       setError(err as Error);
@@ -20,5 +22,5 @@ export function useActivateDataSource() {
     }
   };
 
-  return { activate, loading, error };
+  return { setActive, loading, error };
 }

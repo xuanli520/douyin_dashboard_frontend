@@ -67,12 +67,16 @@ export function DataTable<T>({
   toolbar,
   className
 }: DataTableProps<T>) {
-  const totalPages = Math.ceil(pagination.total / pagination.size);
+  // 防御性计算，避免 NaN 或 Infinity
+  const safeTotal = pagination.total || 0;
+  const safeSize = pagination.size || 10;
+  const safePage = pagination.page || 1;
+  const totalPages = safeSize > 0 ? Math.ceil(safeTotal / safeSize) : 0;
 
   const handleSelectAll = (checked: boolean) => {
     if (!rowSelection) return;
     if (checked) {
-      rowSelection.onChange(data.map(row => rowKey(row)));
+      rowSelection.onChange((data || []).map(row => rowKey(row)));
     } else {
       rowSelection.onChange([]);
     }
@@ -87,34 +91,35 @@ export function DataTable<T>({
     }
   };
 
-  const isAllSelected = rowSelection && data.length > 0 && data.every(row => rowSelection.selectedKeys.includes(rowKey(row)));
-  const isPartiallySelected = rowSelection && data.length > 0 && !isAllSelected && data.some(row => rowSelection.selectedKeys.includes(rowKey(row)));
+  const isAllSelected = rowSelection && (data || []).length > 0 && (data || []).every(row => rowSelection.selectedKeys.includes(rowKey(row)));
+  const isPartiallySelected = rowSelection && (data || []).length > 0 && !isAllSelected && (data || []).some(row => rowSelection.selectedKeys.includes(rowKey(row)));
 
   const renderPagination = () => {
-    if (pagination.total <= 0) return null;
+    // 防御性检查：如果没有数据或只有一页，不显示分页
+    if (safeTotal <= 0 || totalPages <= 0) return null;
 
     // Simple pagination logic: show current, prev, next, first, last
     const pages: (number | 'ellipsis')[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (pagination.page <= 3) {
+      if (safePage <= 3) {
         pages.push(1, 2, 3, 4, 'ellipsis', totalPages);
-      } else if (pagination.page >= totalPages - 2) {
+      } else if (safePage >= totalPages - 2) {
         pages.push(1, 'ellipsis', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
       } else {
-        pages.push(1, 'ellipsis', pagination.page - 1, pagination.page, pagination.page + 1, 'ellipsis', totalPages);
+        pages.push(1, 'ellipsis', safePage - 1, safePage, safePage + 1, 'ellipsis', totalPages);
       }
     }
 
     return (
       <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          <span>共 {pagination.total} 条</span>
+          <span>共 {safeTotal} 条</span>
           <div className="flex items-center gap-1">
             <span>每页</span>
             <Select
-              value={pagination.size.toString()}
+              value={safeSize.toString()}
               onValueChange={(val) => onSizeChange(Number(val))}
             >
               <SelectTrigger className="h-8 min-w-[50px] px-2 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
@@ -136,9 +141,9 @@ export function DataTable<T>({
           <PaginationContent className="gap-1">
             <PaginationItem>
               <PaginationPrevious
-                onClick={(e) => { e.preventDefault(); if(pagination.page > 1) onPageChange(pagination.page - 1); }}
-                aria-disabled={pagination.page <= 1}
-                className={pagination.page <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if(safePage > 1) onPageChange(safePage - 1); }}
+                aria-disabled={safePage <= 1}
+                className={safePage <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
 
@@ -148,9 +153,9 @@ export function DataTable<T>({
                   <PaginationEllipsis />
                 ) : (
                 <PaginationLink
-                    isActive={pagination.page === p}
+                    isActive={safePage === p}
                     onClick={(e) => { e.preventDefault(); onPageChange(p as number); }}
-                    className={pagination.page === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
+                    className={safePage === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
                   >
                     {p}
                   </PaginationLink>
@@ -160,9 +165,9 @@ export function DataTable<T>({
 
             <PaginationItem>
               <PaginationNext
-                onClick={(e) => { e.preventDefault(); if(pagination.page < totalPages) onPageChange(pagination.page + 1); }}
-                aria-disabled={pagination.page >= totalPages}
-                className={pagination.page >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if(safePage < totalPages) onPageChange(safePage + 1); }}
+                aria-disabled={safePage >= totalPages}
+                className={safePage >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
           </PaginationContent>
@@ -198,7 +203,7 @@ export function DataTable<T>({
           <TableBody>
             {isLoading ? (
               // Loading Skeleton
-              Array.from({ length: Math.min(pagination.size, 5) }).map((_, i) => (
+              Array.from({ length: Math.min(safeSize, 5) }).map((_, i) => (
                 <TableRow key={i} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
                   {rowSelection && <TableCell><Skeleton className="h-4 w-4 bg-slate-200 dark:bg-slate-800" /></TableCell>}
                   {columns.map((col, j) => (
@@ -214,14 +219,14 @@ export function DataTable<T>({
                   {error}
                 </TableCell>
               </TableRow>
-            ) : data.length === 0 ? (
+            ) : (data || []).length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 border-slate-100 dark:border-slate-800">
                   <EmptyState />
                 </TableCell>
               </TableRow>
-            ) : (
-              data.map((row) => {
+              ) : (
+              (data || []).map((row) => {
                 const key = rowKey(row);
                 const isSelected = rowSelection?.selectedKeys.includes(key);
                 return (

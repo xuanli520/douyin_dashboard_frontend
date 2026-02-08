@@ -119,10 +119,10 @@ export default function DataSourceList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部类型</SelectItem>
-                <SelectItem value="douyin_api">抖音API</SelectItem>
-                <SelectItem value="file_upload">文件上传</SelectItem>
-                <SelectItem value="database">数据库</SelectItem>
-                <SelectItem value="webhook">Webhook</SelectItem>
+                <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+                <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+                <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+                <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
               </SelectContent>
             </Select>
 
@@ -132,9 +132,9 @@ export default function DataSourceList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="active">活跃</SelectItem>
-                <SelectItem value="inactive">停用</SelectItem>
-                <SelectItem value="error">错误</SelectItem>
+                <SelectItem value="ACTIVE">活跃</SelectItem>
+                <SelectItem value="INACTIVE">停用</SelectItem>
+                <SelectItem value="ERROR">错误</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -163,9 +163,9 @@ export default function DataSourceList() {
       </div>
 
       <DataSourceTable
-        data={data?.list || []}
+        data={data?.items || []}
         loading={loading || deleting}
-        pagination={{ page: data?.page || 1, size: filters.pageSize || 10, total: data?.total || 0 }}
+        pagination={{ page: data?.meta?.page || 1, size: data?.meta?.size || 10, total: data?.meta?.total || 0 }}
         onPageChange={handlePageChange}
         onSizeChange={handleSizeChange}
         onEdit={handleEditClick}

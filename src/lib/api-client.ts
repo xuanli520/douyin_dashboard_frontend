@@ -1,33 +1,65 @@
-// 带拦截器的 API 客户端
-import { baseRequest, API_BASE_URL, createRequestOptions, REQUEST_TIMEOUT } from './request';
+import { baseRequest, API_BASE_URL, REQUEST_TIMEOUT } from './request';
 import { getAccessToken, setAccessToken, clearTokens, getRefreshToken } from './auth';
-import { post } from './api';
+import { post as apiPost } from './api';
 import { API_ENDPOINTS } from '@/config/api';
 
-/**
- * 后端统一响应格式
- */
 export interface ApiResponse<T> {
   code: number;
   msg: string;
   data: T;
 }
 
+export interface PageMeta {
+  page: number;
+  size: number;
+  total: number;
+  pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface PaginatedData<T> {
+  items: T[];
+  meta: PageMeta;
+}
+
 interface RequestOptions extends RequestInit {
   _retry?: boolean;
 }
 
-/**
- * 创建带认证拦截的请求函数
- */
-export function createAuthenticatedClient() {
+export class ApiError extends Error {
+  code?: number;
+  data?: unknown;
+
+  constructor(message: string, code?: number, data?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+    this.data = data;
+  }
+}
+
+export class NetworkError extends Error {
+  constructor(message: string = '网络请求失败，请检查网络连接') {
+    super(message);
+    this.name = 'NetworkError';
+  }
+}
+
+export class TimeoutError extends Error {
+  constructor(message: string = '请求超时，请稍后重试') {
+    super(message);
+    this.name = 'TimeoutError';
+  }
+}
+
+function createAuthenticatedClient() {
   let isRefreshing = false;
   let failedQueue: Array<{
     resolve: (token: string) => void;
     reject: (error: Error) => void;
   }> = [];
 
-  // 处理刷新队列
   const processQueue = (token: string | null, error: Error | null) => {
     failedQueue.forEach((promise) => {
       if (token) {
@@ -39,9 +71,6 @@ export function createAuthenticatedClient() {
     failedQueue = [];
   };
 
-  /**
-   * 带认证的请求函数
-   */
   async function authRequest<T>(
     endpoint: string,
     options: RequestOptions = {}
@@ -49,7 +78,6 @@ export function createAuthenticatedClient() {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = getAccessToken();
 
-    // 添加认证头
     const config: RequestOptions = {
       ...options,
       signal: AbortSignal.timeout(REQUEST_TIMEOUT),
@@ -62,14 +90,11 @@ export function createAuthenticatedClient() {
     try {
       const response = await fetch(url, config);
 
-      // 401 处理：尝试刷新 token
       if (response.status === 401 && !options._retry) {
-        // 如果已经在刷新，等待刷新完成
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             failedQueue.push({
               resolve: (token: string) => {
-                // 重新请求，使用新 token
                 const retryConfig = {
                   ...options,
                   _retry: true,
@@ -88,22 +113,18 @@ export function createAuthenticatedClient() {
         isRefreshing = true;
 
         try {
-          // 直接调用刷新端点
           const refreshTokenValue = getRefreshToken();
           if (!refreshTokenValue) {
             throw new Error('No refresh token available');
           }
 
-          const refreshResponse = await post<ApiResponse<{ access_token: string; token_type: string }>>(
+          const refreshResponse = await apiPost<ApiResponse<{ access_token: string; token_type: string }>>(
             `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
           );
 
           setAccessToken(refreshResponse.data.access_token);
-
-          // 处理等待刷新的请求
           processQueue(refreshResponse.data.access_token, null);
 
-          // 重新执行原请求
           const retryConfig: RequestOptions = {
             ...options,
             _retry: true,
@@ -115,7 +136,6 @@ export function createAuthenticatedClient() {
 
           return authRequest<T>(endpoint, retryConfig);
         } catch (refreshError) {
-          // 刷新失败，清除所有等待的请求
           processQueue(null, refreshError as Error);
           clearTokens();
           throw new Error('会话已过期，请重新登录');
@@ -139,6 +159,12 @@ export function createAuthenticatedClient() {
 
       return response.json();
     } catch (error) {
+      if (error instanceof Error && error.name === 'TimeoutError') {
+        throw new TimeoutError();
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new NetworkError();
+      }
       throw error;
     }
   }
@@ -146,12 +172,8 @@ export function createAuthenticatedClient() {
   return { authRequest };
 }
 
-/**
- * 默认认证客户端实例
- */
 export const authClient = createAuthenticatedClient();
 
-// 便捷方法
 export async function authGet<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return authClient.authRequest<T>(endpoint, { method: 'GET', ...options });
 }
@@ -170,7 +192,6 @@ export async function authPost<T>(
       ? undefined
       : JSON.stringify(data);
 
-  // 设置正确的 Content-Type
   const headers = { ...options?.headers };
   if (data instanceof URLSearchParams) {
     (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -195,7 +216,6 @@ export async function authPatch<T>(
       ? undefined
       : JSON.stringify(data);
 
-  // 如果发送的是 JSON 对象，自动设置 Content-Type
   const headers = { ...options?.headers };
   if (typeof data === 'object' && data !== null && !(data instanceof URLSearchParams) && !(data instanceof FormData)) {
     (headers as Record<string, string>)['Content-Type'] = 'application/json';
@@ -230,4 +250,44 @@ export async function authPut<T>(
   }
 
   return authClient.authRequest<T>(endpoint, { method: 'PUT', body, headers, ...options });
+}
+
+export async function get<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  return baseRequest<T>(endpoint, { method: 'GET', ...options });
+}
+
+export async function post<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+  const body =
+    data instanceof URLSearchParams ||
+    data instanceof FormData ||
+    typeof data === 'string'
+      ? data
+      : data === undefined
+      ? undefined
+      : JSON.stringify(data);
+
+  const headers = { ...options?.headers };
+  if (data instanceof URLSearchParams) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/x-www-form-urlencoded';
+  } else if (data instanceof FormData) {
+  }
+
+  return baseRequest<T>(endpoint, { method: 'POST', body, headers, ...options });
+}
+
+export async function put<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+  const body =
+    data instanceof URLSearchParams ||
+    data instanceof FormData ||
+    typeof data === 'string'
+      ? data
+      : data === undefined
+      ? undefined
+      : JSON.stringify(data);
+
+  return baseRequest<T>(endpoint, { method: 'PUT', body, ...options });
+}
+
+export async function del<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  return baseRequest<T>(endpoint, { method: 'DELETE', ...options });
 }

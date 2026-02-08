@@ -80,17 +80,17 @@ export default function DataSourcePage() {
           <div className="flex items-center gap-2">
             <DataSourceSelect>
               <SelectItem value="all" onClick={() => setFilterType('all')}>全部类型</SelectItem>
-              <SelectItem value="douyin_api" onClick={() => setFilterType('douyin_api')}>抖音API</SelectItem>
-              <SelectItem value="database" onClick={() => setFilterType('database')}>数据库</SelectItem>
-              <SelectItem value="file_upload" onClick={() => setFilterType('file_upload')}>文件上传</SelectItem>
-              <SelectItem value="webhook" onClick={() => setFilterType('webhook')}>Webhook</SelectItem>
+              <SelectItem value="DOUYIN_API" onClick={() => setFilterType('DOUYIN_API')}>抖音API</SelectItem>
+              <SelectItem value="SELF_HOSTED" onClick={() => setFilterType('SELF_HOSTED')}>数据库</SelectItem>
+              <SelectItem value="FILE_UPLOAD" onClick={() => setFilterType('FILE_UPLOAD')}>文件上传</SelectItem>
+              <SelectItem value="FILE_IMPORT" onClick={() => setFilterType('FILE_IMPORT')}>文件导入</SelectItem>
             </DataSourceSelect>
 
             <DataSourceSelect>
               <SelectItem value="all" onClick={() => setFilterStatus('all')}>全部状态</SelectItem>
-              <SelectItem value="active" onClick={() => setFilterStatus('active')}>正常</SelectItem>
-              <SelectItem value="inactive" onClick={() => setFilterStatus('inactive')}>停用</SelectItem>
-              <SelectItem value="error" onClick={() => setFilterStatus('error')}>异常</SelectItem>
+              <SelectItem value="ACTIVE" onClick={() => setFilterStatus('ACTIVE')}>正常</SelectItem>
+              <SelectItem value="INACTIVE" onClick={() => setFilterStatus('INACTIVE')}>停用</SelectItem>
+              <SelectItem value="ERROR" onClick={() => setFilterStatus('ERROR')}>异常</SelectItem>
             </DataSourceSelect>
           </div>
         </div>

@@ -18,10 +18,14 @@ const formSchema = z.object({
     message: "名称至少需要2个字符。",
   }),
   description: z.string().optional(),
-  rule_type: z.enum(['orders', 'products', 'users', 'comments']),
+  target_type: z.enum([
+    'SHOP_OVERVIEW', 'TRAFFIC', 'PRODUCT', 'LIVE', 'CONTENT_VIDEO',
+    'ORDER_FULFILLMENT', 'AFTERSALE_REFUND', 'CUSTOMER', 'ADS'
+  ]),
   data_source_id: z.coerce.number(),
   schedule_type: z.enum(['cron', 'interval', 'once']),
   schedule_value: z.string().min(1, "调度值为必填项"),
+  is_active: z.boolean().default(true),
   config: z.object({
     target_url: z.string().url("必须是有效的URL").optional(),
     timeout: z.number().default(30000),
@@ -41,9 +45,10 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
     defaultValues: {
       name: "",
       description: "",
-      rule_type: "orders",
+      target_type: "SHOP_OVERVIEW",
       schedule_type: "once",
       schedule_value: "0",
+      is_active: true,
       config: {
         target_url: "",
         timeout: 30000,
@@ -53,11 +58,24 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
     },
   });
 
-  const ruleType = form.watch("rule_type");
+  const targetType = form.watch("target_type");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await create(values as any);
+      const apiData = {
+        name: values.name,
+        description: values.description,
+        target_type: values.target_type,
+        data_source_id: values.data_source_id,
+        schedule: values.schedule_type === 'cron'
+          ? values.schedule_value
+          : values.schedule_type === 'interval'
+            ? values.schedule_value
+            : undefined,
+        is_active: values.is_active,
+        config: values.config,
+      };
+      await create(apiData);
       if (onSuccess) {
         onSuccess();
       } else {
@@ -102,22 +120,26 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="rule_type"
+            name="target_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>类型</FormLabel>
+                <FormLabel>目标类型</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="选择类型" />
+                      <SelectValue placeholder="选择目标类型" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="orders">订单</SelectItem>
-                    <SelectItem value="products">商品</SelectItem>
-                    <SelectItem value="users">用户</SelectItem>
-                    <SelectItem value="comments">评论</SelectItem>
-                    <SelectItem value="user">用户</SelectItem>
+                    <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
+                    <SelectItem value="TRAFFIC">流量</SelectItem>
+                    <SelectItem value="PRODUCT">商品</SelectItem>
+                    <SelectItem value="LIVE">直播</SelectItem>
+                    <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
+                    <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
+                    <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
+                    <SelectItem value="CUSTOMER">客户</SelectItem>
+                    <SelectItem value="ADS">广告</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -138,7 +160,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {dataSources?.list?.map((ds) => (
+                    {dataSources?.items?.map((ds) => (
                       <SelectItem key={ds.id} value={ds.id.toString()}>
                         {ds.name}
                       </SelectItem>
@@ -191,7 +213,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
           />
         </div>
 
-        <RuleConfigFields form={form} type={ruleType} />
+        <RuleConfigFields form={form} type={targetType} />
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel || (() => router.back())}>

@@ -1,20 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
-import { DataSource, DataSourceFilter, PaginatedResponse } from '../services/types';
+import { DataSourceResponse, PaginatedData, PageMeta } from '@/types';
+
+interface DataSourceFilter {
+  name?: string;
+  status?: string;
+  source_type?: string;
+  page?: number;
+  size?: number;
+}
+
+interface PaginatedDataSourceResponse {
+  items: DataSourceResponse[];
+  meta: PageMeta;
+}
 
 export function useDataSources(initialFilters?: DataSourceFilter) {
-  const [data, setData] = useState<PaginatedResponse<DataSource>>({
-    list: [],
-    total: 0,
-    page: 1,
-    pageSize: 10,
-    pages: 0,
+  const [data, setData] = useState<PaginatedDataSourceResponse>({
+    items: [],
+    meta: {
+      page: 1,
+      size: 10,
+      total: 0,
+      pages: 0,
+      has_next: false,
+      has_prev: false,
+    },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [filters, setFilters] = useState<DataSourceFilter>(initialFilters || {
     page: 1,
-    pageSize: 10,
+    size: 10,
   });
 
   const fetchData = useCallback(async () => {
