@@ -22,5 +22,5 @@ export function useActivateDataSource() {
     }
   };
 
-  return { setActive, loading, error };
+  return { activate: setActive, loading, error };
 }

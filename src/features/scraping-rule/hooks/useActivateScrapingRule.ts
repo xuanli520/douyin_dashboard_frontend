@@ -6,11 +6,11 @@ export function useActivateScrapingRule() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const setActive = async (id: number, active: boolean): Promise<ScrapingRuleResponse | null> => {
+  const toggleActive = async (id: number, isActive: boolean): Promise<ScrapingRuleResponse | null> => {
     setLoading(true);
     setError(null);
     try {
-      const result = active
+      const result = isActive
         ? await scrapingRuleApi.activate(id)
         : await scrapingRuleApi.deactivate(id);
       return result;
@@ -22,5 +22,5 @@ export function useActivateScrapingRule() {
     }
   };
 
-  return { setActive, loading, error };
+  return { activate: toggleActive, loading, error };
 }

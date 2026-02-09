@@ -1,4 +1,4 @@
-import { authGet, authPost, authPatch, authDel, authPut, ApiResponse } from '@/lib/api-client';
+import { authGet, authPost, authDel, authPut, ApiResponse } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/config/api';
 import {
   ScrapingRule,
@@ -62,7 +62,7 @@ export const scrapingRuleApi = {
 
   update: async (id: number, data: ScrapingRuleUpdate): Promise<ScrapingRuleResponse> => {
     return wrappedRequest(
-      authPatch<ApiResponse<ScrapingRuleResponse>>(
+      authPut<ApiResponse<ScrapingRuleResponse>>(
         API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
         data
       )

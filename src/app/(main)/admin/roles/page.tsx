@@ -20,6 +20,7 @@ import {
 import { Plus, ShieldAlert, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { RoleTable } from './RoleTable';
+import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
 
 interface RoleFormValues {
   name: string;
@@ -51,6 +52,11 @@ export default function RolesPage() {
   const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<RoleWithPermissions | null>(null);
   const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(new Set());
   const [isPermSubmitting, setIsPermSubmitting] = useState(false);
+
+  // Delete Dialog State
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<RoleRead | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -116,15 +122,24 @@ export default function RolesPage() {
     }
   };
 
-  const handleDeleteClick = async (role: RoleRead) => {
-    if (!confirm(`确定要删除角色 "${role.name}" 吗？此操作无法撤销。`)) return;
+  const handleDeleteClick = (role: RoleRead) => {
+    setRoleToDelete(role);
+    setDeleteDialogOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!roleToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteRole(role.id);
+      await deleteRole(roleToDelete.id);
       toast.success('角色已删除');
-      setRoles(roles.filter(r => r.id !== role.id));
+      setRoles(roles.filter(r => r.id !== roleToDelete.id));
+      setDeleteDialogOpen(false);
     } catch (error) {
       toast.error('删除角色失败');
+    } finally {
+      setIsDeleting(false);
+      setRoleToDelete(null);
     }
   };
 
@@ -243,6 +258,16 @@ export default function RolesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="确认删除角色？"
+        description={roleToDelete ? `确定要删除角色 "${roleToDelete.name}" 吗？此操作无法撤销。` : '确定要删除此角色吗？此操作无法撤销。'}
+      />
 
       {/* Permissions Assignment Dialog */}
       <Dialog open={isPermDialogOpen} onOpenChange={setIsPermDialogOpen}>

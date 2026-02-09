@@ -54,8 +54,14 @@ export function AssociatedRules({ dataSourceId }: AssociatedRulesProps) {
         <CardTitle>关联的采集规则 ({rules.length})</CardTitle>
       </CardHeader>
       <CardContent>
-        <RuleTable 
-          data={paginatedRules} 
+        <RuleTable
+          data={paginatedRules}
+          loading={loading}
+          pagination={{ page, size: pageSize, total: rules.length }}
+          onPageChange={setPage}
+          onSizeChange={(size) => {
+            setPage(1);
+          }}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
         />

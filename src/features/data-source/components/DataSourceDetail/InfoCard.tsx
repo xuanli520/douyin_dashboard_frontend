@@ -18,12 +18,12 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
   const { activate, loading: activating } = useActivateDataSource();
   const { validate, validating, validationResult } = useValidateDataSource();
 
-  const isActive = dataSource.status === 'active';
+  const isActive = dataSource.status === 'ACTIVE';
 
   const handleToggleActive = async () => {
     try {
       await activate(dataSource.id, !isActive);
-      setDataSource(prev => ({ ...prev, status: isActive ? 'inactive' : 'active' }));
+      setDataSource(prev => ({ ...prev, status: isActive ? 'INACTIVE' : 'ACTIVE' }));
       toast.success(isActive ? '数据源已停用' : '数据源已启用');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '操作失败');
@@ -79,12 +79,12 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
           </Button>
           
           <Button 
-            variant={dataSource.status === 'active' ? 'destructive' : 'default'}
+            variant={dataSource.status === 'ACTIVE' ? 'destructive' : 'default'}
             size="sm"
             onClick={handleToggleActive}
             disabled={activating}
           >
-            {dataSource.status === 'active' ? (
+            {dataSource.status === 'ACTIVE' ? (
               <>
                 <PowerOff className="w-4 h-4 mr-2" />
                 停用

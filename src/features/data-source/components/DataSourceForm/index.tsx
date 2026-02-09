@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/app/components/ui/button';
 import { ApiConfig } from './ConfigFields/ApiConfig';
 import { DatabaseConfig } from './ConfigFields/DatabaseConfig';
+import { FileUploadConfig } from './ConfigFields/FileUploadConfig';
+import { FileImportConfig } from './ConfigFields/FileImportConfig';
 
 interface DataSourceFormProps {
   initialData?: DataSource;
@@ -48,6 +50,10 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
         return <ApiConfig form={form} />;
       case 'SELF_HOSTED':
         return <DatabaseConfig form={form} />;
+      case 'FILE_UPLOAD':
+        return <FileUploadConfig form={form} />;
+      case 'FILE_IMPORT':
+        return <FileImportConfig form={form} />;
       default:
         return <div className="text-sm text-slate-500">No configuration needed for this type.</div>;
     }
