@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDataSources } from '../../hooks/useDataSources';
 import { useCreateDataSource } from '../../hooks/useCreateDataSource';
 import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
@@ -9,7 +9,7 @@ import { DataSourceTable } from './DataSourceTable';
 import { DataSourceForm } from '../DataSourceForm';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { Search, Database, Plus } from 'lucide-react';
-import { DataSourceType, DataSourceStatus, DataSourceCreateDTO, DataSource } from '../../services/types';
+import { DataSourceType, DataSourceStatus, DataSourceCreate, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
@@ -33,6 +33,11 @@ export default function DataSourceList() {
   const [editingSource, setEditingSource] = useState<DataSource | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -40,14 +45,14 @@ export default function DataSourceList() {
   };
 
   const handleTypeChange = (value: string) => {
-    updateFilters({ type: value as DataSourceType | 'all', page: 1 });
+    updateFilters({ source_type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
-    updateFilters({ status: value as DataSourceStatus | 'all', page: 1 });
+    updateFilters({ status: value === 'all' ? undefined : value as DataSourceStatus, page: 1 });
   };
 
-  const handleCreate = async (formData: DataSourceCreateDTO) => {
+  const handleCreate = async (formData: DataSourceCreate) => {
     try {
       await create(formData);
       toast.success('数据源创建成功');
@@ -59,7 +64,7 @@ export default function DataSourceList() {
     }
   };
 
-  const handleUpdate = async (formData: DataSourceCreateDTO) => {
+  const handleUpdate = async (formData: DataSourceCreate) => {
     if (!editingId) return;
     try {
       await update(editingId, formData);
@@ -74,7 +79,7 @@ export default function DataSourceList() {
   };
 
   const handleEditClick = (id: number) => {
-    const source = data?.list?.find(item => item.id === id);
+    const source = data?.items?.find(item => item.id === id);
     if (source) {
       setEditingSource(source);
       setEditingId(id);
@@ -104,7 +109,7 @@ export default function DataSourceList() {
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ pageSize: size, page: 1 });
+    updateFilters({ size, page: 1 });
   };
 
   return (
@@ -113,7 +118,7 @@ export default function DataSourceList() {
         <div className="flex items-center gap-3">
           <NeonTitle icon={Database}>数据源管理</NeonTitle>
           <div className="flex items-center gap-2">
-            <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
+            <Select value={mounted ? (filters.source_type || 'all') : 'all'} onValueChange={handleTypeChange}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="全部类型" />
               </SelectTrigger>
@@ -126,7 +131,7 @@ export default function DataSourceList() {
               </SelectContent>
             </Select>
 
-            <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
+            <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="全部状态" />
               </SelectTrigger>
