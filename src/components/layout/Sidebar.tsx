@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow } from 'lucide-react';
+import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow, Activity } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import femaleProfileImage from '@/assets/female.jpg';
 import { useUserStore } from '@/stores/userStore';
@@ -38,6 +38,7 @@ const menuItems: MenuItem[] = [
       { id: 'admin-users', label: '用户管理', icon: Users, href: ROUTES.ADMIN_USERS, perm: 'user:read' },
       { id: 'admin-roles', label: '角色管理', icon: Shield, href: ROUTES.ADMIN_ROLES, perm: 'role:read' },
       { id: 'admin-permissions', label: '权限管理', icon: Key, href: ROUTES.ADMIN_PERMISSIONS, perm: 'permission:read' },
+      { id: 'admin-login-audit', label: '登录审计', icon: Activity, href: ROUTES.ADMIN_LOGIN_AUDIT, perm: 'user:read' },
     ],
   },
 ];
