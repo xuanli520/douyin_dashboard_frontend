@@ -1,5 +1,5 @@
-import { authPost, authGet, authPatch, authDel, authClient, ApiResponse } from '@/lib/api-client';
-import { post } from '@/lib/api';
+import { httpClient } from '@/lib/http/client';
+import { ApiResponse } from '@/lib/http/types';
 import {
   getAccessToken,
   setAccessToken,
@@ -20,7 +20,6 @@ import {
   VerifyTokenParams,
 } from '@/types';
 import { API_ENDPOINTS } from '@/config/api';
-import { getErrorMessage, AUTH_ERROR_CODES } from '@/lib/errors';
 
 let refreshTokenPromise: Promise<{ access_token: string; token_type: string }> | null = null;
 
@@ -36,16 +35,16 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
 
   refreshTokenPromise = (async () => {
     try {
-      const response = await post<ApiResponse<{ access_token: string; token_type: string }>>(
+      const response = await httpClient.post<{ access_token: string; token_type: string }>(
         `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
       );
 
-      setAccessToken(response.data.access_token);
+      setAccessToken(response.access_token);
       if (typeof document !== 'undefined') {
-        document.cookie = `auth_token=${response.data.access_token}; path=/; max-age=${60 * 60 * 24}`;
+        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24}`;
       }
 
-      return response.data;
+      return response;
     } finally {
       refreshTokenPromise = null;
     }
@@ -62,7 +61,7 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
     formData.append('captchaVerifyParam', params.captchaVerifyParam);
   }
 
-  const response = await authPost<ApiResponse<TokenResponse>>(
+  const response = await httpClient.post<ApiResponse<TokenResponse>>(
     API_ENDPOINTS.JWT_LOGIN,
     formData,
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
@@ -77,7 +76,7 @@ export async function logout(): Promise<void> {
 
   if (refreshTokenValue) {
     try {
-      await post<ApiResponse<null>>(
+      await httpClient.post<ApiResponse<null>>(
         `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
       );
     } catch {
@@ -92,7 +91,7 @@ export async function logout(): Promise<void> {
 }
 
 export async function register(params: RegisterParams): Promise<UserRead> {
-  const response = await authPost<ApiResponse<UserRead>>(
+  const response = await httpClient.post<ApiResponse<UserRead>>(
     API_ENDPOINTS.REGISTER,
     params
   );
@@ -100,12 +99,12 @@ export async function register(params: RegisterParams): Promise<UserRead> {
 }
 
 export async function getCurrentUser(): Promise<UserRead> {
-  const response = await authGet<ApiResponse<UserRead>>(API_ENDPOINTS.USERS_ME);
+  const response = await httpClient.get<ApiResponse<UserRead>>(API_ENDPOINTS.USERS_ME);
   return response.data;
 }
 
 export async function updateCurrentUser(data: UserUpdate): Promise<UserRead> {
-  const response = await authPatch<ApiResponse<UserRead>>(
+  const response = await httpClient.patch<ApiResponse<UserRead>>(
     API_ENDPOINTS.USERS_ME,
     data
   );
@@ -113,14 +112,14 @@ export async function updateCurrentUser(data: UserUpdate): Promise<UserRead> {
 }
 
 export async function getUserById(id: number): Promise<UserRead> {
-  const response = await authGet<ApiResponse<UserRead>>(
+  const response = await httpClient.get<ApiResponse<UserRead>>(
     API_ENDPOINTS.USERS_BY_ID(id)
   );
   return response.data;
 }
 
 export async function updateUser(id: number, data: UserUpdate): Promise<UserRead> {
-  const response = await authPatch<ApiResponse<UserRead>>(
+  const response = await httpClient.patch<ApiResponse<UserRead>>(
     API_ENDPOINTS.USERS_BY_ID(id),
     data
   );
@@ -128,7 +127,9 @@ export async function updateUser(id: number, data: UserUpdate): Promise<UserRead
 }
 
 export async function deleteUser(id: number): Promise<void> {
-  await authDel<ApiResponse<void>>(API_ENDPOINTS.USERS_BY_ID(id));
+  await httpClient.delete<ApiResponse<void>>(
+    API_ENDPOINTS.USERS_BY_ID(id)
+  );
 }
 
 export async function checkIsSuperuser(): Promise<boolean> {
@@ -141,36 +142,32 @@ export async function checkIsSuperuser(): Promise<boolean> {
 }
 
 export async function forgotPassword(params: ForgotPasswordParams): Promise<void> {
-  await authPost<ApiResponse<void>>(
+  await httpClient.post<ApiResponse<void>>(
     API_ENDPOINTS.FORGOT_PASSWORD,
     params
   );
 }
 
 export async function resetPassword(params: ResetPasswordParams): Promise<void> {
-  await authPost<ApiResponse<void>>(
+  await httpClient.post<ApiResponse<void>>(
     API_ENDPOINTS.RESET_PASSWORD,
     params
   );
 }
 
 export async function requestVerifyToken(params: RequestVerifyTokenParams): Promise<void> {
-  await authPost<ApiResponse<void>>(
+  await httpClient.post<ApiResponse<void>>(
     API_ENDPOINTS.REQUEST_VERIFY_TOKEN,
     params
   );
 }
 
 export async function verifyToken(params: VerifyTokenParams): Promise<UserRead> {
-  const response = await authPost<ApiResponse<UserRead>>(
+  const response = await httpClient.post<ApiResponse<UserRead>>(
     API_ENDPOINTS.VERIFY,
     params
   );
   return response.data;
-}
-
-export function handleAuthError(error: unknown): string {
-  return getErrorMessage(error);
 }
 
 export function checkPasswordStrength(password: string): {
@@ -228,4 +225,17 @@ export function checkPasswordStrength(password: string): {
   }
 
   return { score, label, color, requirements };
+}
+
+export function handleAuthError(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.message.includes('401') || error.message.includes('未授权')) {
+      return '登录凭证无效，请重新登录';
+    }
+    if (error.message.includes('NetworkError') || error.message.includes('网络')) {
+      return '网络连接失败，请检查网络设置';
+    }
+    return error.message;
+  }
+  return '发生未知错误';
 }

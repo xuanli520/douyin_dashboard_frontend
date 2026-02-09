@@ -1,11 +1,11 @@
-import { authGet, authPost, authPut, authDel, ApiResponse, PaginatedData } from '@/lib/api-client';
+import { httpClient } from '@/lib/http/client';
+import { ApiResponse, PaginatedData } from '@/lib/http/types';
 import { API_ENDPOINTS } from '@/config/api';
 import {
   DataSource,
   DataSourceCreate,
   DataSourceUpdate,
   DataSourceResponse,
-  PaginatedDataSourceResponse,
   ScrapingRuleListItem,
 } from '@/types';
 
@@ -17,16 +17,8 @@ export interface DataSourceFilter {
   size?: number;
 }
 
-async function wrappedRequest<T>(promise: Promise<ApiResponse<T>>): Promise<T> {
-  const response = await promise;
-  if (![200, 201, 202, 203, 204, 205, 206, 207, 208, 209].includes(response.code)) {
-    throw new Error(response.msg || `Request failed with code ${response.code}`);
-  }
-  return response.data;
-}
-
 export const dataSourceApi = {
-  getAll: async (params?: DataSourceFilter): Promise<PaginatedDataSourceResponse> => {
+  getAll: async (params?: DataSourceFilter): Promise<PaginatedData<DataSourceResponse>> => {
     const query = new URLSearchParams();
     if (params) {
       if (params.name) query.append('name', params.name);
@@ -41,58 +33,64 @@ export const dataSourceApi = {
       ? `${API_ENDPOINTS.DATA_SOURCES}?${queryString}`
       : API_ENDPOINTS.DATA_SOURCES;
 
-    return wrappedRequest(
-      authGet<ApiResponse<PaginatedDataSourceResponse>>(url)
-    );
+    const response = await httpClient.get<ApiResponse<PaginatedData<DataSourceResponse>>>(url);
+    return response.data;
   },
 
   getById: async (id: number): Promise<DataSourceResponse> => {
-    return wrappedRequest(
-      authGet<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id))
+    const response = await httpClient.get<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_DETAIL(id)
     );
+    return response.data;
   },
 
   create: async (data: DataSourceCreate): Promise<DataSourceResponse> => {
-    return wrappedRequest(
-      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCES, data)
+    const response = await httpClient.post<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCES,
+      data
     );
+    return response.data;
   },
 
   update: async (id: number, data: DataSourceUpdate): Promise<DataSourceResponse> => {
-    return wrappedRequest(
-      authPut<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id), data)
+    const response = await httpClient.put<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_DETAIL(id),
+      data
     );
+    return response.data;
   },
 
   delete: async (id: number): Promise<void> => {
-    await wrappedRequest(
-      authDel<ApiResponse<void>>(API_ENDPOINTS.DATA_SOURCE_DETAIL(id))
+    await httpClient.delete<ApiResponse<void>>(
+      API_ENDPOINTS.DATA_SOURCE_DETAIL(id)
     );
   },
 
   activate: async (id: number): Promise<DataSourceResponse> => {
-    return wrappedRequest(
-      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id))
+    const response = await httpClient.post<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_ACTIVATE(id)
     );
+    return response.data;
   },
 
   deactivate: async (id: number): Promise<DataSourceResponse> => {
-    return wrappedRequest(
-      authPost<ApiResponse<DataSourceResponse>>(API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id))
+    const response = await httpClient.post<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_DEACTIVATE(id)
     );
+    return response.data;
   },
 
   validate: async (id: number): Promise<Record<string, unknown>> => {
-    const response = await authPost<ApiResponse<Record<string, unknown>>>(
+    const response = await httpClient.post<ApiResponse<Record<string, unknown>>>(
       API_ENDPOINTS.DATA_SOURCE_VALIDATE(id)
     );
-    return wrappedRequest(Promise.resolve(response));
+    return response.data;
   },
 
   getScrapingRules: async (id: number): Promise<ScrapingRuleListItem[]> => {
-    const response = await authGet<ApiResponse<ScrapingRuleListItem[]>>(
+    const response = await httpClient.get<ApiResponse<ScrapingRuleListItem[]>>(
       API_ENDPOINTS.DATA_SOURCE_SCRAPING_RULES(id)
     );
-    return wrappedRequest(Promise.resolve(response));
+    return response.data;
   },
 };

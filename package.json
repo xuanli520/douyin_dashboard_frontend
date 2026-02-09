@@ -46,6 +46,8 @@
     "@radix-ui/react-toggle-group": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.8",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query": "^5.90.20",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
@@ -72,7 +74,8 @@
     "tailwindcss-animate": "^1.0.7",
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -82,6 +85,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "jsdom": "^27.4.0",
+    "msw": "^2.12.9",
     "tailwindcss": "4.1.12",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"

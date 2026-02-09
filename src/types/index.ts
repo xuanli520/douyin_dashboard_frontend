@@ -1,6 +1,4 @@
-import { ApiResponse, PaginatedData, PageMeta } from './api-client';
-
-export * from './api-client';
+import { ApiResponse, PaginatedData, PageMeta } from '@/lib/api-client';
 
 export type DataSourceType = 'DOUYIN_API' | 'DOUYIN_SHOP' | 'DOUYIN_APP' | 'FILE_IMPORT' | 'FILE_UPLOAD' | 'SELF_HOSTED';
 export type DataSourceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';

@@ -1,7 +1,7 @@
-import { authGet, authPost, authDel, authPut, ApiResponse } from '@/lib/api-client';
+import { httpClient } from '@/lib/http/client';
+import { ApiResponse } from '@/lib/http/types';
 import { API_ENDPOINTS } from '@/config/api';
 import {
-  ScrapingRule,
   ScrapingRuleResponse,
   ScrapingRuleListItem,
   ScrapingRuleCreate,
@@ -16,14 +16,6 @@ export interface ScrapingRuleFilter {
   data_source_id?: number;
   page?: number;
   size?: number;
-}
-
-async function wrappedRequest<T>(promise: Promise<ApiResponse<T>>): Promise<T> {
-  const response = await promise;
-  if (![200, 201, 202, 203, 204, 205, 206, 207, 208, 209].includes(response.code)) {
-    throw new Error(response.msg || `Request failed with code ${response.code}`);
-  }
-  return response.data;
 }
 
 export const scrapingRuleApi = {
@@ -43,53 +35,52 @@ export const scrapingRuleApi = {
       ? `${API_ENDPOINTS.SCRAPING_RULES}?${queryString}`
       : API_ENDPOINTS.SCRAPING_RULES;
 
-    return wrappedRequest(
-      authGet<ApiResponse<PaginatedScrapingRuleListItem>>(url)
-    );
+    const response = await httpClient.get<ApiResponse<PaginatedScrapingRuleListItem>>(url);
+    return response.data;
   },
 
   getById: async (id: number): Promise<ScrapingRuleResponse> => {
-    return wrappedRequest(
-      authGet<ApiResponse<ScrapingRuleResponse>>(API_ENDPOINTS.SCRAPING_RULE_DETAIL(id))
+    const response = await httpClient.get<ApiResponse<ScrapingRuleResponse>>(
+      API_ENDPOINTS.SCRAPING_RULE_DETAIL(id)
     );
+    return response.data;
   },
 
   create: async (data: ScrapingRuleCreate): Promise<ScrapingRuleResponse> => {
-    return wrappedRequest(
-      authPost<ApiResponse<ScrapingRuleResponse>>(API_ENDPOINTS.SCRAPING_RULES, data)
+    const response = await httpClient.post<ApiResponse<ScrapingRuleResponse>>(
+      API_ENDPOINTS.SCRAPING_RULES,
+      data
     );
+    return response.data;
   },
 
   update: async (id: number, data: ScrapingRuleUpdate): Promise<ScrapingRuleResponse> => {
-    return wrappedRequest(
-      authPut<ApiResponse<ScrapingRuleResponse>>(
-        API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
-        data
-      )
+    const response = await httpClient.put<ApiResponse<ScrapingRuleResponse>>(
+      API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
+      data
     );
+    return response.data;
   },
 
   delete: async (id: number): Promise<void> => {
-    await wrappedRequest(
-      authDel<ApiResponse<void>>(API_ENDPOINTS.SCRAPING_RULE_DETAIL(id))
+    await httpClient.delete<ApiResponse<void>>(
+      API_ENDPOINTS.SCRAPING_RULE_DETAIL(id)
     );
   },
 
   activate: async (id: number): Promise<ScrapingRuleResponse> => {
-    return wrappedRequest(
-      authPut<ApiResponse<ScrapingRuleResponse>>(
-        API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
-        { is_active: true }
-      )
+    const response = await httpClient.put<ApiResponse<ScrapingRuleResponse>>(
+      API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
+      { is_active: true }
     );
+    return response.data;
   },
 
   deactivate: async (id: number): Promise<ScrapingRuleResponse> => {
-    return wrappedRequest(
-      authPut<ApiResponse<ScrapingRuleResponse>>(
-        API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
-        { is_active: false }
-      )
+    const response = await httpClient.put<ApiResponse<ScrapingRuleResponse>>(
+      API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
+      { is_active: false }
     );
+    return response.data;
   },
 };
