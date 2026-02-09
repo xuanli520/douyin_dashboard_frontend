@@ -39,7 +39,7 @@ export const tokenRefreshInterceptor: ResponseInterceptor = {
         }
         
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshToken)}`,
+          `${process.env.NEXT_PUBLIC_API_URL || ''}${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshToken)}`,
           { method: 'POST' }
         );
         

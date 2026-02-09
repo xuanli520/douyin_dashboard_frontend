@@ -9,6 +9,8 @@ interface CompassWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
   isEditMode?: boolean;
   children: React.ReactNode;
   headerClassName?: string;
+  contentClassName?: string;
+  hideHeader?: boolean;
   // Props injected by react-grid-layout
   className?: string;
   style?: React.CSSProperties;
@@ -20,7 +22,7 @@ interface CompassWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
 // ForwardRef is required by react-grid-layout to function correctly
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps & { [key: string]: any }>(
-  ({ title, onRemove, isEditMode, children, className, style, headerClassName, onMouseDown, onMouseUp, onTouchEnd, ...props }, ref) => {
+  ({ title, onRemove, isEditMode, children, className, style, headerClassName, contentClassName, hideHeader, onMouseDown, onMouseUp, onTouchEnd, ...props }, ref) => {
     return (
       <motion.div
         ref={ref}
@@ -39,36 +41,41 @@ const CompassWidget = React.forwardRef<HTMLDivElement, CompassWidgetProps & { [k
         {...props}
       >
         {/* Header / Drag Handle */}
-        <div className={cn(
-          "flex items-center justify-between px-4 py-3 border-b select-none",
-          headerClassName,
-          "dark:border-cyan-500/20 dark:bg-slate-900/40",
-          "border-slate-100 bg-slate-50/50",
-          isEditMode ? "cursor-move" : "cursor-default"
-        )}>
-          <h3 className={cn(
-            "font-semibold text-sm tracking-wide flex items-center gap-2",
-            "dark:text-slate-100 dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]",
-            "text-slate-700"
+        {!hideHeader && (
+          <div className={cn(
+            "flex items-center justify-between px-4 py-3 border-b select-none",
+            headerClassName,
+            "dark:border-cyan-500/20 dark:bg-slate-900/40",
+            "border-slate-100 bg-slate-50/50",
+            isEditMode ? "cursor-move" : "cursor-default"
           )}>
-            {isEditMode && <GripHorizontal size={14} className="text-slate-400" />}
-            {title}
-          </h3>
-          {isEditMode && onRemove && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent drag start
-                onRemove();
-              }}
-              className="text-slate-400 hover:text-red-500 transition-colors"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
+            <h3 className={cn(
+              "font-semibold text-sm tracking-wide flex items-center gap-2",
+              "dark:text-slate-100 dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]",
+              "text-slate-700"
+            )}>
+              {isEditMode && <GripHorizontal size={14} className="text-slate-400" />}
+              {title}
+            </h3>
+            {isEditMode && onRemove && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent drag start
+                  onRemove();
+                }}
+                className="text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Content */}
-        <div className="flex-1 p-4 overflow-auto min-h-0 relative">
+        <div className={cn(
+          "flex-1 overflow-auto min-h-0 relative",
+          contentClassName || "p-4"
+        )}>
            {/* Scanline effect for Cyberpunk feel (optional, subtle) */}
            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-0 opacity-0 dark:opacity-20 bg-[length:100%_4px,3px_100%]" />
            

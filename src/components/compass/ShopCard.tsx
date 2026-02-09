@@ -53,22 +53,22 @@ const GridItem = ({
   const config = getColorConfig(colorIndex);
 
   return (
-    <div className="flex flex-col items-start justify-start p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/30 hover:shadow-lg transition-all duration-200">
+    <div className="flex flex-col items-start justify-start p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200">
       {/* 圆形图标 */}
       <div className={cn(
-        "w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-lg",
+        "w-10 h-10 rounded-lg flex items-center justify-center mb-3 shadow-sm",
         config.bg
       )}>
-        <Icon size={24} className="text-white" />
+        <Icon size={20} className="text-white" />
       </div>
       
       {/* 指标名称 */}
-      <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+      <span className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
         {label}
       </span>
       
       {/* 得分 */}
-      <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+      <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
         {score}
       </span>
     </div>
@@ -95,11 +95,16 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
         ref={ref}
         style={style}
         className={cn(
-          "flex flex-col relative group overflow-hidden rounded-xl border transition-all duration-300",
-          "dark:bg-slate-900/60 dark:backdrop-blur-md dark:border-slate-700/50 dark:hover:bg-slate-800/50",
-          isHealthy && "dark:border-cyan-500/30 dark:shadow-[0_0_15px_rgba(6,182,212,0.1)]",
-          isRisk && "dark:border-red-500/30 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)]",
-          "bg-white border-slate-200 shadow-sm hover:shadow-md",
+          "flex flex-col relative group overflow-hidden rounded-xl transition-all duration-300",
+          // Dark Mode: Glassmorphism + Cyberpunk border (conditional color)
+          "dark:bg-slate-900/60 dark:backdrop-blur-md dark:border",
+          isHealthy 
+            ? "dark:border-cyan-500/30 dark:shadow-[0_0_15px_rgba(6,182,212,0.1)]" 
+            : isRisk 
+              ? "dark:border-red-500/30 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+              : "dark:border-slate-700/50",
+          // Light Mode: Clean white card
+          "bg-white border border-slate-200 shadow-sm hover:shadow-md",
           className
         )}
         onMouseDown={onMouseDown}
@@ -110,8 +115,9 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
       >
         {/* Header */}
         <div className={cn(
-          "flex items-center justify-between px-4 py-3 border-b transition-colors select-none",
-          "dark:border-white/5 border-slate-100",
+          "flex items-center justify-between px-4 py-3 border-b select-none",
+          "dark:border-cyan-500/20 dark:bg-slate-900/40",
+          "border-slate-100 bg-slate-50/50",
           isEditing ? "drag-handle cursor-move bg-primary/5" : "cursor-default"
         )}>
           <div className="flex items-center gap-2 overflow-hidden">
@@ -123,7 +129,10 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
              }`}>
                 <StatusIcon size={14} />
              </div>
-             <span className="font-semibold text-sm tracking-wide text-slate-700 dark:text-slate-100 truncate">
+             <span className={cn(
+               "font-semibold text-sm tracking-wide truncate",
+               "text-slate-700 dark:text-slate-100 dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]"
+             )}>
                {shop.name}
              </span>
           </div>
@@ -142,9 +151,12 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
         </div>
 
         {/* Body - 四宫格布局 */}
-        <div className="flex-1 p-3 relative z-10 min-h-0 bg-slate-50/50 dark:bg-slate-900/30">
-          {/* 2x2 网格 */}
-          <div className="grid grid-cols-2 gap-3 h-full">
+        <div className="flex-1 p-4 relative z-10 min-h-0">
+           {/* Scanline effect for Cyberpunk feel */}
+           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-0 opacity-0 dark:opacity-20 bg-[length:100%_4px,3px_100%]" />
+
+           {/* 2x2 网格 */}
+           <div className="relative z-10 grid grid-cols-2 gap-3 h-full">
             {gridItems.map((item, index) => (
               <GridItem
                 key={index}

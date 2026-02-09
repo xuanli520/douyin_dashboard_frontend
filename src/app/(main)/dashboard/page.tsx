@@ -431,13 +431,15 @@ export default function DashboardPage() {
                   <CompassWidget
                     title={widget.title}
                     isEditMode={isEditMode}
+                    hideHeader={widget.type === 'metric' && !isEditMode}
+                    contentClassName={widget.type === 'metric' ? "p-0" : undefined}
                     onRemove={() => toggleWidget(widget.id, false)}
                     className="h-full bg-transparent p-0 shadow-none border-none"
                     headerClassName={`px-5 py-4 flex items-center justify-between border-b border-border/10 transition-colors ${
                       isEditMode ? 'drag-handle cursor-move bg-primary/5' : 'cursor-default'
                     }`}
                   >
-                    <div className="p-5 flex-1 h-full overflow-hidden relative select-none">
+                    <div className={`flex-1 h-full overflow-hidden relative select-none ${widget.type === 'metric' ? 'p-0' : 'p-5'}`}>
                       {widget.type === 'gauge' ? (
                         <div className="flex flex-col items-center justify-center h-full">
                            <ScoreGauge score={widget.data?.score ?? 0} label={widget.title} />

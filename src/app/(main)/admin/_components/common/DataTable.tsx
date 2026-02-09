@@ -180,7 +180,7 @@ export function DataTable<T>({
     <div className={cn("space-y-4", className)}>
       {toolbar && <div className="flex items-center justify-between">{toolbar}</div>}
       
-      <div className="rounded-md border border-slate-200 bg-white dark:rounded-none dark:border-0 dark:bg-slate-950/30 dark:backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-950/30 dark:backdrop-blur-sm">
         <Table>
           <TableHeader className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/80 dark:border-slate-800">
             <TableRow className="hover:bg-transparent border-slate-200 dark:border-slate-800">
