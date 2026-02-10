@@ -1,6 +1,7 @@
 export const ROUTES = {
   COMPASS: '/compass',
   DASHBOARD: '/dashboard',
+  METRIC_DETAIL: '/metric-detail',
   DATA_ANALYSIS: '/data-analysis',
   TASK_SCHEDULE: '/task-schedule',
   REPORTS: '/reports',

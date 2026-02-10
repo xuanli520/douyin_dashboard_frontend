@@ -7,6 +7,7 @@ import { ROUTES } from '@/config/routes';
 const menuItems = [
   { id: 'compass', label: '罗盘', href: ROUTES.COMPASS },
   { id: 'dashboard', label: '店铺详情', href: ROUTES.DASHBOARD },
+  { id: 'metric-detail', label: '体验详情', href: ROUTES.METRIC_DETAIL },
   { id: 'data-analysis', label: '数据分析', href: ROUTES.DATA_ANALYSIS },
   { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
   { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
