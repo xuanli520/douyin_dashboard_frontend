@@ -44,7 +44,7 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
             <div className="space-y-4">
                <div>
                 <h4 className="text-sm font-medium mb-1 text-muted-foreground">调度</h4>
-                <ScheduleDisplay type={rule.schedule_type} value={rule.schedule_value} />
+                 <ScheduleDisplay type={rule.schedule_type || 'once'} value={rule.schedule_value || ''} />
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1 text-muted-foreground">数据源</h4>

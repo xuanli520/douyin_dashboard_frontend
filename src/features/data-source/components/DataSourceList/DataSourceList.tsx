@@ -24,7 +24,7 @@ import {
 
 interface DataSourceQuery {
   page: number;
-  pageSize: number;
+  size: number;
   name?: string;
   type?: string;
   status?: string;
@@ -33,19 +33,19 @@ interface DataSourceQuery {
 const dataSourceQueryCodec = {
   parse: (sp: URLSearchParams) => ({
     page: Number(sp.get('page')) || 1,
-    pageSize: Number(sp.get('pageSize')) || 10,
+    size: Number(sp.get('size')) || 10,
     name: sp.get('name') || undefined,
     type: sp.get('type') || 'all',
     status: sp.get('status') || 'all',
   }),
   serialize: (state: DataSourceQuery) => ({
     page: state.page?.toString(),
-    pageSize: state.pageSize?.toString(),
+    size: state.size?.toString(),
     name: state.name,
     type: state.type === 'all' ? undefined : state.type,
     status: state.status === 'all' ? undefined : state.status,
   }),
-  resetPageOnChangeKeys: ['name', 'type', 'status', 'pageSize'] as ('name' | 'type' | 'status' | 'pageSize')[]
+  resetPageOnChangeKeys: ['name', 'type', 'status', 'size'] as ('name' | 'type' | 'status' | 'size')[]
 };
 
 export function DataSourceList() {
@@ -63,6 +63,8 @@ export function DataSourceList() {
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  const filters = query;
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -74,11 +76,11 @@ export function DataSourceList() {
   };
 
   const handleTypeChange = (value: string) => {
-    updateFilters({ source_type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
+    setQuery({ type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
-    updateFilters({ status: value === 'all' ? undefined : value as DataSourceStatus, page: 1 });
+    setQuery({ status: value === 'all' ? undefined : value as DataSourceStatus, page: 1 });
   };
 
   const handleCreate = async (formData: DataSourceCreate) => {
@@ -138,7 +140,7 @@ export function DataSourceList() {
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ size, page: 1 });
+    setQuery({ size: size, page: 1 });
   };
 
   return (
@@ -147,7 +149,7 @@ export function DataSourceList() {
         <div className="flex items-center gap-3">
           <NeonTitle icon={Database}>数据源管理</NeonTitle>
           <div className="flex items-center gap-2">
-            <Select value={mounted ? (filters.source_type || 'all') : 'all'} onValueChange={handleTypeChange}>
+            <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="全部类型" />
               </SelectTrigger>

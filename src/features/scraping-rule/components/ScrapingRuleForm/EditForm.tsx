@@ -1,12 +1,34 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { BaseForm } from './BaseForm';
 import { useUpdateScrapingRule } from '../../hooks/useUpdateScrapingRule';
 import { useScrapingRule } from '../../hooks/useScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
 import { useRouter } from 'next/navigation';
 import { ScrapingRule } from '../../services/types';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/app/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import { RuleConfigFields } from './RuleConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -38,7 +60,7 @@ export function EditForm({ id }: EditFormProps) {
   const router = useRouter();
   const { rule, loading: loadingRule } = useScrapingRule(id);
   const { update, loading: saving } = useUpdateScrapingRule();
-  const { data: dataSources } = useDataSources({ pageSize: 100 });
+  const { data: dataSources } = useDataSources({ size: 100 });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -60,7 +82,7 @@ export function EditForm({ id }: EditFormProps) {
 
   useEffect(() => {
     if (rule) {
-      setInitialData({
+      form.reset({
         name: rule.name,
         description: rule.description,
         target_type: rule.target_type,
@@ -73,7 +95,7 @@ export function EditForm({ id }: EditFormProps) {
     }
   }, [rule]);
 
-  const targetType = form.watch("target_type");
+  const targetType = form.watch("target_type") || "SHOP_OVERVIEW";
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {

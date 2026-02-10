@@ -56,7 +56,7 @@ export function ScrapingRuleList() {
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ pageSize: size, page: 1 });
+    updateFilters({ size: size, page: 1 });
   };
 
   return (

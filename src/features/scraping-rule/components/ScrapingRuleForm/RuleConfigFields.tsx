@@ -3,11 +3,11 @@ import { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
-import { ScrapingRuleType } from '../../services/types';
+import { TargetType } from '@/types';
 
 interface RuleConfigFieldsProps {
   form: UseFormReturn<any>;
-  type: ScrapingRuleType;
+  type: TargetType;
 }
 
 export function RuleConfigFields({ form, type }: RuleConfigFieldsProps) {
@@ -29,7 +29,7 @@ export function RuleConfigFields({ form, type }: RuleConfigFieldsProps) {
         )}
       />
 
-      {type === 'products' && (
+      {type === 'PRODUCT' && (
         <>
           <FormField
             control={form.control}
@@ -61,7 +61,7 @@ export function RuleConfigFields({ form, type }: RuleConfigFieldsProps) {
         </>
       )}
 
-      {(type === 'products' || type === 'orders') && (
+      {(type === 'PRODUCT' || type === 'ORDER_FULFILLMENT') && (
         <FormField
           control={form.control}
           name="config.selectors.title"

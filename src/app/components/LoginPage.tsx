@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
@@ -32,6 +32,14 @@ const CAPTCHA_PREFIX = '1fs7dl';
 const CAPTCHA_SCENE_ID = '71tobb9u';
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#050714]">加载中...</div>}>
+      <LoginPageContent onLogin={onLogin} />
+    </Suspense>
+  );
+}
+
+function LoginPageContent({ onLogin }: LoginPageProps) {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

@@ -56,6 +56,10 @@ export default function RolesPage() {
   const [roleToDelete, setRoleToDelete] = useState<RoleRead | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -217,6 +221,9 @@ export default function RolesPage() {
       <RoleTable
         data={roles}
         loading={loading}
+        pagination={{ page, size: pageSize, total: roles.length }}
+        onPageChange={handlePageChange}
+        onSizeChange={handleSizeChange}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onAssignPermissions={handlePermsClick}

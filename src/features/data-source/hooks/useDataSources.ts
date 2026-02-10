@@ -60,7 +60,7 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
   useEffect(() => {
     let isCancelled = false;
     
-    if (immediate) {
+    if (!hasFetchedInitially.current) {
       const doFetch = async () => {
         setLoading(true);
         setError(null);
@@ -82,12 +82,13 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
       };
       
       doFetch();
+      hasFetchedInitially.current = true;
     }
     
     return () => {
       isCancelled = true;
     };
-  }, [immediate, filters.page, filters.pageSize, filters.name, filters.type, filters.status]);
+  }, [filters.page, filters.size, filters.name, filters.source_type, filters.status]);
 
   const updateFilters = useCallback((newFilters: Partial<DataSourceFilter>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));

@@ -60,14 +60,15 @@ export const tokenRefreshInterceptor: ResponseInterceptor = {
           if (!res.ok) {
             const err = new Error(`HTTP ${res.status}`) as HttpError;
             err.status = res.status;
+            err.config = originalConfig;
             throw err;
           }
-          return {
-            data: await res.json(),
-            status: res.status,
-            statusText: res.statusText,
-            headers: res.headers,
-          };
+          const data = await res.json();
+          const err = new Error('Response interceptor returned non-error') as HttpError;
+          err.status = res.status;
+          err.config = originalConfig;
+          err.data = data;
+          return err;
         });
       } catch (refreshError) {
         clearTokens();

@@ -6,6 +6,10 @@ const API_BASE = '/api/v1/permissions';
 const API_TIMEOUT = 5000;
 const DEFAULT_PAGE_SIZE = RBAC_CONFIG.PERMISSION.DEFAULT_PAGE_SIZE;
 
+let getPermissionsRequestId = 0;
+let getRolesRequestId = 0;
+let getMyPermsRequestId = 0;
+
 export async function getPermissions(
   page = 1,
   pageSize = 100

@@ -76,9 +76,9 @@ export function DataTable<T>({
   virtualScroll = { enabled: false }
 }: DataTableProps<T>) {
   // 防御性计算，避免 NaN 或 Infinity
-  const safeTotal = pagination.total || 0;
-  const safeSize = pagination.size || 10;
-  const safePage = pagination.page || 1;
+  const safeTotal = pagination?.total || 0;
+  const safeSize = pagination?.size || 10;
+  const safePage = pagination?.page || 1;
   const totalPages = safeSize > 0 ? Math.ceil(safeTotal / safeSize) : 0;
 
   const handleSelectAll = (checked: boolean) => {
@@ -128,7 +128,7 @@ export function DataTable<T>({
             <span>每页</span>
             <Select
               value={safeSize.toString()}
-              onValueChange={(val) => onSizeChange(Number(val))}
+              onValueChange={(val) => onSizeChange?.(Number(val))}
             >
               <SelectTrigger className="h-8 min-w-[50px] px-2 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                 <SelectValue />
@@ -149,7 +149,7 @@ export function DataTable<T>({
           <PaginationContent className="gap-1">
             <PaginationItem>
               <PaginationPrevious
-                onClick={(e) => { e.preventDefault(); if(safePage > 1) onPageChange(safePage - 1); }}
+                onClick={(e) => { e.preventDefault(); if(safePage > 1) onPageChange?.(safePage - 1); }}
                 aria-disabled={safePage <= 1}
                 className={safePage <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
@@ -160,9 +160,9 @@ export function DataTable<T>({
                 {p === 'ellipsis' ? (
                   <PaginationEllipsis />
                 ) : (
-                <PaginationLink
+                  <PaginationLink
                     isActive={safePage === p}
-                    onClick={(e) => { e.preventDefault(); onPageChange(p as number); }}
+                    onClick={(e) => { e.preventDefault(); onPageChange?.(p as number); }}
                     className={safePage === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
                   >
                     {p}
@@ -173,7 +173,7 @@ export function DataTable<T>({
 
             <PaginationItem>
               <PaginationNext
-                onClick={(e) => { e.preventDefault(); if(safePage < totalPages) onPageChange(safePage + 1); }}
+                onClick={(e) => { e.preventDefault(); if(safePage < totalPages) onPageChange?.(safePage + 1); }}
                 aria-disabled={safePage >= totalPages}
                 className={safePage >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />

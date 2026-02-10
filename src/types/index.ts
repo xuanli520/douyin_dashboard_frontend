@@ -89,6 +89,7 @@ export interface ScrapingRule {
   created_at: string;
   updated_at: string;
   data_source_name?: string;
+  last_run_at?: string;
 }
 
 export interface ScrapingRuleResponse {

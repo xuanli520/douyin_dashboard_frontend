@@ -1,10 +1,32 @@
 'use client';
 
 import React from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { BaseForm } from './BaseForm';
 import { useCreateScrapingRule } from '../../hooks/useCreateScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/app/components/ui/form';
+import { RuleConfigFields } from './RuleConfigFields';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -31,7 +53,7 @@ const formSchema = z.object({
 export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
   const router = useRouter();
   const { create, loading } = useCreateScrapingRule();
-  const { data: dataSources } = useDataSources({ pageSize: 100 });
+  const { data: dataSources } = useDataSources({ size: 100 });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -51,7 +73,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
     },
   });
 
-  const targetType = form.watch("target_type");
+  const targetType = form.watch("target_type") || "SHOP_OVERVIEW";
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {

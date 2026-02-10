@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { 
   UserStats, 
-  UserFilter, 
   UserTable, 
   AssignRolesDialog, 
   ResetPasswordDialog 
@@ -24,7 +23,8 @@ import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { UserFormDialog } from '@/app/components/UserFormDialog'; // Reuse existing component
+import { UserFormDialog } from '@/app/components/UserFormDialog';
+import { UserFilter } from './_components/UserFilter';
 
 const userQueryCodec: QueryCodec<UserListParams> = {
   parse: (sp) => ({
@@ -48,7 +48,7 @@ const userQueryCodec: QueryCodec<UserListParams> = {
   resetPageOnChangeKeys: ['username', 'email', 'is_active', 'is_superuser', 'role_id', 'size']
 };
 
-export default function UsersPage() {
+function UsersPageContent() {
   const [query, setQuery] = useQueryState(userQueryCodec);
   
   const [data, setData] = useState<User[]>([]);
@@ -57,10 +57,8 @@ export default function UsersPage() {
   const [stats, setStats] = useState<UserStatsResponse>({ total: 0, active: 0, inactive: 0, superusers: 0 });
   const [isStatsLoading, setIsStatsLoading] = useState(false);
   
-  // Selection state
   const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
 
-  // Dialog states
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [userFormMode, setUserFormMode] = useState<'create' | 'edit'>('create');
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -73,12 +71,11 @@ export default function UsersPage() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch data
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await getUsers(query);
-      setData(res.items || []); // Handle case where items might be undefined if API format differs
+      setData(res.items || []);
       setTotal(res.meta?.total || 0);
     } catch (error) {
       toast.error('获取用户列表失败');
@@ -88,7 +85,6 @@ export default function UsersPage() {
     }
   }, [query]);
 
-  // Fetch stats (debounced or on query change less frequently? Plan says "based on current filter")
   const fetchStats = useCallback(async () => {
     try {
       setIsStatsLoading(true);
@@ -109,7 +105,6 @@ export default function UsersPage() {
     fetchStats();
   }, [fetchStats]);
 
-  // Handlers
   const handleCreate = () => {
     setEditingUser(null);
     setUserFormMode('create');
@@ -134,7 +129,7 @@ export default function UsersPage() {
       await deleteUser(userToDelete.id);
       toast.success('删除成功');
       setDeleteDialogOpen(false);
-      fetchData(); // Refresh list
+      fetchData();
     } catch (error: any) {
       toast.error(error.message || '删除失败');
     } finally {
@@ -147,10 +142,8 @@ export default function UsersPage() {
     setAssignRolesOpen(true);
   };
 
-  /** 分配角色成功后更新本地用户数据 */
   const handleAssignRolesSuccess = (newRoles: Array<{ id: number; name: string; description?: string | null; is_system: boolean }>) => {
     if (!targetUser) return;
-    // 本地更新目标用户的角色信息
     setData(prevData =>
       prevData.map(u =>
         u.id === targetUser.id
@@ -181,7 +174,6 @@ export default function UsersPage() {
     <div className="space-y-6 relative">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          
         </h1>
         <PermissionGate require="user:create" mode="hide">
           <CyberButton onClick={handleCreate} className="shadow-lg shadow-cyan-500/20 group">
@@ -248,11 +240,19 @@ export default function UsersPage() {
         onConfirm={confirmDelete}
         isLoading={isDeleting}
         description={
-            userToDelete 
-            ? `确定要删除用户 "${userToDelete.username}" 吗？此操作无法撤销。` 
-            : undefined
+          userToDelete 
+          ? `确定要删除用户 "${userToDelete.username}" 吗？此操作无法撤销。` 
+          : undefined
         }
       />
     </div>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={<div className="p-6">加载中...</div>}>
+      <UsersPageContent />
+    </Suspense>
   );
 }

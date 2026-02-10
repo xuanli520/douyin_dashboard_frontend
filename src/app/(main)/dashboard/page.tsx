@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Responsive } from 'react-grid-layout';
 import { WidthProvider } from '@/components/dashboard/WidthProvider';
 import { useTheme } from 'next-themes';
@@ -204,6 +204,14 @@ const WIDGETS: WidgetItem[] = [
 ];
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-canvas flex items-center justify-center">加载中...</div>}>
+      <DashboardPageContent />
+    </Suspense>
+  );
+}
+
+function DashboardPageContent() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);

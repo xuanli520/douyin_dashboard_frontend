@@ -50,7 +50,7 @@ export function RuleTable({ data, loading, pagination, onPageChange, onSizeChang
       key: 'schedule',
       header: '调度',
       render: (rule) => (
-        <ScheduleDisplay type={rule.schedule_type} value={rule.schedule_value} />
+        <ScheduleDisplay type={rule.schedule_type || 'once'} value={rule.schedule_value || ''} />
       ),
     },
     {
