@@ -1,5 +1,7 @@
 import { ApiResponse, PaginatedData, PageMeta } from '@/lib/api-client';
 
+export * from './permission';
+
 export type DataSourceType = 'DOUYIN_API' | 'DOUYIN_SHOP' | 'DOUYIN_APP' | 'FILE_IMPORT' | 'FILE_UPLOAD' | 'SELF_HOSTED';
 export type DataSourceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';
 export type TargetType = 'SHOP_OVERVIEW' | 'TRAFFIC' | 'PRODUCT' | 'LIVE' | 'CONTENT_VIDEO' | 'ORDER_FULFILLMENT' | 'AFTERSALE_REFUND' | 'CUSTOMER' | 'ADS';
