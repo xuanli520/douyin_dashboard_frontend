@@ -1,22 +1,25 @@
 'use client';
 
 import React from 'react';
-import { Role } from '@/services/adminService';
+import { RoleRead, RoleWithPermissions } from '@/types';
 import { DataTable, DataTableColumn } from '../_components/common/DataTable';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { CyberBadge } from '@/components/ui/cyber/CyberBadge';
 import { Edit2, Trash2, Key } from 'lucide-react';
 
 interface RoleTableProps {
-  data: Role[];
+  data: RoleWithPermissions[];
   loading: boolean;
-  onEdit: (role: Role) => void;
-  onDelete: (role: Role) => void;
-  onAssignPermissions: (role: Role) => void;
+  pagination: { page: number; size: number; total: number };
+  onPageChange: (page: number) => void;
+  onSizeChange: (size: number) => void;
+  onEdit: (role: RoleRead) => void;
+  onDelete: (role: RoleRead) => void;
+  onAssignPermissions: (role: RoleWithPermissions) => void;
 }
 
-export function RoleTable({ data, loading, onEdit, onDelete, onAssignPermissions }: RoleTableProps) {
-  const columns: DataTableColumn<Role>[] = [
+export function RoleTable({ data, loading, pagination, onPageChange, onSizeChange, onEdit, onDelete, onAssignPermissions }: RoleTableProps) {
+  const columns: DataTableColumn<RoleWithPermissions>[] = [
     {
       key: 'name',
       header: '角色名称',

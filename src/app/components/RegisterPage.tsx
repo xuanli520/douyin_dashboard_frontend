@@ -71,7 +71,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
     setLoading(true);
 
     try {
-      await register({ username, email, password, password_confirm: passwordConfirm });
+      await register({ username, email, password });
       if (onRegisterSuccess) {
         onRegisterSuccess();
       } else {

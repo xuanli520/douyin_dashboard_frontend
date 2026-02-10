@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDataSources } from '../../hooks/useDataSources';
 import { useCreateDataSource } from '../../hooks/useCreateDataSource';
 import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
@@ -9,7 +9,7 @@ import { DataSourceTable } from './DataSourceTable';
 import { DataSourceForm } from '../DataSourceForm';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { Search, Database, Plus } from 'lucide-react';
-import { DataSourceType, DataSourceStatus, DataSourceCreateDTO, DataSource } from '../../services/types';
+import { DataSourceType, DataSourceStatus, DataSourceCreate, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
@@ -61,6 +61,11 @@ export function DataSourceList() {
   const [editingSource, setEditingSource] = useState<DataSource | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -69,14 +74,14 @@ export function DataSourceList() {
   };
 
   const handleTypeChange = (value: string) => {
-    setQuery({ type: value, page: 1 });
+    updateFilters({ source_type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
-    setQuery({ status: value, page: 1 });
+    updateFilters({ status: value === 'all' ? undefined : value as DataSourceStatus, page: 1 });
   };
 
-  const handleCreate = async (formData: DataSourceCreateDTO) => {
+  const handleCreate = async (formData: DataSourceCreate) => {
     try {
       await create(formData);
       toast.success('数据源创建成功');
@@ -88,7 +93,7 @@ export function DataSourceList() {
     }
   };
 
-  const handleUpdate = async (formData: DataSourceCreateDTO) => {
+  const handleUpdate = async (formData: DataSourceCreate) => {
     if (!editingId) return;
     try {
       await update(editingId, formData);
@@ -103,7 +108,7 @@ export function DataSourceList() {
   };
 
   const handleEditClick = (id: number) => {
-    const source = data?.list?.find(item => item.id === id);
+    const source = data?.items?.find(item => item.id === id);
     if (source) {
       setEditingSource(source);
       setEditingId(id);
@@ -133,7 +138,7 @@ export function DataSourceList() {
   };
 
   const handleSizeChange = (size: number) => {
-    setQuery({ pageSize: size, page: 1 });
+    updateFilters({ size, page: 1 });
   };
 
   return (
@@ -142,28 +147,28 @@ export function DataSourceList() {
         <div className="flex items-center gap-3">
           <NeonTitle icon={Database}>数据源管理</NeonTitle>
           <div className="flex items-center gap-2">
-            <Select value={query.type || 'all'} onValueChange={handleTypeChange}>
+            <Select value={mounted ? (filters.source_type || 'all') : 'all'} onValueChange={handleTypeChange}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="全部类型" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部类型</SelectItem>
-                <SelectItem value="douyin_api">抖音API</SelectItem>
-                <SelectItem value="file_upload">文件上传</SelectItem>
-                <SelectItem value="database">数据库</SelectItem>
-                <SelectItem value="webhook">Webhook</SelectItem>
+                <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+                <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+                <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+                <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={query.status || 'all'} onValueChange={handleStatusChange}>
+            <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="全部状态" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="active">活跃</SelectItem>
-                <SelectItem value="inactive">停用</SelectItem>
-                <SelectItem value="error">错误</SelectItem>
+                <SelectItem value="ACTIVE">活跃</SelectItem>
+                <SelectItem value="INACTIVE">停用</SelectItem>
+                <SelectItem value="ERROR">错误</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -192,9 +197,9 @@ export function DataSourceList() {
       </div>
 
       <DataSourceTable
-        data={data?.list || []}
+        data={data?.items || []}
         loading={loading || deleting}
-        pagination={{ page: query.page, size: query.pageSize, total: data?.total || 0 }}
+        pagination={{ page: data?.meta?.page || 1, size: data?.meta?.size || 10, total: data?.meta?.total || 0 }}
         onPageChange={handlePageChange}
         onSizeChange={handleSizeChange}
         onEdit={handleEditClick}

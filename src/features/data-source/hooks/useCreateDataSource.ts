@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
-import { DataSourceCreateDTO, DataSource } from '../services/types';
+import { DataSourceCreate, DataSourceResponse } from '@/types';
 
 export function useCreateDataSource() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const create = async (data: DataSourceCreateDTO): Promise<DataSource | null> => {
+  const create = async (data: DataSourceCreate): Promise<DataSourceResponse | null> => {
     setLoading(true);
     setError(null);
     try {

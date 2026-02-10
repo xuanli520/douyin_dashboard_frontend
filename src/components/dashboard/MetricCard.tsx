@@ -1,10 +1,12 @@
 import React from 'react';
 import { cn } from '@/app/components/ui/utils';
+import { ChevronRight, AlertTriangle, Package, Truck, Headphones } from 'lucide-react';
 
 interface MetricItem {
   label: string;
   score: number;
   isWarning?: boolean;
+  subLabel?: string; // 对应“较前1日 持平”或“权重说明”
 }
 
 interface MetricCardProps {
@@ -12,120 +14,110 @@ interface MetricCardProps {
   totalLabel: string;
   items: MetricItem[];
   className?: string;
+  category?: 'violation' | 'product' | 'logistics' | 'service' | string;
+  onItemClick?: (item: MetricItem) => void;
 }
 
-export default function MetricCard({ totalScore, totalLabel, items, className }: MetricCardProps) {
-  // 辅助函数：统一管理颜色逻辑
-  const getColorConfig = (score: number) => {
-    if (score >= 90) {
+export default function MetricCard({ 
+  totalScore, 
+  totalLabel, 
+  items, 
+  className, 
+  category,
+  onItemClick 
+}: MetricCardProps) {
+
+  // 根据分类获取图标配置
+  const getCategoryConfig = () => {
+    const iconClass = "w-5 h-5";
+    if (category === 'violation' || totalLabel.includes('差行为')) {
       return {
-        // 翠绿 -> 青色
-        gradient: "from-emerald-400 to-teal-500",
-        shadow: "shadow-[0_0_10px_rgba(52,211,153,0.4)]",
-        text: "text-emerald-500",
-        ring: "border-emerald-500",
-      };
-    } else if (score >= 60) {
-      return {
-        // 琥珀 -> 橙色
-        gradient: "from-amber-400 to-orange-500",
-        shadow: "shadow-[0_0_10px_rgba(251,191,36,0.4)]",
-        text: "text-amber-500",
-        ring: "border-amber-500",
-      };
-    } else {
-      return {
-        // 玫瑰 -> 红色
-        gradient: "from-rose-500 to-red-600",
-        shadow: "shadow-[0_0_10px_rgba(244,63,94,0.4)]",
-        text: "text-rose-500",
-        ring: "border-rose-500",
+        icon: <AlertTriangle className={iconClass} />,
+        bgColor: "bg-gray-100 dark:bg-slate-800",
+        iconColor: "text-gray-600 dark:text-slate-400"
       };
     }
+    const config = {
+      bgColor: "bg-emerald-50 dark:bg-emerald-500/10",
+      iconColor: "text-emerald-500 dark:text-emerald-400"
+    };
+    if (category === 'product' || totalLabel.includes('商品')) {
+      return { ...config, icon: <Package className={iconClass} /> };
+    }
+    if (category === 'logistics' || totalLabel.includes('物流')) {
+      return { ...config, icon: <Truck className={iconClass} /> };
+    }
+    if (category === 'service' || totalLabel.includes('服务')) {
+      return { ...config, icon: <Headphones className={iconClass} /> };
+    }
+    return { icon: <Package className={iconClass} />, bgColor: "bg-gray-50 dark:bg-slate-800", iconColor: "text-gray-500 dark:text-slate-400" };
   };
 
-  const totalColor = getColorConfig(totalScore);
-
-  // 修复点 1: 动态字号，防止 100 分过大
-  const totalScoreSize = totalScore >= 100 ? "text-4xl" : "text-5xl";
+  const { icon, bgColor, iconColor } = getCategoryConfig();
 
   return (
-    <div className={cn("flex flex-col h-full w-full bg-surface p-4 rounded-xl", className)}>
-      {/* 顶部：总分展示区域 */}
-      <div className="flex items-end justify-between mb-6 pb-4 border-b border-border/40">
-        <div className="flex flex-col">
-          <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest mb-1.5 opacity-80">
-            {totalLabel}
-          </span>
-          
-          {/* 渐变总分数字 */}
-          <div className={cn(
-            "font-bold font-mono tracking-tighter tabular-nums leading-none",
-            "text-transparent bg-clip-text bg-gradient-to-br drop-shadow-sm filter",
-            // 修复点 2: 增加 padding 防止 bg-clip-text 边缘被切
-            "px-1 pb-1 -ml-1", 
-            totalScoreSize,
-            totalColor.gradient
-          )}>
-            {totalScore}
+    <div className={cn(
+      "flex flex-col h-full w-full bg-white dark:bg-slate-900/60 dark:backdrop-blur-md rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(6,182,212,0.1)] border border-gray-100 dark:border-cyan-500/30 font-sans font-medium", 
+      className
+    )}>
+      {/* 头部区域 */}
+      <div className="flex flex-col mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className={cn("p-2 rounded-lg shrink-0", bgColor, iconColor)}>
+            {icon}
           </div>
+          <span className="text-lg font-medium text-gray-900 dark:text-slate-100">{totalLabel}</span>
         </div>
 
-        {/* 动态装饰性图标 */}
-        <div className="relative w-12 h-12 flex items-center justify-center mb-1 shrink-0">
-          <div className={cn(
-            "absolute inset-0 rounded-full border-2 border-transparent border-t-current opacity-30 animate-[spin_4s_linear_infinite]",
-            totalColor.text
-          )} />
-          <div className={cn(
-            "absolute inset-0 rounded-full border-2 opacity-20",
-            totalColor.ring
-          )} />
-          <div className={cn("text-sm font-black", totalColor.text)}>
-            {totalScore >= 90 ? 'S' : totalScore >= 80 ? 'A' : totalScore >= 60 ? 'B' : 'C'}
-          </div>
+        <div className="flex items-baseline gap-1.5 ml-1">
+          <span className="text-5xl font-bold text-gray-900 dark:text-slate-50 tracking-tight tabular-nums">
+            {totalScore}
+          </span>
+          <span className="text-base text-gray-400 dark:text-slate-500">分</span>
         </div>
       </div>
 
-      {/* 列表：细分项 */}
-      <div className="flex-1 space-y-5 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border/30">
+      {/* 列表区域 */}
+      <div className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {items.map((item, index) => {
-          const itemColor = getColorConfig(item.score);
-          const isWarningState = item.isWarning || item.score < 60;
-
+          const isWarning = item.score < 60 || item.isWarning;
+          
           return (
-            <div key={index} className="group flex flex-col gap-1.5">
-              <div className="flex justify-between items-end text-xs">
-                <span className={cn(
-                  "font-medium transition-colors duration-300 truncate pr-2",
-                  isWarningState ? "text-text-primary" : "text-text-secondary group-hover:text-text-primary"
-                )}>
+            <div 
+              key={index} 
+              onClick={() => onItemClick?.(item)}
+              className={cn(
+                "group flex items-center justify-between py-4 border-b border-gray-50 dark:border-slate-800 last:border-0 transition-all",
+                onItemClick ? "cursor-pointer hover:bg-gray-50/80 dark:hover:bg-slate-800/50 -mx-2 px-2 rounded-lg" : ""
+              )}
+            >
+              {/* 左侧文字信息 */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-base text-gray-800 dark:text-slate-200 font-medium leading-none">
                   {item.label}
                 </span>
-                
-                {/* 修复点 3: 固定宽度的数字容器，确保对齐 */}
-                <span className={cn(
-                  "font-mono font-bold tabular-nums w-8 text-right shrink-0",
-                  isWarningState ? "text-rose-500" : "text-text-primary"
-                )}>
-                  {item.score}
+                {/* 对应“较前1日 持平”说明文字 */}
+                <span className="text-sm text-gray-400 dark:text-slate-500 font-normal">
+                  {item.subLabel || "较前1日 持平"}
                 </span>
               </div>
-              
-              {/* 进度条 */}
-              <div className="h-1.5 w-full bg-secondary/30 rounded-full overflow-hidden relative backdrop-blur-sm">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-1000 ease-out relative",
-                    "bg-gradient-to-r",
-                    itemColor.gradient,
-                    itemColor.shadow
-                  )}
-                  style={{ width: `${item.score}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]" />
-                  <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-white/50 blur-[1px]" />
+
+              {/* 右侧分数（数字上方，文字下方）+ 箭头 */}
+              <div className="flex items-center gap-4 ml-4 shrink-0">
+                <div className="flex flex-col items-center min-w-[32px]">
+                  <span className={cn(
+                    "text-xl font-bold tabular-nums leading-tight",
+                    isWarning ? "text-red-500" : "text-gray-900 dark:text-slate-100"
+                  )}>
+                    {item.score}
+                  </span>
+                  {/* “分”字移动到数字正下方 */}
+                  <span className="text-xs text-gray-400 dark:text-slate-600 font-normal leading-none">
+                    分
+                  </span>
                 </div>
+                
+                <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-700 group-hover:text-gray-500 dark:group-hover:text-slate-400 transition-colors" />
               </div>
             </div>
           );

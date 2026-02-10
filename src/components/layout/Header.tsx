@@ -7,6 +7,7 @@ import { ROUTES } from '@/config/routes';
 const menuItems = [
   { id: 'compass', label: '罗盘', href: ROUTES.COMPASS },
   { id: 'dashboard', label: '店铺详情', href: ROUTES.DASHBOARD },
+  { id: 'metric-detail', label: '体验详情', href: ROUTES.METRIC_DETAIL },
   { id: 'data-analysis', label: '数据分析', href: ROUTES.DATA_ANALYSIS },
   { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
   { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
@@ -14,6 +15,7 @@ const menuItems = [
   { id: 'data-source', label: '数据源管理', href: ROUTES.DATA_SOURCE },
   { id: 'scraping-rule', label: '采集规则', href: ROUTES.SCRAPING_RULE },
   { id: 'user-permission', label: '用户管理', href: ROUTES.USER_PERMISSION },
+  { id: 'login-audit', label: '登录审计', href: ROUTES.ADMIN_LOGIN_AUDIT },
   { id: 'role-management', label: '角色管理', href: ROUTES.ADMIN_ROLES },
   { id: 'permission-management', label: '权限管理', href: ROUTES.ADMIN_PERMISSIONS },
   { id: 'profile', label: '个人信息', href: ROUTES.PROFILE },

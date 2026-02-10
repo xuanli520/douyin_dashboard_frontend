@@ -14,11 +14,11 @@ import {
   getUserStats, 
   deleteUser, 
   UserListParams, 
-  UserStats as UserStatsType,
   createUser,
   updateUser
 } from '@/services/adminService';
 import { User, UserCreate, UserUpdate } from '@/types/user';
+import { UserStatsResponse } from '@/types';
 import { PermissionGate } from '../_components/common/PermissionGate';
 import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
@@ -54,7 +54,7 @@ export default function UsersPage() {
   const [data, setData] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState<UserStatsType>({ total: 0, active: 0, inactive: 0, superusers: 0 });
+  const [stats, setStats] = useState<UserStatsResponse>({ total: 0, active: 0, inactive: 0, superusers: 0 });
   const [isStatsLoading, setIsStatsLoading] = useState(false);
   
   // Selection state
@@ -79,7 +79,7 @@ export default function UsersPage() {
       setIsLoading(true);
       const res = await getUsers(query);
       setData(res.items || []); // Handle case where items might be undefined if API format differs
-      setTotal(res.total);
+      setTotal(res.meta?.total || 0);
     } catch (error) {
       toast.error('获取用户列表失败');
       setData([]);
@@ -92,14 +92,14 @@ export default function UsersPage() {
   const fetchStats = useCallback(async () => {
     try {
       setIsStatsLoading(true);
-      const res = await getUserStats(query, total);
+      const res = await getUserStats();
       setStats(res);
     } catch (error) {
       console.error("Failed to fetch stats", error);
     } finally {
       setIsStatsLoading(false);
     }
-  }, [query, total]);
+  }, []);
 
   useEffect(() => {
     fetchData();

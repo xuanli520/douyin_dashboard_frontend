@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { dataSourceApi } from '../dataSourceApi';
 
-// Mock the api-client
-vi.mock('@/lib/api-client', () => ({
-  authGet: vi.fn(),
-  authPost: vi.fn(),
-  authPut: vi.fn(),
-  authDel: vi.fn(),
-  ApiResponse: {},
+// Mock the http client
+vi.mock('@/lib/http/client', () => ({
+  httpClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
 }));
 
 // Mock the config
@@ -22,7 +24,7 @@ vi.mock('@/config/api', () => ({
   },
 }));
 
-import { authGet, authPost, authPut, authDel } from '@/lib/api-client';
+import { httpClient } from '@/lib/http/client';
 
 describe('dataSourceApi', () => {
   beforeEach(() => {
@@ -37,40 +39,37 @@ describe('dataSourceApi', () => {
             { id: 1, name: 'Test Source', type: 'DOUYIN_API', status: 'ACTIVE' },
             { id: 2, name: 'Another Source', type: 'FILE_UPLOAD', status: 'INACTIVE' },
           ],
-          total: 2,
+          meta: { page: 1, size: 10, total: 2, pages: 1, has_next: false, has_prev: false },
         },
       };
-      vi.mocked(authGet).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.getAll();
 
-      expect(result.list).toHaveLength(2);
-      expect(result.total).toBe(2);
-      expect(result.list[0].name).toBe('Test Source');
-      expect(result.list[0].type).toBe('douyin_api'); // normalized to lowercase
+      expect(result.items).toHaveLength(2);
+      expect(result.meta.total).toBe(2);
+      expect(result.items[0].name).toBe('Test Source');
     });
 
     it('should fetch data sources with filters', async () => {
       const mockResponse = {
         data: {
           items: [{ id: 1, name: 'Test Source', type: 'DOUYIN_API', status: 'ACTIVE' }],
-          total: 1,
+          meta: { page: 1, size: 10, total: 1, pages: 1, has_next: false, has_prev: false },
         },
       };
-      vi.mocked(authGet).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.getAll({
         name: 'Test',
-        type: 'douyin_api',
-        status: 'active',
         page: 1,
-        pageSize: 10,
+        size: 10,
       });
 
-      expect(authGet).toHaveBeenCalledWith(
+      expect(httpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('name=Test')
       );
-      expect(result.list).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
     });
   });
 
@@ -79,13 +78,12 @@ describe('dataSourceApi', () => {
       const mockResponse = {
         data: { id: 1, name: 'Test Source', type: 'DOUYIN_API', status: 'ACTIVE' },
       };
-      vi.mocked(authGet).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.getById(1);
 
       expect(result.id).toBe(1);
       expect(result.name).toBe('Test Source');
-      expect(result.type).toBe('douyin_api');
     });
   });
 
@@ -99,15 +97,14 @@ describe('dataSourceApi', () => {
       const mockResponse = {
         data: { id: 1, name: 'New Source', type: 'DOUYIN_API', status: 'ACTIVE' },
       };
-      vi.mocked(authPost).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.create(mockData);
 
-      expect(authPost).toHaveBeenCalledWith(
+      expect(httpClient.post).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           name: 'New Source',
-          type: 'DOUYIN_API', // Should be uppercased
         })
       );
       expect(result.id).toBe(1);
@@ -121,22 +118,22 @@ describe('dataSourceApi', () => {
       const mockResponse = {
         data: { id: 1, name: 'Updated Source', type: 'DOUYIN_API', status: 'ACTIVE' },
       };
-      vi.mocked(authPut).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.put).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.update(1, mockData);
 
-      expect(authPut).toHaveBeenCalledWith(expect.any(String), mockData);
+      expect(httpClient.put).toHaveBeenCalledWith(expect.any(String), mockData);
       expect(result.name).toBe('Updated Source');
     });
   });
 
   describe('delete', () => {
     it('should delete data source', async () => {
-      vi.mocked(authDel).mockResolvedValue({ data: undefined });
+      vi.mocked(httpClient.delete).mockResolvedValue({ data: undefined });
 
       await dataSourceApi.delete(1);
 
-      expect(authDel).toHaveBeenCalledWith(expect.any(String));
+      expect(httpClient.delete).toHaveBeenCalledWith(expect.any(String));
     });
   });
 
@@ -145,47 +142,47 @@ describe('dataSourceApi', () => {
       const mockResponse = {
         data: { id: 1, name: 'Test Source', type: 'DOUYIN_API', status: 'ACTIVE' },
       };
-      vi.mocked(authPost).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
-      const result = await dataSourceApi.activate(1, true);
+      const result = await dataSourceApi.activate(1);
 
-      expect(result.status).toBe('active');
+      expect(result.status).toBe('ACTIVE');
     });
 
     it('should deactivate data source', async () => {
       const mockResponse = {
         data: { id: 1, name: 'Test Source', type: 'DOUYIN_API', status: 'INACTIVE' },
       };
-      vi.mocked(authPost).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
-      const result = await dataSourceApi.activate(1, false);
+      const result = await dataSourceApi.deactivate(1);
 
-      expect(result.status).toBe('inactive');
+      expect(result.status).toBe('INACTIVE');
     });
   });
 
-  describe('getRules', () => {
+  describe('getScrapingRules', () => {
     it('should fetch rules for data source', async () => {
       const mockResponse = {
-        data: [{ id: 1, name: 'Test Rule', rule_type: 'ORDERS' }],
+        data: [{ id: 1, name: 'Test Rule', target_type: 'SHOP_OVERVIEW' }],
       };
-      vi.mocked(authGet).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
-      const result = await dataSourceApi.getRules(1);
+      const result = await dataSourceApi.getScrapingRules(1);
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('Test Rule');
     });
   });
 
-  describe('validateConnection', () => {
+  describe('validate', () => {
     it('should validate connection', async () => {
       const mockResponse = {
         data: { valid: true, message: 'Connection successful' },
       };
-      vi.mocked(authPost).mockResolvedValue(mockResponse);
+      vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
-      const result = await dataSourceApi.validateConnection(1, {});
+      const result = await dataSourceApi.validate(1);
 
       expect(result.success).toBe(true);
       expect(result.message).toBe('Connection successful');

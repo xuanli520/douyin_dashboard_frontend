@@ -75,31 +75,16 @@ export function DataTable<T>({
   className,
   virtualScroll = { enabled: false }
 }: DataTableProps<T>) {
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.size) : 1;
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  // 虚拟滚动配置
-  const {
-    enabled: virtualEnabled,
-    rowHeight = 48,
-    tableHeight = 600,
-    overscan = 5
-  } = virtualScroll;
-
-  const virtualizer = useVirtualizer({
-    count: data.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => rowHeight,
-    overscan,
-    enabled: virtualEnabled && data.length > 0,
-  });
-
-  const virtualItems = virtualizer.getVirtualItems();
+  // 防御性计算，避免 NaN 或 Infinity
+  const safeTotal = pagination.total || 0;
+  const safeSize = pagination.size || 10;
+  const safePage = pagination.page || 1;
+  const totalPages = safeSize > 0 ? Math.ceil(safeTotal / safeSize) : 0;
 
   const handleSelectAll = (checked: boolean) => {
     if (!rowSelection) return;
     if (checked) {
-      rowSelection.onChange(data.map(row => rowKey(row)));
+      rowSelection.onChange((data || []).map(row => rowKey(row)));
     } else {
       rowSelection.onChange([]);
     }
@@ -114,35 +99,36 @@ export function DataTable<T>({
     }
   };
 
-  const isAllSelected = rowSelection && data.length > 0 && data.every(row => rowSelection.selectedKeys.includes(rowKey(row)));
-  const isPartiallySelected = rowSelection && data.length > 0 && !isAllSelected && data.some(row => rowSelection.selectedKeys.includes(rowKey(row)));
+  const isAllSelected = rowSelection && (data || []).length > 0 && (data || []).every(row => rowSelection.selectedKeys.includes(rowKey(row)));
+  const isPartiallySelected = rowSelection && (data || []).length > 0 && !isAllSelected && (data || []).some(row => rowSelection.selectedKeys.includes(rowKey(row)));
 
   const renderPagination = () => {
-    if (!pagination || pagination.total <= 0) return null;
+    // 防御性检查：如果没有数据或只有一页，不显示分页
+    if (safeTotal <= 0 || totalPages <= 0) return null;
 
     // Simple pagination logic: show current, prev, next, first, last
     const pages: (number | 'ellipsis')[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (pagination.page <= 3) {
+      if (safePage <= 3) {
         pages.push(1, 2, 3, 4, 'ellipsis', totalPages);
-      } else if (pagination.page >= totalPages - 2) {
+      } else if (safePage >= totalPages - 2) {
         pages.push(1, 'ellipsis', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
       } else {
-        pages.push(1, 'ellipsis', pagination.page - 1, pagination.page, pagination.page + 1, 'ellipsis', totalPages);
+        pages.push(1, 'ellipsis', safePage - 1, safePage, safePage + 1, 'ellipsis', totalPages);
       }
     }
 
     return (
       <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          <span>共 {pagination?.total || 0} 条</span>
+          <span>共 {safeTotal} 条</span>
           <div className="flex items-center gap-1">
             <span>每页</span>
             <Select
-              value={pagination?.size.toString() || '10'}
-              onValueChange={(val) => onSizeChange?.(Number(val))}
+              value={safeSize.toString()}
+              onValueChange={(val) => onSizeChange(Number(val))}
             >
               <SelectTrigger className="h-8 min-w-[50px] px-2 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                 <SelectValue />
@@ -163,9 +149,9 @@ export function DataTable<T>({
           <PaginationContent className="gap-1">
             <PaginationItem>
               <PaginationPrevious
-                onClick={(e) => { e.preventDefault(); if((pagination?.page || 1) > 1) onPageChange?.((pagination?.page || 1) - 1); }}
-                aria-disabled={(pagination?.page || 1) <= 1}
-                className={(pagination?.page || 1) <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if(safePage > 1) onPageChange(safePage - 1); }}
+                aria-disabled={safePage <= 1}
+                className={safePage <= 1 ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
 
@@ -175,9 +161,9 @@ export function DataTable<T>({
                   <PaginationEllipsis />
                 ) : (
                 <PaginationLink
-                    isActive={(pagination?.page || 1) === p}
-                    onClick={(e) => { e.preventDefault(); onPageChange?.(p as number); }}
-                    className={(pagination?.page || 1) === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
+                    isActive={safePage === p}
+                    onClick={(e) => { e.preventDefault(); onPageChange(p as number); }}
+                    className={safePage === p ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer" : "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"}
                   >
                     {p}
                   </PaginationLink>
@@ -187,9 +173,9 @@ export function DataTable<T>({
 
             <PaginationItem>
               <PaginationNext
-                onClick={(e) => { e.preventDefault(); if((pagination?.page || 1) < totalPages) onPageChange?.((pagination?.page || 1) + 1); }}
-                aria-disabled={(pagination?.page || 1) >= totalPages}
-                className={(pagination?.page || 1) >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
+                onClick={(e) => { e.preventDefault(); if(safePage < totalPages) onPageChange(safePage + 1); }}
+                aria-disabled={safePage >= totalPages}
+                className={safePage >= totalPages ? "opacity-50 pointer-events-none" : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"}
               />
             </PaginationItem>
           </PaginationContent>
@@ -198,115 +184,13 @@ export function DataTable<T>({
     );
   };
 
-  const renderTableContent = () => {
-    if (isLoading) {
-      return Array.from({ length: Math.min(pagination?.size || 10, 5) }).map((_, i) => (
-        <TableRow key={i} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
-          {rowSelection && <TableCell><Skeleton className="h-4 w-4 bg-slate-200 dark:bg-slate-800" /></TableCell>}
-          {columns.map((col, j) => (
-            <TableCell key={j}>
-              <Skeleton className="h-4 w-[80%] bg-slate-200 dark:bg-slate-800" />
-            </TableCell>
-          ))}
-        </TableRow>
-      ));
-    }
-
-    if (error) {
-      return (
-        <TableRow>
-          <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 text-center text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-950/10 dark:border-slate-800">
-            {error}
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    if (data.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 border-slate-100 dark:border-slate-800">
-            <EmptyState />
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    // 虚拟滚动渲染
-    if (virtualEnabled) {
-      return virtualItems.map((virtualRow) => {
-        const row = data[virtualRow.index];
-        const key = rowKey(row);
-        const isSelected = rowSelection?.selectedKeys.includes(key);
-        return (
-          <TableRow 
-            key={key}
-            data-state={isSelected ? "selected" : undefined}
-            className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-cyan-950/20 dark:hover:shadow-[inset_2px_0_0_0_rgba(34,211,238,0.5)] transition-all duration-200 group data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-cyan-950/30"
-            style={{
-              height: `${virtualRow.size}px`,
-              transform: `translateY(${virtualRow.start}px)`,
-            }}
-          >
-            {rowSelection && (
-              <TableCell>
-                <Checkbox 
-                  className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
-                  checked={isSelected}
-                  onCheckedChange={(checked) => handleSelectRow(key, checked === true)}
-                />
-              </TableCell>
-            )}
-            {columns.map(col => (
-              <TableCell key={col.key} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors py-3 font-normal dark:font-light">
-                {col.render(row)}
-              </TableCell>
-            ))}
-          </TableRow>
-        );
-      });
-    }
-
-    // 普通渲染
-    return data.map((row) => {
-      const key = rowKey(row);
-      const isSelected = rowSelection?.selectedKeys.includes(key);
-      return (
-        <TableRow 
-          key={key} 
-          data-state={isSelected ? "selected" : undefined}
-          className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-cyan-950/20 dark:hover:shadow-[inset_2px_0_0_0_rgba(34,211,238,0.5)] transition-all duration-200 group data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-cyan-950/30"
-        >
-          {rowSelection && (
-            <TableCell>
-              <Checkbox 
-                className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
-                checked={isSelected}
-                onCheckedChange={(checked) => handleSelectRow(key, checked === true)}
-              />
-            </TableCell>
-          )}
-          {columns.map(col => (
-            <TableCell key={col.key} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors py-3 font-normal dark:font-light">
-              {col.render(row)}
-            </TableCell>
-          ))}
-        </TableRow>
-      );
-    });
-  };
-
   return (
     <div className={cn("space-y-4", className)}>
       {toolbar && <div className="flex items-center justify-between">{toolbar}</div>}
       
-      <div 
-        ref={parentRef}
-        className="overflow-auto"
-        style={virtualEnabled ? { height: tableHeight } : undefined}
-      >
+      <div className="bg-white dark:bg-slate-950/30 dark:backdrop-blur-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/80 dark:border-slate-800 sticky top-0 z-10">
+          <TableHeader className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/80 dark:border-slate-800">
             <TableRow className="hover:bg-transparent border-slate-200 dark:border-slate-800">
               {rowSelection && (
                 <TableHead className="w-[50px] text-slate-500 dark:text-cyan-600/70">
@@ -324,8 +208,59 @@ export function DataTable<T>({
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody style={virtualEnabled ? { height: `${virtualizer.getTotalSize()}px`, position: 'relative' } : undefined}>
-            {renderTableContent()}
+          <TableBody>
+            {isLoading ? (
+              // Loading Skeleton
+              Array.from({ length: Math.min(safeSize, 5) }).map((_, i) => (
+                <TableRow key={i} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
+                  {rowSelection && <TableCell><Skeleton className="h-4 w-4 bg-slate-200 dark:bg-slate-800" /></TableCell>}
+                  {columns.map((col, j) => (
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-[80%] bg-slate-200 dark:bg-slate-800" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 text-center text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-950/10 dark:border-slate-800">
+                  {error}
+                </TableCell>
+              </TableRow>
+            ) : (data || []).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + (rowSelection ? 1 : 0)} className="h-24 border-slate-100 dark:border-slate-800">
+                  <EmptyState />
+                </TableCell>
+              </TableRow>
+              ) : (
+              (data || []).map((row) => {
+                const key = rowKey(row);
+                const isSelected = rowSelection?.selectedKeys.includes(key);
+                return (
+                  <TableRow 
+                    key={key} 
+                    data-state={isSelected ? "selected" : undefined}
+                    className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-cyan-950/20 dark:hover:shadow-[inset_2px_0_0_0_rgba(34,211,238,0.5)] transition-all duration-200 group data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-cyan-950/30"
+                  >
+                    {rowSelection && (
+                      <TableCell>
+                        <Checkbox 
+                          className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
+                          checked={isSelected}
+                          onCheckedChange={(checked) => handleSelectRow(key, checked === true)}
+                        />
+                      </TableCell>
+                    )}
+                    {columns.map(col => (
+                      <TableCell key={col.key} className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors py-3 font-normal dark:font-light">
+                        {col.render(row)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>

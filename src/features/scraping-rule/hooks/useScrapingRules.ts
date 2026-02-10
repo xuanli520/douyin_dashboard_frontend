@@ -1,20 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import { scrapingRuleApi } from '../services/scrapingRuleApi';
-import { ScrapingRule, ScrapingRuleFilter, PaginatedResponse } from '../services/types';
+import { ScrapingRuleListItem, PaginatedData, PageMeta } from '@/types';
+
+interface ScrapingRuleFilter {
+  name?: string;
+  target_type?: string;
+  status?: string;
+  data_source_id?: number;
+  page?: number;
+  size?: number;
+}
+
+interface PaginatedScrapingRuleResponse {
+  items: ScrapingRuleListItem[];
+  meta: PageMeta;
+}
 
 export function useScrapingRules(initialFilters?: ScrapingRuleFilter) {
-  const [data, setData] = useState<PaginatedResponse<ScrapingRule>>({
-    list: [],
-    total: 0,
-    page: 1,
-    pageSize: 10,
-    pages: 0,
+  const [data, setData] = useState<PaginatedScrapingRuleResponse>({
+    items: [],
+    meta: {
+      page: 1,
+      size: 10,
+      total: 0,
+      pages: 0,
+      has_next: false,
+      has_prev: false,
+    },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [filters, setFilters] = useState<ScrapingRuleFilter>(initialFilters || {
     page: 1,
-    pageSize: 10,
+    size: 10,
   });
 
   const fetchData = useCallback(async () => {

@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dataSourceApi } from '../services/dataSourceApi';
-import { DataSource } from '../services/types';
+import { DataSourceResponse } from '@/types';
 
 export function useDataSource(id: number) {
-  const [dataSource, setDataSource] = useState<DataSource | null>(null);
+  const [dataSource, setDataSource] = useState<DataSourceResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchDataSource = useCallback(async () => {
     if (!id) return;
-    
+
     setLoading(true);
     setError(null);
     try {

@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { getPermissions, Permission } from '@/services/adminService';
+import { getPermissions } from '@/services/adminService';
+import { PermissionRead } from '@/types';
 import { CyberCard } from '@/components/ui/cyber/CyberCard';
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import { CyberBadge } from '@/components/ui/cyber/CyberBadge';
 import { DataTable, DataTableColumn } from '../_components/common/DataTable';
-import { Shield, Search, Lock, Copy } from 'lucide-react';
+import { Search, Lock, Copy, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PermissionsPage() {
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [permissions, setPermissions] = useState<PermissionRead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -23,7 +24,7 @@ export default function PermissionsPage() {
   const fetchPermissions = async () => {
     try {
       const data = await getPermissions();
-      setPermissions(data);
+      setPermissions(data.items || []);
     } catch (error) {
       toast.error('加载权限数据失败');
       console.error(error);
@@ -59,7 +60,7 @@ export default function PermissionsPage() {
     return filteredPermissions.slice(start, start + pageSize);
   }, [filteredPermissions, page, pageSize]);
 
-  const columns: DataTableColumn<Permission>[] = [
+  const columns: DataTableColumn<PermissionRead>[] = [
     {
       key: 'id',
       header: 'ID',
@@ -113,7 +114,7 @@ export default function PermissionsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-muted-foreground dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Shield className="w-4 h-4" />
+            <Key className="w-4 h-4" />
             系统访问控制定义
           </p>
         </div>

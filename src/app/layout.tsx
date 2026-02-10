@@ -1,8 +1,8 @@
 import '../styles/index.css';
 import type { Metadata } from 'next';
-import { ThemeProvider } from "./providers"
+import { Providers } from "./providers"
+import { ErrorBoundary } from '@/lib/error/boundary';
 import { UserProvider } from '@/stores/userStore';
-import { Toaster } from '@/app/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'Douyin Frontend',
@@ -17,17 +17,13 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <UserProvider>
-            {children}
-          </UserProvider>
-          <Toaster />
-        </ThemeProvider>
+        <ErrorBoundary>
+          <Providers>
+            <UserProvider>
+              {children}
+            </UserProvider>
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

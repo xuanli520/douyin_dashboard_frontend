@@ -31,7 +31,7 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="flex items-center gap-4">
-            <RuleTypeTag type={rule.rule_type} />
+            <RuleTypeTag type={rule.target_type} />
             <div>
               <CardTitle className="text-xl font-bold">{rule.name}</CardTitle>
               <p className="text-sm text-muted-foreground">{rule.description || '暂无描述'}</p>

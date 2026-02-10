@@ -59,7 +59,9 @@ export function AssociatedRules({ dataSourceId }: AssociatedRulesProps) {
           loading={loading}
           pagination={{ page, size: pageSize, total: rules.length }}
           onPageChange={setPage}
-          onSizeChange={() => {}}
+          onSizeChange={(size) => {
+            setPage(1);
+          }}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
         />

@@ -6,7 +6,8 @@ import { Button } from '@/app/components/ui/button';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Label } from '@/app/components/ui/label';
 import { User } from '@/types/user';
-import { Role, getRolesList, assignRoles } from '@/services/adminService';
+import { RoleRead as RoleType } from '@/types';
+import { getRolesList, assignUserRoles } from '@/services/adminService';
 import { toast } from 'sonner';
 
 interface AssignRolesDialogProps {
@@ -18,7 +19,7 @@ interface AssignRolesDialogProps {
 }
 
 export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: AssignRolesDialogProps) {
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<RoleType[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,7 +42,7 @@ export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: Assig
     try {
       setIsLoading(true);
       const list = await getRolesList();
-      setRoles(list);
+      setRoles(list.items);
     } catch (error) {
       toast.error('获取角色列表失败');
     } finally {
@@ -53,7 +54,7 @@ export function AssignRolesDialog({ open, onOpenChange, user, onSuccess }: Assig
     if (!user) return;
     try {
       setIsSaving(true);
-      await assignRoles(user.id, selectedRoleIds);
+      await assignUserRoles(user.id, selectedRoleIds);
       toast.success('角色分配成功');
       // 构造新角色信息并返回（从已选角色ID和角色列表中匹配）
       const newRoles = roles

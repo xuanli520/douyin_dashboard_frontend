@@ -1,22 +1,24 @@
 import React, { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { DataSourceCreateDTO, DataSource } from '../../services/types';
+import { DataSourceCreate, DataSource } from '../../services/types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Button } from '@/app/components/ui/button';
 import { ApiConfig } from './ConfigFields/ApiConfig';
 import { DatabaseConfig } from './ConfigFields/DatabaseConfig';
+import { FileUploadConfig } from './ConfigFields/FileUploadConfig';
+import { FileImportConfig } from './ConfigFields/FileImportConfig';
 
 interface DataSourceFormProps {
   initialData?: DataSource;
-  onSubmit: (data: DataSourceCreateDTO) => Promise<void>;
+  onSubmit: (data: DataSourceCreate) => Promise<void>;
   loading?: boolean;
   onCancel?: () => void;
 }
 
 export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: DataSourceFormProps) {
-  const form = useForm<DataSourceCreateDTO>({
+  const form = useForm<DataSourceCreate>({
     defaultValues: initialData ? {
       name: initialData.name,
       type: initialData.type,
@@ -25,10 +27,10 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
       status: initialData.status,
     } : {
       name: '',
-      type: 'douyin_api',
+      type: 'DOUYIN_API',
       description: '',
       config: {},
-      status: 'active',
+      status: 'ACTIVE',
     },
   });
 
@@ -44,10 +46,14 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
 
   const renderConfigFields = () => {
     switch (type) {
-      case 'douyin_api':
+      case 'DOUYIN_API':
         return <ApiConfig form={form} />;
-      case 'database':
+      case 'SELF_HOSTED':
         return <DatabaseConfig form={form} />;
+      case 'FILE_UPLOAD':
+        return <FileUploadConfig form={form} />;
+      case 'FILE_IMPORT':
+        return <FileImportConfig form={form} />;
       default:
         return <div className="text-sm text-slate-500">No configuration needed for this type.</div>;
     }
@@ -86,10 +92,10 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="douyin_api">抖音API</SelectItem>
-                    <SelectItem value="database">数据库</SelectItem>
-                    <SelectItem value="file_upload">文件上传</SelectItem>
-                    <SelectItem value="webhook">Webhook</SelectItem>
+                    <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+                    <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+                    <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+                    <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

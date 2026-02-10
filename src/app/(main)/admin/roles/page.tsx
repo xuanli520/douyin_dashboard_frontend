@@ -9,18 +9,18 @@ import {
   updateRole,
   deleteRole,
   getPermissions,
-  assignPermissions,
-  Role,
-  Permission
+  assignRolePermissions
 } from '@/services/adminService';
+import { RoleRead, RoleWithPermissions, PermissionRead } from '@/types';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/cyber/CyberDialog';
-import { Users, Plus, ShieldAlert } from 'lucide-react';
+import { Plus, ShieldAlert, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { RoleTable } from './RoleTable';
+import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
 
 interface RoleFormValues {
   name: string;
@@ -28,13 +28,13 @@ interface RoleFormValues {
 }
 
 export default function RolesPage() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [roles, setRoles] = useState<RoleWithPermissions[]>([]);
+  const [permissions, setPermissions] = useState<PermissionRead[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Dialog States
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<RoleRead | null>(null);
 
   // Form handling
   const {
@@ -47,9 +47,18 @@ export default function RolesPage() {
 
   // Permission Assignment State
   const [isPermDialogOpen, setIsPermDialogOpen] = useState(false);
-  const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<Role | null>(null);
+  const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<RoleWithPermissions | null>(null);
   const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(new Set());
   const [isPermSubmitting, setIsPermSubmitting] = useState(false);
+
+  // Delete Dialog State
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<RoleRead | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -61,17 +70,17 @@ export default function RolesPage() {
 
       // API返回的是角色列表，需要获取每个角色的完整信息（包含权限）
       const rolesWithPermissions = await Promise.all(
-        rolesData.map(async (role) => {
+        rolesData.items.map(async (role: RoleRead) => {
           try {
             return await getRole(role.id);
           } catch {
-            return role;
+            return { ...role, permissions: [] };
           }
         })
       );
 
       setRoles(rolesWithPermissions);
-      setPermissions(permsData);
+      setPermissions(permsData.items);
     } catch (error) {
       toast.error('加载角色数据失败');
       console.error(error);
@@ -92,7 +101,7 @@ export default function RolesPage() {
     setIsRoleDialogOpen(true);
   };
 
-  const handleEditClick = (role: Role) => {
+  const handleEditClick = (role: RoleRead) => {
     setEditingRole(role);
     setValue('name', role.name);
     setValue('description', role.description || '');
@@ -115,21 +124,39 @@ export default function RolesPage() {
     }
   };
 
-  const handleDeleteClick = async (role: Role) => {
-    if (!confirm(`确定要删除角色 "${role.name}" 吗？此操作无法撤销。`)) return;
+  const handleDeleteClick = (role: RoleRead) => {
+    setRoleToDelete(role);
+    setDeleteDialogOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!roleToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteRole(role.id);
+      await deleteRole(roleToDelete.id);
       toast.success('角色已删除');
-      setRoles(roles.filter(r => r.id !== role.id));
+      setRoles(roles.filter(r => r.id !== roleToDelete.id));
+      setDeleteDialogOpen(false);
     } catch (error) {
       toast.error('删除角色失败');
+    } finally {
+      setIsDeleting(false);
+      setRoleToDelete(null);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
   };
 
   // --- Permission Assignment ---
 
-  const handlePermsClick = (role: Role) => {
+  const handlePermsClick = (role: RoleWithPermissions) => {
     setSelectedRoleForPerms(role);
     const currentIds = new Set(role.permissions?.map(p => p.id) || []);
     setSelectedPermIds(currentIds);
@@ -150,7 +177,7 @@ export default function RolesPage() {
     if (!selectedRoleForPerms) return;
     setIsPermSubmitting(true);
     try {
-      await assignPermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
+      await assignRolePermissions(selectedRoleForPerms.id, Array.from(selectedPermIds));
       toast.success('权限已更新');
       setIsPermDialogOpen(false);
 
@@ -165,7 +192,7 @@ export default function RolesPage() {
   };
 
   // Group permissions by module
-  const permsByModule = permissions.reduce<Record<string, Permission[]>>((acc, perm) => {
+  const permsByModule = permissions.reduce<Record<string, PermissionRead[]>>((acc, perm) => {
     const module = perm.module || 'Other';
     if (!acc[module]) acc[module] = [];
     acc[module].push(perm);
@@ -177,7 +204,7 @@ export default function RolesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-muted-foreground dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Shield className="w-4 h-4" />
             定义角色并分配访问级别
           </p>
         </div>
@@ -230,6 +257,16 @@ export default function RolesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="确认删除角色？"
+        description={roleToDelete ? `确定要删除角色 "${roleToDelete.name}" 吗？此操作无法撤销。` : '确定要删除此角色吗？此操作无法撤销。'}
+      />
 
       {/* Permissions Assignment Dialog */}
       <Dialog open={isPermDialogOpen} onOpenChange={setIsPermDialogOpen}>

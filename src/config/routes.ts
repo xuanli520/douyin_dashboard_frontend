@@ -1,6 +1,7 @@
 export const ROUTES = {
   COMPASS: '/compass',
   DASHBOARD: '/dashboard',
+  METRIC_DETAIL: '/metric-detail',
   DATA_ANALYSIS: '/data-analysis',
   TASK_SCHEDULE: '/task-schedule',
   REPORTS: '/reports',
@@ -11,6 +12,7 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_ROLES: '/admin/roles',
   ADMIN_PERMISSIONS: '/admin/permissions',
+  ADMIN_LOGIN_AUDIT: '/admin/login-audit',
   PROFILE: '/profile',
   SYSTEM_SETTINGS: '/system-settings',
 } as const;

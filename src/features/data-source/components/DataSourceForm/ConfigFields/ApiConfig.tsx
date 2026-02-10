@@ -18,7 +18,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
           <FormItem>
             <FormLabel>API URL</FormLabel>
             <FormControl>
-              <Input placeholder="https://api.example.com" {...field} />
+              <Input placeholder="https://api.example.com" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -31,7 +31,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
           <FormItem>
             <FormLabel>请求方法</FormLabel>
             <FormControl>
-              <Input placeholder="GET" {...field} />
+              <Input placeholder="GET" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -45,7 +45,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
           <FormItem>
             <FormLabel>API Key</FormLabel>
             <FormControl>
-              <Input type="password" placeholder="请输入API Key" {...field} />
+              <Input type="password" placeholder="请输入API Key" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -59,7 +59,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
           <FormItem>
             <FormLabel>API Secret</FormLabel>
             <FormControl>
-              <Input type="password" placeholder="请输入API Secret" {...field} />
+              <Input type="password" placeholder="请输入API Secret" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
             <FormMessage />
           </FormItem>

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { scrapingRuleApi } from '../services/scrapingRuleApi';
-import { ScrapingRuleCreateDTO, ScrapingRule } from '../services/types';
+import { ScrapingRuleCreate, ScrapingRuleResponse } from '@/types';
 
 export function useCreateScrapingRule() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const create = async (data: ScrapingRuleCreateDTO): Promise<ScrapingRule | null> => {
+  const create = async (data: ScrapingRuleCreate): Promise<ScrapingRuleResponse | null> => {
     setLoading(true);
     setError(null);
     try {

@@ -44,7 +44,7 @@ export function RuleTable({ data, loading, pagination, onPageChange, onSizeChang
     {
       key: 'type',
       header: '类型',
-      render: (rule) => <RuleTypeTag type={rule.rule_type} />,
+      render: (rule) => <RuleTypeTag type={rule.target_type} />,
     },
     {
       key: 'schedule',

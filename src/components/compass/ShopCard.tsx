@@ -1,7 +1,11 @@
 import React, { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; 
 import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
+import productBg from '@/assets/product_experience.png';
+import logisticsBg from '@/assets/logistics_experience.png';
+import serviceBg from '@/assets/service_experience.png';
+import negativeBg from '@/assets/negative_behavior.png';
 
 export interface ShopData {
   id: string;
@@ -27,6 +31,15 @@ interface ShopCardProps extends React.HTMLAttributes<HTMLDivElement> {
   onTouchEnd?: React.TouchEventHandler;
 }
 
+// 根据标签获取背景图片
+const getBackgroundImage = (label: string) => {
+  if (label.includes('商品')) return productBg;
+  if (label.includes('物流')) return logisticsBg;
+  if (label.includes('服务')) return serviceBg;
+  if (label.includes('差行为')) return negativeBg;
+  return productBg;
+};
+
 // 四宫格单项组件
 const GridItem = ({ 
   label, 
@@ -39,38 +52,47 @@ const GridItem = ({
   icon: React.ElementType;
   colorIndex: number;
 }) => {
-  // 根据索引获取固定颜色（橙色、蓝色、紫色、绿色）
-  const getColorConfig = (index: number) => {
-    const configs = [
-      { bg: 'bg-orange-400', lightBg: 'bg-orange-100', text: 'text-orange-500', shadow: 'shadow-orange-200' },
-      { bg: 'bg-sky-400', lightBg: 'bg-sky-100', text: 'text-sky-500', shadow: 'shadow-sky-200' },
-      { bg: 'bg-purple-400', lightBg: 'bg-purple-100', text: 'text-purple-500', shadow: 'shadow-purple-200' },
-      { bg: 'bg-emerald-400', lightBg: 'bg-emerald-100', text: 'text-emerald-500', shadow: 'shadow-emerald-200' },
-    ];
-    return configs[index % 4];
-  };
-
-  const config = getColorConfig(colorIndex);
+  const backgroundImage = getBackgroundImage(label);
+  const isNegative = label.includes('差行为');
 
   return (
-    <div className="flex flex-col items-start justify-start p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/30 hover:shadow-lg transition-all duration-200">
-      {/* 圆形图标 */}
+    <div className={cn(
+      "relative flex h-full w-full overflow-hidden group rounded-lg border transition-all duration-300",
+      "border-slate-100 dark:border-slate-800",
+      "hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700"
+    )}>
+      <img 
+        src={backgroundImage.src}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover object-right scale-105"
+      />
+      
       <div className={cn(
-        "w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-lg",
-        config.bg
-      )}>
-        <Icon size={24} className="text-white" />
+        "absolute inset-0 z-10 bg-gradient-to-r",
+        isNegative 
+          ? "from-red-50/95 via-red-50/80 to-transparent dark:from-red-950/90 dark:via-red-950/60" 
+          : "from-white/95 via-white/80 to-transparent dark:from-slate-900/95 dark:via-slate-900/80"
+      )} />
+      
+      <div className="relative z-20 flex flex-col justify-center h-full px-4 w-2/3">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 opacity-80">
+            <Icon size={14} className={isNegative ? "text-red-500" : "text-slate-400 dark:text-slate-500"} />
+            <span className={cn(
+              "text-sm font-medium truncate",
+              isNegative ? "text-red-700 dark:text-red-300" : "text-gray-500 dark:text-gray-400"
+            )}>
+              {label}
+            </span>
+          </div>
+          <span className={cn(
+            "text-4xl font-bold tracking-tight tabular-nums leading-none",
+            isNegative ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-white"
+          )}>
+            {score}
+          </span>
+        </div>
       </div>
-      
-      {/* 指标名称 */}
-      <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-        {label}
-      </span>
-      
-      {/* 得分 */}
-      <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-        {score}
-      </span>
     </div>
   );
 };
@@ -82,7 +104,6 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
     
     const StatusIcon = shop.status === 'live' ? Zap : shop.status === 'warning' ? AlertTriangle : Radio;
 
-    // 四宫格数据 - 从左到右，从上到下：商品体验、物流体验、服务体验、差行为
     const gridItems = [
       { label: '商品体验', score: shop.productScore, icon: Package },
       { label: '物流体验', score: shop.logisticsScore, icon: Truck },
@@ -95,11 +116,14 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
         ref={ref}
         style={style}
         className={cn(
-          "flex flex-col relative group overflow-hidden rounded-xl border transition-all duration-300",
-          "dark:bg-slate-900/60 dark:backdrop-blur-md dark:border-slate-700/50 dark:hover:bg-slate-800/50",
-          isHealthy && "dark:border-cyan-500/30 dark:shadow-[0_0_15px_rgba(6,182,212,0.1)]",
-          isRisk && "dark:border-red-500/30 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)]",
-          "bg-white border-slate-200 shadow-sm hover:shadow-md",
+          "flex flex-col relative group overflow-hidden rounded-xl transition-all duration-300 bg-white dark:bg-slate-900",
+          "border",
+          isHealthy 
+            ? "border-slate-200 dark:border-slate-800 hover:border-cyan-200 dark:hover:border-cyan-900/50" 
+            : isRisk 
+              ? "border-red-200 dark:border-red-900/30 shadow-[0_2px_10px_rgba(239,68,68,0.05)]"
+              : "border-slate-200 dark:border-slate-800",
+          "shadow-sm hover:shadow-lg",
           className
         )}
         onMouseDown={onMouseDown}
@@ -110,20 +134,23 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
       >
         {/* Header */}
         <div className={cn(
-          "flex items-center justify-between px-4 py-3 border-b transition-colors select-none",
-          "dark:border-white/5 border-slate-100",
-          isEditing ? "drag-handle cursor-move bg-primary/5" : "cursor-default"
+          "flex items-center justify-between px-4 py-3 border-b select-none transition-colors",
+          "border-slate-100 dark:border-slate-800",
+          isEditing ? "cursor-move bg-slate-50 dark:bg-slate-800/50 drag-handle" : "cursor-pointer"
         )}>
-          <div className="flex items-center gap-2 overflow-hidden">
-             {isEditing && <GripHorizontal size={14} className="text-slate-400 shrink-0" />}
-             <div className={`p-1.5 rounded-md shrink-0 ${
+          <div className="flex items-center gap-2.5 overflow-hidden">
+             {isEditing && <GripHorizontal size={16} className="text-slate-400 shrink-0" />}
+             
+             <div className={cn(
+               "p-1.5 rounded-md shrink-0 flex items-center justify-center transition-colors",
                isRisk 
-                 ? 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400' 
-                 : 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400'
-             }`}>
-                <StatusIcon size={14} />
+                 ? 'bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400' 
+                 : 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400'
+             )}>
+                <StatusIcon size={16} strokeWidth={2.5} />
              </div>
-             <span className="font-semibold text-sm tracking-wide text-slate-700 dark:text-slate-100 truncate">
+             
+             <span className="font-semibold text-base text-slate-700 dark:text-slate-200 truncate">
                {shop.name}
              </span>
           </div>
@@ -131,20 +158,27 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
           <div className="flex items-center gap-2 shrink-0">
             {shop.status === 'live' && (
               <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
             )}
-            <span className={`text-[10px] font-medium ${isRisk ? 'text-red-500 dark:text-red-400' : 'text-slate-400'}`}>
+            {/* 状态文字 */}
+            <span className={cn(
+              "text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded",
+              isRisk ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+            )}>
               {shop.status.toUpperCase()}
             </span>
           </div>
         </div>
 
-        {/* Body - 四宫格布局 */}
-        <div className="flex-1 p-3 relative z-10 min-h-0 bg-slate-50/50 dark:bg-slate-900/30">
-          {/* 2x2 网格 */}
-          <div className="grid grid-cols-2 gap-3 h-full">
+        {/* Body - 四宫格 */}
+        <div className="p-3 bg-slate-50/50 dark:bg-black/20 flex-1 flex flex-col">
+           <div className="pointer-events-none absolute inset-0 bg-[length:100%_4px] opacity-0 dark:opacity-5 z-0" 
+                style={{backgroundImage: 'linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%)'}} 
+           />
+
+           <div className="relative z-10 grid grid-cols-2 gap-2.5 h-full">
             {gridItems.map((item, index) => (
               <GridItem
                 key={index}

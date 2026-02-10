@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { UserStats as UserStatsType } from '@/services/adminService';
+import { UserStatsResponse } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Users, UserCheck, UserX, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/app/components/ui/skeleton';
 
 interface UserStatsProps {
-  stats: UserStatsType;
+  stats: UserStatsResponse;
   isLoading?: boolean;
 }
 

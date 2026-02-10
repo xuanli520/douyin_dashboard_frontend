@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
-import { ScrapingRuleType } from '../../services/types';
+
 
 export function ScrapingRuleList() {
   const { data, loading, error, refresh, filters, updateFilters } = useScrapingRules();
@@ -73,18 +73,23 @@ export function ScrapingRuleList() {
             />
           </div>
           <Select
-            value={filters.rule_type || 'all'}
-            onValueChange={(value) => updateFilters({ rule_type: value as ScrapingRuleType | 'all', page: 1 })}
+            value={filters.target_type || 'all'}
+            onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="全部类型" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部类型</SelectItem>
-              <SelectItem value="orders">订单</SelectItem>
-              <SelectItem value="products">商品</SelectItem>
-              <SelectItem value="users">用户</SelectItem>
-              <SelectItem value="comments">评论</SelectItem>
+              <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
+              <SelectItem value="TRAFFIC">流量</SelectItem>
+              <SelectItem value="PRODUCT">商品</SelectItem>
+              <SelectItem value="LIVE">直播</SelectItem>
+              <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
+              <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
+              <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
+              <SelectItem value="CUSTOMER">客户</SelectItem>
+              <SelectItem value="ADS">广告</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -101,9 +106,9 @@ export function ScrapingRuleList() {
 
       {!error && (
         <RuleTable
-          data={data?.list || []}
+          data={data.items}
           loading={loading}
-          pagination={{ page: data.page || 1, size: filters.pageSize || 10, total: data.total || 0 }}
+          pagination={{ page: data.meta.page || 1, size: data.meta.size || 10, total: data.meta.total || 0 }}
           onPageChange={handlePageChange}
           onSizeChange={handleSizeChange}
           onDelete={handleDelete}
