@@ -91,22 +91,48 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, REFRESH_INTERVAL);
   }, [router]);
 
-  const fetchCurrentUser = useCallback(async () => {
-    try {
-      const user = await userService.getCurrentUser();
-      setState((prev) => ({
-        ...prev,
-        currentUser: user,
-        isSuperuser: user.is_superuser,
-      }));
-    } catch (error: any) {
-      // 未登录或令牌过期
-      setState((prev) => ({
-        ...prev,
-        currentUser: null,
-        isSuperuser: false,
-      }));
+  const fetchCurrentUser = useCallback(async (retryCount = 3) => {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < retryCount; attempt++) {
+      try {
+        const user = await userService.getCurrentUser();
+        setState((prev) => ({
+          ...prev,
+          currentUser: {
+            ...user,
+            is_active: user.is_active ?? true,
+            is_superuser: user.is_superuser ?? false,
+            is_verified: user.is_verified ?? false,
+          } as User,
+          isSuperuser: user.is_superuser ?? false,
+        }));
+        return;
+      } catch (error: any) {
+        lastError = error;
+        // 如果是401错误（未登录），不需要重试
+        if (error.message?.includes('401') || error.message?.includes('未授权')) {
+          setState((prev) => ({
+            ...prev,
+            currentUser: null,
+            isSuperuser: false,
+          }));
+          return;
+        }
+        // 等待一段时间再重试（指数退避）
+        if (attempt < retryCount - 1) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
+        }
+      }
     }
+    
+    // 所有重试都失败
+    console.error('Failed to fetch current user after retries:', lastError);
+    setState((prev) => ({
+      ...prev,
+      currentUser: null,
+      isSuperuser: false,
+    }));
   }, []);
 
   const login = useCallback(async (params: LoginParams): Promise<boolean> => {
@@ -174,9 +200,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } else {
         // 非超级管理员只能看到当前用户
         const currentUser = await userService.getCurrentUser();
+        const normalizedUser: User = {
+          ...currentUser,
+          is_active: currentUser.is_active ?? true,
+          is_superuser: currentUser.is_superuser ?? false,
+          is_verified: currentUser.is_verified ?? false,
+        };
         setState((prev) => ({
           ...prev,
-          users: [currentUser],
+          users: [normalizedUser],
           isLoading: false,
         }));
       }

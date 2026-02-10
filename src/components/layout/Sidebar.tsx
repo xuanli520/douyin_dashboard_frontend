@@ -50,7 +50,7 @@ export function Sidebar() {
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['system-management']);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { currentUser, isSuperuser, logout } = useUserStore();
+  const { currentUser, isSuperuser, logout, isLoading } = useUserStore();
 
   const toggleMenu = (menuId: string) => {
     setExpandedMenus(prev =>
@@ -203,25 +203,31 @@ export function Sidebar() {
           onClick={() => setShowUserMenu(!showUserMenu)}
           className={`w-full p-2 rounded-xl flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-300 ${showUserMenu ? 'bg-slate-100 dark:bg-white/5' : ''}`}
         >
-          <div className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-slate-200 dark:ring-white/10 transition-all shadow-md ${
-            currentUser?.gender === 'female'
-              ? 'group-hover:ring-pink-400/50 shadow-pink-400/20'
-              : 'group-hover:ring-[#C8FDE6]/50'
-          }`}>
-            <Image
-              src={currentUser?.gender === 'female' ? femaleProfileImage : profileImage}
-              alt="用户头像"
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {isLoading ? (
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-white/5 ring-2 ring-slate-200 dark:ring-white/10">
+              <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 border-t-cyan-500 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-slate-200 dark:ring-white/10 transition-all shadow-md ${
+              currentUser?.gender === 'female'
+                ? 'group-hover:ring-pink-400/50 shadow-pink-400/20'
+                : 'group-hover:ring-[#C8FDE6]/50'
+            }`}>
+              <Image
+                src={currentUser?.gender === 'female' ? femaleProfileImage : profileImage}
+                alt="用户头像"
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
           <div className="flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="text-sm font-bold text-slate-700 dark:text-gray-200 truncate font-mono">
-              {getRoleText()}
+              {isLoading ? '加载中...' : getRoleText()}
             </div>
             <div className="text-[10px] text-slate-500 dark:text-[#C8FDE6]/70 truncate tracking-wider">
-              {isSuperuser ? 'SUPERUSER' : 'ONLINE'}
+              {isLoading ? '请稍候' : (isSuperuser ? 'SUPERUSER' : 'ONLINE')}
             </div>
           </div>
           <ChevronUp
@@ -231,7 +237,7 @@ export function Sidebar() {
         </button>
 
         {/* 用户菜单弹窗 */}
-        {showUserMenu && (
+        {showUserMenu && !isLoading && (
           <div className="absolute bottom-full left-0 w-[220px] mb-2 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-[0_0_30px_-5px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-white/10 overflow-hidden z-50">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5">
               <div className="text-sm font-medium text-slate-700 dark:text-gray-200">
