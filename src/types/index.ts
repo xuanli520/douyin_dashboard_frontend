@@ -1,4 +1,6 @@
-import { ApiResponse, PaginatedData, PageMeta } from '@/lib/api-client';
+import { ApiResponse, PaginatedData, PageMeta } from '@/lib/http/types';
+
+export type { PaginatedData, PageMeta };
 
 export * from './permission';
 

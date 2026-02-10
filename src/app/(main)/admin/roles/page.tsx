@@ -75,7 +75,7 @@ export default function RolesPage() {
           try {
             return await getRole(role.id);
           } catch {
-            return role;
+            return { ...role, permissions: [] };
           }
         })
       );
