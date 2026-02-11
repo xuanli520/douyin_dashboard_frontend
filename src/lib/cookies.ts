@@ -83,6 +83,6 @@ export function setSecureCookie(
 ): void {
   setCookie(name, value, maxAge, {
     secure: isProduction(),
-    sameSite: 'strict',
+    sameSite: isProduction() ? 'strict' : 'lax',
   });
 }

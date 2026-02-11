@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 import productBg from '@/assets/product_experience.png';
-import logisticsBg from '@/assets/logistics_experience.png';
-import serviceBg from '@/assets/service_experience.png';
-import negativeBg from '@/assets/negative_behavior.png';
+import logisticsBg from '@/assets/Logistics_Experience.png';
+import serviceBg from '@/assets/Service_Experience.png';
+import negativeBg from '@/assets/Negative_Behavior.png';
 
 export interface ShopData {
   id: string;

@@ -41,9 +41,7 @@ export async function refreshToken(): Promise<{ access_token: string; token_type
       );
 
       setAccessToken(response.access_token);
-      if (typeof document !== 'undefined') {
-        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24}`;
-      }
+      setSecureCookie('auth_token', response.access_token, 60 * 60 * 24);
 
       return response;
     } finally {

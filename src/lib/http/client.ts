@@ -98,6 +98,7 @@ export class HttpClient {
       const response = await fetch(fullUrl, {
         ...config,
         signal: controller.signal,
+        credentials: 'include',
       });
       
       clearTimeout(timeoutId);
