@@ -2,18 +2,15 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json ./
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-RUN pnpm install --frozen-lockfile
+RUN npm ci --only==production
 
 # ========== 第二阶段：构建应用 ==========
 FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/pnpm-store ./pnpm-store
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
