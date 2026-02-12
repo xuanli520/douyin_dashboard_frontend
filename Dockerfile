@@ -31,7 +31,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
 # 只复制运行必需的文件
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
