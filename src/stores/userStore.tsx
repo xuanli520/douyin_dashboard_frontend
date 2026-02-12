@@ -92,8 +92,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const fetchCurrentUser = useCallback(async (retryCount = 3) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < retryCount; attempt++) {
       try {
         const user = await userService.getCurrentUser();
@@ -106,32 +107,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
             is_verified: user.is_verified ?? false,
           } as User,
           isSuperuser: user.is_superuser ?? false,
+          isLoading: false,
         }));
         return;
       } catch (error: any) {
         lastError = error;
-        // 如果是401错误（未登录），不需要重试
         if (error.message?.includes('401') || error.message?.includes('未授权')) {
           setState((prev) => ({
             ...prev,
             currentUser: null,
             isSuperuser: false,
+            isLoading: false,
           }));
           return;
         }
-        // 等待一段时间再重试（指数退避）
         if (attempt < retryCount - 1) {
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
         }
       }
     }
-    
-    // 所有重试都失败
+
     console.error('Failed to fetch current user after retries:', lastError);
     setState((prev) => ({
       ...prev,
       currentUser: null,
       isSuperuser: false,
+      isLoading: false,
     }));
   }, []);
 

@@ -138,6 +138,65 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
     initCaptcha();
   }, []);
 
+  const refreshCaptcha = useCallback(() => {
+    if (captchaRef.current) {
+      captchaRef.current = null;
+    }
+    setIsCaptchaReady(false);
+
+    const loadCaptcha = () => {
+      return new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('验证码脚本加载失败'));
+        document.head.appendChild(script);
+      });
+    };
+
+    const reinitCaptcha = async () => {
+      try {
+        await loadCaptcha();
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!(window as any).initAliyunCaptcha) {
+          console.error('initAliyunCaptcha 未定义');
+          return;
+        }
+
+        (window as any).initAliyunCaptcha({
+          SceneId: CAPTCHA_SCENE_ID,
+          mode: 'popup',
+          element: '#captcha-element',
+          button: '#login-button',
+          success: async (captchaVerifyParam: string) => {
+            const credentials = latestCredentialsRef.current;
+            if (credentials.username && credentials.password) {
+              await handleLoginLogicRef.current({
+                username: credentials.username,
+                password: credentials.password,
+                captchaVerifyParam,
+              });
+            }
+          },
+          fail: (result: any) => {
+            console.error('验证码失败:', result);
+            toast.error('验证码验证失败，请重试');
+          },
+          getInstance: (instance: any) => {
+            captchaRef.current = instance;
+            setIsCaptchaReady(true);
+          },
+        });
+      } catch (error) {
+        console.error('验证码重新初始化失败:', error);
+      }
+    };
+
+    reinitCaptcha();
+  }, []);
+
   const handleLoginLogic = useCallback(
     async (params: { username: string; password: string; captchaVerifyParam?: string }) => {
       if (!params.username || !params.password) {
@@ -155,6 +214,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
           toast.error('登录失败', {
             description: userError || '请检查账号和密码',
           });
+          refreshCaptcha();
           return;
         }
         if (onLogin) {
@@ -171,12 +231,13 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
         toast.error('登录失败', {
           description: handleAuthError(err),
         });
+        refreshCaptcha();
       } finally {
         setLoading(false);
         pendingCredentialsRef.current = null;
       }
     },
-    [onLogin, router, searchParams, userError, storeLogin]
+    [onLogin, router, searchParams, userError, storeLogin, refreshCaptcha]
   );
 
   const handleLoginLogicRef = useRef(handleLoginLogic);
