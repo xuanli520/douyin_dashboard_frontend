@@ -30,7 +30,7 @@ export function setCookie(
   const {
     httpOnly = false, // 客户端 JavaScript 无法设置 httpOnly cookie，需要服务端设置
     secure = isProduction(), // 生产环境强制使用 secure
-    sameSite = 'strict', // 默认使用 strict 防止 CSRF
+    sameSite = isProduction() ? 'strict' : 'lax', // 开发环境使用 lax 以支持 HTTP
   } = options;
 
   // 构建 cookie 字符串
