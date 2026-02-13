@@ -5,7 +5,9 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30天
  * 获取当前环境是否为生产环境
  */
 function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
+  const result = process.env.NODE_ENV === 'production';
+  console.log('[Cookie] isProduction:', result, 'NODE_ENV:', process.env.NODE_ENV);
+  return result;
 }
 
 /**
