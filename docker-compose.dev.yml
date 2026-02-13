@@ -13,6 +13,7 @@ services:
       args:
         APP_ENV: "development"
         NEXT_PUBLIC_APP_ENV: "development"
+        NEXT_PUBLIC_IS_PROD: "false"
         API_BASE: "http://8.137.84.161:8000"
         NEXT_PUBLIC_API_URL: "http://8.137.84.161:8000"
     image: douyin-frontend:dev
@@ -26,6 +27,7 @@ services:
       # “开发环境”语义请用自定义变量控制（不要依赖 NODE_ENV）
       APP_ENV: "development"
       NEXT_PUBLIC_APP_ENV: "development"
+      NEXT_PUBLIC_IS_PROD: "false"
 
       API_BASE: "http://8.137.84.161:8000"
       NEXT_PUBLIC_API_URL: "http://8.137.84.161:8000"

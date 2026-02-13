@@ -20,11 +20,13 @@ COPY . .
 # 将“开发环境配置”在 build 阶段注入（NEXT_PUBLIC_* 会在此阶段被内联进前端 bundle）
 ARG APP_ENV=development
 ARG NEXT_PUBLIC_APP_ENV=development
+ARG NEXT_PUBLIC_IS_PROD=false
 ARG API_BASE
 ARG NEXT_PUBLIC_API_URL
 
 ENV APP_ENV=${APP_ENV}
 ENV NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+ENV NEXT_PUBLIC_IS_PROD=${NEXT_PUBLIC_IS_PROD}
 ENV API_BASE=${API_BASE}
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
@@ -50,6 +52,7 @@ ENV HOSTNAME=0.0.0.0
 # 同步保留“开发环境语义”的变量（供服务端运行时读取）
 ENV APP_ENV=development
 ENV NEXT_PUBLIC_APP_ENV=development
+ENV NEXT_PUBLIC_IS_PROD=false
 
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
