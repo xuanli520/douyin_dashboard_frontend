@@ -13,7 +13,7 @@ services:
     ports:
       - "3456:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       API_BASE: "http://8.137.84.161:8000"
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
