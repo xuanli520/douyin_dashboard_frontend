@@ -1,41 +1,69 @@
+# Dockerfile.dev
 # ========== 第一阶段：安装依赖 ==========
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# 兼容部分依赖的 glibc 行为（如 sharp 等），按需保留
+RUN apk add --no-cache libc6-compat
 
+COPY package.json package-lock.json ./
 RUN npm ci
 
 # ========== 第二阶段：构建应用 ==========
 FROM node:20-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache libc6-compat
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NODE_ENV=development
+# 将“开发环境配置”在 build 阶段注入（NEXT_PUBLIC_* 会在此阶段被内联进前端 bundle）
+ARG APP_ENV=development
+ARG NEXT_PUBLIC_APP_ENV=development
+ARG API_BASE
+ARG NEXT_PUBLIC_API_URL
 
+ENV APP_ENV=${APP_ENV}
+ENV NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+ENV API_BASE=${API_BASE}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# next build / standalone 产物应在 production 下构建
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-# ========== 第三阶段：运行应用 ==========
+# ========== 第三阶段：运行应用（使用 build 产物） ==========
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache libc6-compat
 
-ENV NODE_ENV=development
+# 运行 build 产物必须为 production
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# 默认监听配置（也可由 compose 覆盖）
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# 同步保留“开发环境语义”的变量（供服务端运行时读取）
+ENV APP_ENV=development
+ENV NEXT_PUBLIC_APP_ENV=development
 
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
+# standalone 运行所需文件
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 USER nextjs
 
-EXPOSE ${PORT:-3000}
+EXPOSE 3000
 
+# 通用健康检查：不依赖 /api/healthz 是否存在
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || '3000') + '/api/healthz', (r) => process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || '3000') + '/', (r) => process.exit(r.statusCode < 400 ? 0 : 1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "server.js"]

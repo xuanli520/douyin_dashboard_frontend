@@ -1,6 +1,7 @@
+# docker-compose.dev.yml
 # ========== 开发调试环境配置 ==========
 # 使用命令: docker compose -f docker-compose.dev.yml up -d --build
-# 访问: http://8.137.84.161:3001
+# 访问: http://8.137.84.161:3456
 # 注意：需要修改本机 hosts 文件添加: 8.137.84.161 localhost.douyin.local
 
 services:
@@ -8,14 +9,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+      # 关键：NEXT_PUBLIC_* 需要在 build 阶段注入，否则会被打包“写死”，运行时改 environment 不生效
+      args:
+        APP_ENV: "development"
+        NEXT_PUBLIC_APP_ENV: "development"
+        API_BASE: "http://8.137.84.161:8000"
+        NEXT_PUBLIC_API_URL: "http://8.137.84.161:8000"
     image: douyin-frontend:dev
     container_name: douyin-frontend-dev
     ports:
       - "3456:3000"
     environment:
-      NODE_ENV: development
+      # 关键：用 build 产物(server.js/standalone)运行时，Next.js 需要 production
+      NODE_ENV: "production"
+
+      # “开发环境”语义请用自定义变量控制（不要依赖 NODE_ENV）
+      APP_ENV: "development"
+      NEXT_PUBLIC_APP_ENV: "development"
+
       API_BASE: "http://8.137.84.161:8000"
+      NEXT_PUBLIC_API_URL: "http://8.137.84.161:8000"
+
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
-      NEXT_PUBLIC_API_URL: "http://8.137.84.161:8000"
     restart: unless-stopped
