@@ -61,14 +61,20 @@ export function RouteGuard({ children, config }: RouteGuardProps) {
   }, [authStore, permissionStore, router]);
 
   useEffect(() => {
+    // 等待 authStore 加载完成
     if (authStore.isLoading) {
+      return;
+    }
+
+    // 如果 permissionStore 还在加载，等待它完成
+    if (permissionStore.isLoading) {
       return;
     }
 
     const authorized = checkPermission(config);
     setIsAuthorized(authorized);
     setChecked(true);
-  }, [config, authStore.isLoading, checkPermission]);
+  }, [config, authStore.isLoading, permissionStore.isLoading, checkPermission]);
 
   if (authStore.isLoading && !checked) {
     return config.fallback || <div>Loading...</div>;

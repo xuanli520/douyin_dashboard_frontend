@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { dataSourceApi } from '../services/dataSourceApi';
-import { DataSourceResponse, PaginatedData, PageMeta } from '@/types';
+import { DataSourceResponse, PageMeta } from '@/types';
 
 interface DataSourceFilter {
   name?: string;
@@ -16,6 +17,7 @@ interface PaginatedDataSourceResponse {
 }
 
 export function useDataSources(initialFilters?: DataSourceFilter) {
+  const pathname = usePathname();
   const [data, setData] = useState<PaginatedDataSourceResponse>({
     items: [],
     meta: {
@@ -34,64 +36,53 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
     size: 10,
   });
 
-  // 使用 ref 来存储当前 filters
-  const filtersRef = useRef(filters);
-  filtersRef.current = filters;
-  
-  // 标记是否已经执行过初始获取
-  const hasFetchedInitially = useRef(false);
+  const requestIdRef = useRef(0);
 
-  // 定义获取数据的函数
-  const fetchData = useCallback(async (currentFilters: DataSourceFilter = filters) => {
+  const fetchData = useCallback(async (currentFilters: DataSourceFilter) => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     try {
       const response = await dataSourceApi.getAll(currentFilters);
-      setData(response);
+      if (requestId === requestIdRef.current) {
+        setData(response);
+      }
+      return response;
     } catch (err) {
+      if (requestId === requestIdRef.current) {
+        setError(err as Error);
+      }
       console.error('Failed to fetch data sources:', err);
-      setError(err as Error);
+      throw err;
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
-  // 初始加载
   useEffect(() => {
     let isCancelled = false;
-    
-    if (!hasFetchedInitially.current) {
-      const doFetch = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await dataSourceApi.getAll(filters);
-          if (!isCancelled) {
-            setData(response);
-          }
-        } catch (err) {
-          if (!isCancelled) {
-            console.error('Failed to fetch data sources:', err);
-            setError(err as Error);
-          }
-        } finally {
-          if (!isCancelled) {
-            setLoading(false);
-          }
-        }
-      };
-      
-      doFetch();
-      hasFetchedInitially.current = true;
-    }
-    
+
+    fetchData(filters).catch(err => {
+      if (!isCancelled) {
+        console.error(err);
+      }
+    });
+
     return () => {
       isCancelled = true;
     };
-  }, [filters.page, filters.size, filters.name, filters.source_type, filters.status]);
+  }, [pathname, filters, fetchData]);
 
   const updateFilters = useCallback((newFilters: Partial<DataSourceFilter>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters(prev => {
+      const next = { ...prev, ...newFilters };
+      const changed = Object.keys(next).some(
+        key => prev[key as keyof DataSourceFilter] !== next[key as keyof DataSourceFilter],
+      );
+      return changed ? next : prev;
+    });
   }, []);
 
   const refetch = useCallback(() => {

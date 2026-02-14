@@ -50,6 +50,9 @@ const migratePermissionStore = (persistState: unknown, version: number): Permiss
   return state as PermissionState;
 };
 
+const isCacheValid = (lastFetched: number | null) =>
+  !!lastFetched && Date.now() - lastFetched < PERMISSION_CACHE_DURATION;
+
 export const usePermissionStore = create<PermissionStore>()(
   devtools(
     persist(
@@ -66,19 +69,13 @@ export const usePermissionStore = create<PermissionStore>()(
 
         fetchPermissions: async () => {
           const { lastFetched, permissions } = get();
-          if (
-            lastFetched &&
-            Date.now() - lastFetched < PERMISSION_CACHE_DURATION &&
-            permissions.length > 0
-          ) {
-            return;
-          }
+          if (isCacheValid(lastFetched) && permissions.length > 0) return;
 
           set({ isLoading: true, error: null });
           try {
             const response = await permissionService.getPermissions(1, 1000);
             set({
-              permissions: response.results || [],
+              permissions: response.items || [],
               lastFetched: Date.now(),
               isLoading: false,
             });
@@ -90,19 +87,13 @@ export const usePermissionStore = create<PermissionStore>()(
 
         fetchAllRoles: async () => {
           const { lastFetched, allRoles } = get();
-          if (
-            lastFetched &&
-            Date.now() - lastFetched < PERMISSION_CACHE_DURATION &&
-            allRoles.length > 0
-          ) {
-            return;
-          }
+          if (isCacheValid(lastFetched) && allRoles.length > 0) return;
 
           set({ isLoading: true, error: null });
           try {
             const response = await permissionService.getRoles(1, 100);
             set({
-              allRoles: response.results || [],
+              allRoles: response.items || [],
               lastFetched: Date.now(),
               isLoading: false,
             });
@@ -114,13 +105,7 @@ export const usePermissionStore = create<PermissionStore>()(
 
         fetchUserPermissions: async () => {
           const { lastFetched, userPermissions } = get();
-          if (
-            lastFetched &&
-            Date.now() - lastFetched < PERMISSION_CACHE_DURATION &&
-            userPermissions.length > 0
-          ) {
-            return;
-          }
+          if (isCacheValid(lastFetched) && userPermissions.length > 0) return;
 
           set({ isLoading: true, error: null });
           try {
@@ -142,7 +127,7 @@ export const usePermissionStore = create<PermissionStore>()(
           const { isSuperuser, userPermissions, resourcePermissions } = get();
           if (isSuperuser) return true;
           if (userPermissions.includes(permission)) return true;
-          
+
           return resourcePermissions.some(
             rp => rp.resource === permission
           );
@@ -161,14 +146,15 @@ export const usePermissionStore = create<PermissionStore>()(
         },
 
         checkRole: (roleName: string) => {
-          const { userRoles } = get();
+          const { isSuperuser, userRoles } = get();
+          if (isSuperuser) return true;
           return userRoles.some((r) => r.name === roleName);
         },
 
         checkResourcePermission: (resource: ResourcePermission) => {
           const { isSuperuser, resourcePermissions, userPermissions } = get();
           if (isSuperuser) return true;
-          
+
           return resourcePermissions.some(
             rp => rp.resource === resource.resource &&
               (!resource.action || rp.action === resource.action) &&
@@ -209,15 +195,26 @@ export const usePermissionStore = create<PermissionStore>()(
 );
 
 export async function initializePermissionStore() {
-  const { fetchPermissions, fetchAllRoles, fetchUserPermissions } = usePermissionStore.getState();
-  
-  try {
-    await Promise.all([
-      fetchPermissions(),
-      fetchAllRoles(),
-      fetchUserPermissions(),
-    ]);
-  } catch (error) {
-    console.error('Failed to initialize permissions:', error);
-  }
+  const { fetchPermissions, fetchAllRoles, fetchUserPermissions, setLoading } = usePermissionStore.getState();
+
+  setLoading(true);
+
+  const results = await Promise.allSettled([
+    fetchPermissions(),
+    fetchAllRoles(),
+    fetchUserPermissions(),
+  ]);
+
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      const label = ['fetchPermissions', 'fetchAllRoles', 'fetchUserPermissions'][index];
+      console.warn(`[initializePermissionStore] ${label} failed:`, result.reason);
+    }
+  });
+
+  setLoading(false);
+
+  import('./authStore').then(({ useAuthStore }) => {
+    useAuthStore.getState().setLoading(false);
+  }).catch(() => {});
 }

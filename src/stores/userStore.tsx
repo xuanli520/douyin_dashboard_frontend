@@ -6,6 +6,7 @@ import type { User, UserCreate, UserUpdate, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
 import { useRouter } from 'next/navigation';
 import { getAccessToken } from '@/lib/auth';
+import { initializePermissionStore, usePermissionStore } from './permissionStore';
 
 // Token 刷新定时器引用
 let refreshTimer: NodeJS.Timeout | null = null;
@@ -141,6 +142,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       await userService.login(params);
       await fetchCurrentUser();
+      // 登录成功后清理权限缓存并重新获取
+      usePermissionStore.getState().clearPermissions();
+      await initializePermissionStore();
       // 登录成功后启动自动刷新定时器
       startRefreshTimer();
       return true;
@@ -274,9 +278,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (hasToken) {
         // 如果有 token，启动刷新定时器并获取用户信息
         startRefreshTimer();
-        await fetchCurrentUser();
+        try {
+          await fetchCurrentUser();
+        } catch (error) {
+          // 获取用户信息失败时继续尝试获取权限
+          console.warn('Failed to fetch current user, trying to fetch permissions anyway');
+        }
+        // 无论用户信息是否获取成功，都尝试初始化权限（登录成功后 login() 已调用过，这里是页面刷新时）
+        await initializePermissionStore();
       }
-      // 如果没有 token，不尝试获取用户信息（避免 401）
+      // 如果没有 token，不尝试获取用户信息和权限（避免 401）
     };
     initializeAuth();
   }, [fetchCurrentUser, startRefreshTimer]);

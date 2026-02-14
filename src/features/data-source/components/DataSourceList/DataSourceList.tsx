@@ -50,7 +50,12 @@ const dataSourceQueryCodec = {
 
 export function DataSourceList() {
   const [query, setQuery] = useQueryState(dataSourceQueryCodec);
-  const { data, loading, refetch } = useDataSources(query as any);
+  const { data, loading, refetch } = useDataSources({
+    ...query,
+    // 过滤掉 'all' 值，只传有效的枚举值
+    status: query.status === 'all' ? undefined : query.status,
+    type: query.type === 'all' ? undefined : query.type,
+  } as any);
   const { create, loading: creating } = useCreateDataSource();
   const { update, loading: updating } = useUpdateDataSource();
   const { remove, loading: deleting } = useDeleteDataSource();

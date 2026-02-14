@@ -24,6 +24,8 @@ export const API_ENDPOINTS = {
 
   ADMIN_PERMISSIONS: `${API_BASE_PATH}/admin/permissions`,
 
+  PERMISSIONS_ME: `${API_BASE_PATH}/permissions/me`,
+
   DATA_SOURCES: `${API_BASE_PATH}/data-sources`,
   DATA_SOURCE_DETAIL: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}`,
   DATA_SOURCE_ACTIVATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/activate`,

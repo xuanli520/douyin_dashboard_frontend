@@ -146,8 +146,6 @@ interface WidgetItem {
   data?: WidgetData;
 }
 
-// --- WIDGETS 配置修改重点 ---
-// 根据您的要求，明确写出“xxx得分”以及各分项的得分标签
 const WIDGETS: WidgetItem[] = [
   { id: 'gauge-merchant', title: '商家体验分', type: 'gauge', data: { score: 100 } },
   { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 100 } },
