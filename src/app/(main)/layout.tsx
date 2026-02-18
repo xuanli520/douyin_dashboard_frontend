@@ -14,28 +14,14 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isEnterprise, isCyberpunk, isLoading } = useThemeStore();
+  const { appTheme, isHydrated } = useThemeStore();
 
-  // 等待主题加载完成，避免水合不匹配
-  if (isLoading) {
-    return (
-      <div className="flex h-screen bg-[#f8fafc] text-[#0f172a] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#e0f2fe]/30 via-[#f8fafc] to-[#f0f9ff] z-0 pointer-events-none" />
-        <div className="relative z-10 flex h-full">
-          <Sidebar />
-        </div>
-        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-          <Header />
-          <main className="flex-1 overflow-auto p-6">
-            {children}
-          </main>
-        </div>
-      </div>
-    );
+  if (!isHydrated) {
+    return <div className="flex h-screen bg-[#f8fafc]" />;
   }
 
   // 企业主题布局 - 简洁专业风格
-  if (isEnterprise()) {
+  if (appTheme === 'enterprise') {
     return (
       <div className="flex h-screen bg-[#f8fafc] text-[#0f172a] relative overflow-hidden">
         {/* 企业主题背景 - 简洁淡蓝渐变 */}

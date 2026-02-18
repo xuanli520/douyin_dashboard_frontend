@@ -6,15 +6,14 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Settings, Bell, Lock, Save, Moon, Sun, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { SettingSelect } from '@/app/components/ui/styled-select';
 import { SelectItem } from '@/app/components/ui/select';
 
 export default function SystemSettingsPage() {
-  const { isEnterprise, isCyberpunk, colorMode, setColorMode } = useThemeStore();
-  const [mounted, setMounted] = useState(false);
+  const { appTheme, colorMode, setColorMode, isHydrated } = useThemeStore();
   const [settings, setSettings] = useState({
     // 通知设置
     emailNotification: true,
@@ -29,16 +28,12 @@ export default function SystemSettingsPage() {
     timezone: 'Asia/Shanghai',
   });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const handleSave = () => {
     // TODO: 保存设置到后端
   };
 
   const Toggle = ({ checked, onChange }: { checked: boolean, onChange: (checked: boolean) => void }) => {
-    if (isEnterprise()) {
+    if (appTheme === 'enterprise') {
       // 企业主题样式
       return (
         <button 
@@ -69,12 +64,12 @@ export default function SystemSettingsPage() {
     );
   };
 
-  if (!mounted) {
+  if (!isHydrated) {
     return null;
   }
 
   // 企业主题样式
-  if (isEnterprise()) {
+  if (appTheme === 'enterprise') {
     return (
       <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] p-6">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-8">
@@ -164,11 +159,56 @@ export default function SystemSettingsPage() {
               </div>
             </div>
 
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Monitor size={18} className="text-[#0ea5e9]" />
+                <h2 className="text-lg font-medium text-[#1e3a5a]">外观设置</h2>
+              </div>
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <p className="text-sm font-medium text-[#1e3a5a] mb-4">界面模式</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setColorMode('light')}
+                    className={`flex flex-col items-center gap-3 p-4 rounded-lg border transition-all ${
+                      colorMode === 'light'
+                        ? 'bg-[#e0f2fe] border-[#7dd3fc] text-[#0ea5e9]'
+                        : 'bg-white border-slate-200 text-[#64748b] hover:bg-slate-50'
+                    }`}
+                  >
+                    <Sun size={22} />
+                    <span className="text-xs">浅色</span>
+                  </button>
+                  <button
+                    onClick={() => setColorMode('dark')}
+                    className={`flex flex-col items-center gap-3 p-4 rounded-lg border transition-all ${
+                      colorMode === 'dark'
+                        ? 'bg-[#e0f2fe] border-[#7dd3fc] text-[#0ea5e9]'
+                        : 'bg-white border-slate-200 text-[#64748b] hover:bg-slate-50'
+                    }`}
+                  >
+                    <Moon size={22} />
+                    <span className="text-xs">深色</span>
+                  </button>
+                  <button
+                    onClick={() => setColorMode('system')}
+                    className={`flex flex-col items-center gap-3 p-4 rounded-lg border transition-all ${
+                      colorMode === 'system'
+                        ? 'bg-[#e0f2fe] border-[#7dd3fc] text-[#0ea5e9]'
+                        : 'bg-white border-slate-200 text-[#64748b] hover:bg-slate-50'
+                    }`}
+                  >
+                    <Monitor size={22} />
+                    <span className="text-xs">自动</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* 提示信息 */}
             <div className="p-4 bg-[#e0f2fe] rounded-lg border border-[#bfdbfe]">
               <p className="text-sm text-[#1e3a5a]">
                 <span className="font-medium">提示：</span>
-                主题切换功能可通过点击页面Logo 5次来激活彩蛋主题
+                可在本页或罗盘页调整界面模式，自动模式会跟随系统主题
               </p>
             </div>
 
@@ -327,7 +367,7 @@ export default function SystemSettingsPage() {
           {/* 提示信息 */}
           <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
             <p className="text-sm text-cyan-400 font-mono">
-              提示: 点击Logo 5次可切换主题
+              提示: 可在本页或罗盘页调整界面模式，自动模式会跟随系统主题
             </p>
           </div>
 

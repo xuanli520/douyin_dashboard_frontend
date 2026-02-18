@@ -57,20 +57,12 @@ export function Sidebar() {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['system-management']);
-  const [isInitialized, setIsInitialized] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { currentUser, logout, isLoading } = useUserStore();
   const { isSuperuser, userPermissions, isLoading: permissionLoading } = usePermissionStore();
-  const { isEnterprise, isCyberpunk, isLoading: themeLoading } = useThemeStore();
+  const { appTheme, isHydrated } = useThemeStore();
   const { handleLogoClick } = useEasterEgg();
-
-  // 等待权限加载完成
-  useEffect(() => {
-    if (!permissionLoading) {
-      setIsInitialized(true);
-    }
-  }, [permissionLoading]);
 
   const toggleMenu = (menuId: string) => {
     setExpandedMenus(prev =>
@@ -93,7 +85,7 @@ export function Sidebar() {
 
   // 鼠标移出侧边栏时收起子菜单（但保持在子菜单内时不收起）- 仅赛博朋克主题
   useEffect(() => {
-    if (isEnterprise()) return; // 企业主题不需要此功能
+    if (appTheme === 'enterprise') return;
     
     function handleMouseLeave(event: MouseEvent) {
       const relatedTarget = event.relatedTarget as Node | null;
@@ -111,7 +103,7 @@ export function Sidebar() {
         sidebar.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [isEnterprise]);
+  }, [appTheme]);
 
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
@@ -134,7 +126,7 @@ export function Sidebar() {
   };
 
   // 等待权限和主题加载完成 - 使用固定的企业主题样式避免水合不匹配
-  if (permissionLoading || themeLoading) {
+  if (permissionLoading || !isHydrated) {
     return (
       <div
         ref={sidebarRef}
@@ -146,7 +138,7 @@ export function Sidebar() {
   }
 
   // 企业主题侧边栏
-  if (isEnterprise()) {
+  if (appTheme === 'enterprise') {
     return (
       <div 
         ref={sidebarRef} 

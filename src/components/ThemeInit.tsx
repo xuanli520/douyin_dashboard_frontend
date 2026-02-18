@@ -1,19 +1,30 @@
-/**
- * 主题初始化组件
- * 在应用启动时初始化主题设置
- */
-
 'use client';
 
 import { useEffect } from 'react';
-import { initializeTheme } from '@/stores/themeStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 export function ThemeInit() {
+  const { colorMode } = useThemeStore();
+
   useEffect(() => {
-    // 初始化主题
-    initializeTheme();
+    void useThemeStore.persist.rehydrate();
   }, []);
 
-  // 这个组件不渲染任何内容
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (colorMode !== 'system') return;
+
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      const state = useThemeStore.getState();
+      state.setAppTheme(state.appTheme);
+    };
+
+    media.addEventListener('change', handler);
+    return () => {
+      media.removeEventListener('change', handler);
+    };
+  }, [colorMode]);
+
   return null;
 }

@@ -1,56 +1,39 @@
-/**
- * 双主题状态管理
- * 支持企业主题(默认)和赛博朋克彩蛋主题
- * 企业主题：只有亮色模式
- * 赛博朋克主题：支持暗/亮模式切换
- */
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type AppTheme = 'enterprise' | 'cyberpunk';
+export type AppTheme = 'enterprise' | 'cyberpunk';
+export type ColorMode = 'light' | 'dark' | 'system';
 
 interface ThemeState {
-  // 主题类型
   appTheme: AppTheme;
-  // 暗/亮模式（仅赛博朋克主题有效）
-  colorMode: 'light' | 'dark' | 'system';
-  // 是否正在加载（等待持久化恢复）
+  colorMode: ColorMode;
+  isHydrated: boolean;
   isLoading: boolean;
-
-  // Actions
+  setHydrated: (hydrated: boolean) => void;
   setAppTheme: (theme: AppTheme) => void;
-  setColorMode: (mode: 'light' | 'dark' | 'system') => void;
+  setColorMode: (mode: ColorMode) => void;
   toggleEasterEgg: () => void;
   isEnterprise: () => boolean;
   isCyberpunk: () => boolean;
 }
 
-// 应用主题到DOM
-const applyThemeToDOM = (appTheme: AppTheme, colorMode: 'light' | 'dark' | 'system') => {
-  if (typeof window === 'undefined') return;
-  
-  const root = document.documentElement;
-  
-  // 设置应用主题属性
-  root.setAttribute('data-theme', appTheme);
-  
-  // 处理暗/亮模式
-  if (appTheme === 'enterprise') {
-    // 企业主题：强制亮色模式
-    root.classList.remove('dark');
-  } else {
-    // 赛博朋克主题：根据colorMode设置
-    let isDark = false;
-    
-    if (colorMode === 'system') {
-      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    } else {
-      isDark = colorMode === 'dark';
+const resolveColorMode = (colorMode: ColorMode) => {
+  if (colorMode === 'system') {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    
-    root.classList.toggle('dark', isDark);
+    return 'light';
   }
+  return colorMode;
+};
+
+const applyThemeToDOM = (appTheme: AppTheme, colorMode: ColorMode) => {
+  if (typeof window === 'undefined') return;
+
+  const root = document.documentElement;
+  root.setAttribute('data-theme', appTheme);
+  const resolved = resolveColorMode(colorMode);
+  root.classList.toggle('dark', resolved === 'dark');
 };
 
 export const useThemeStore = create<ThemeState>()(
@@ -58,7 +41,9 @@ export const useThemeStore = create<ThemeState>()(
     (set, get) => ({
       appTheme: 'enterprise',
       colorMode: 'system',
+      isHydrated: false,
       isLoading: true,
+      setHydrated: (hydrated) => set({ isHydrated: hydrated, isLoading: !hydrated }),
 
       setAppTheme: (appTheme) => {
         set({ appTheme });
@@ -82,34 +67,17 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'app-theme-storage',
-      onRehydrateStorage: () => (state) => {
-        // 持久化恢复后应用主题
-        if (state) {
-          state.isLoading = false;
-          applyThemeToDOM(state.appTheme, state.colorMode);
-        }
+      partialize: (state) => ({ appTheme: state.appTheme, colorMode: state.colorMode }),
+      onRehydrateStorage: () => () => {
+        const state = useThemeStore.getState();
+        state.setHydrated(true);
+        applyThemeToDOM(state.appTheme, state.colorMode);
       },
     }
   )
 );
 
-// 初始化主题（用于应用启动时）
 export const initializeTheme = () => {
-  if (typeof window === 'undefined') return;
-  
-  const stored = localStorage.getItem('app-theme-storage');
-  if (stored) {
-    try {
-      const { state } = JSON.parse(stored);
-      if (state) {
-        applyThemeToDOM(state.appTheme, state.colorMode);
-      }
-    } catch {
-      // 解析失败时使用默认主题
-      applyThemeToDOM('enterprise', 'system');
-    }
-  } else {
-    // 首次访问，使用默认企业主题
-    applyThemeToDOM('enterprise', 'system');
-  }
+  const state = useThemeStore.getState();
+  applyThemeToDOM(state.appTheme, state.colorMode);
 };

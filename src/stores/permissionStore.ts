@@ -35,7 +35,7 @@ interface PermissionActions {
 
 type PermissionStore = PermissionState & PermissionActions;
 
-const migratePermissionStore = (persistState: unknown, version: number): PermissionState => {
+export const migratePermissionStore = (persistState: unknown, version: number): PermissionState => {
   const state = persistState as Partial<PermissionState>;
 
   if (version < 2) {

@@ -34,11 +34,11 @@ const menuItems = [
 export function Header() {
   const pathname = usePathname();
   const currentItem = menuItems.find(item => pathname.startsWith(item.href));
-  const { isEnterprise, isCyberpunk, isLoading } = useThemeStore();
+  const { appTheme, isHydrated } = useThemeStore();
   const { handleLogoClick, isTriggered } = useEasterEgg();
 
   // 等待主题加载完成，避免水合不匹配
-  if (isLoading) {
+  if (!isHydrated) {
     return (
       <header className="h-[80px] px-8 flex items-center justify-between z-40 bg-transparent">
         <div className="flex items-center gap-4">
@@ -64,7 +64,7 @@ export function Header() {
   }
 
   // 企业主题样式
-  if (isEnterprise()) {
+  if (appTheme === 'enterprise') {
     return (
       <header className="header-enterprise h-[80px] px-8 flex items-center justify-between z-40 bg-transparent">
         {/* Logo and Page Title */}

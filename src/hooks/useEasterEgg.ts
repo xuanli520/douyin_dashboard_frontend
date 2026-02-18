@@ -44,20 +44,6 @@ export function useEasterEgg(): UseEasterEggReturn {
         setIsTriggered(true);
         setClickCount(0);
         
-        // 显示提示
-        const newTheme = appTheme === 'enterprise' ? 'cyberpunk' : 'enterprise';
-        if (newTheme === 'cyberpunk') {
-          toast.success('🎮 发现隐藏主题！赛博朋克风格已激活', {
-            description: '点击Logo 5次可切换回企业主题',
-            duration: 4000,
-          });
-        } else {
-          toast.info('🏢 已切换回企业主题', {
-            description: '点击Logo 5次可再次激活彩蛋主题',
-            duration: 3000,
-          });
-        }
-        
         // 3秒后重置触发状态
         setTimeout(() => {
           setIsTriggered(false);
