@@ -3,6 +3,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Search, Download, Calendar, MapPin, Monitor, Shield, AlertCircle, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
+import { CyberInput } from '@/components/ui/cyber/CyberInput';
+import { CyberCard } from '@/components/ui/cyber/CyberCard';
 import {
   Select,
   SelectContent,
@@ -191,321 +193,318 @@ export default function LoginAuditPage() {
     return pages;
   }, [currentPage, totalPages]);
 
+  // ─── Loading ────────────────────────────────────────────────────────────────
   if (loading && safeItems.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-slate-500 dark:text-slate-400">加载中...</p>
-          </div>
+      <div className="flex items-center justify-center h-64 bg-white dark:bg-slate-900">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[13px] text-slate-400">加载中...</p>
         </div>
       </div>
     );
   }
 
+  // ─── Error ──────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <AlertCircle size={48} className="text-rose-500 mx-auto mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 mb-4">加载失败: {error.message}</p>
-            <CyberButton onClick={refetch}>
-              重试
-            </CyberButton>
-          </div>
+      <div className="flex items-center justify-center h-64 bg-white dark:bg-slate-900">
+        <div className="text-center">
+          <AlertCircle size={36} className="text-red-500 mx-auto mb-3" />
+          <p className="text-[13px] text-slate-500 mb-4">加载失败：{error.message}</p>
+          <CyberButton onClick={refetch}>重试</CyberButton>
         </div>
       </div>
     );
   }
 
+  // ─── Main ───────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-lg p-5 border border-slate-200 dark:border-slate-700 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-cyan-400/5 dark:bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <p className="text-sm text-slate-600 dark:text-cyan-400 font-medium tracking-wide">日志条数</p>
-              <p className="text-3xl font-bold text-slate-800 dark:text-cyan-200 mt-2 font-mono">{totalCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-lg flex items-center justify-center border border-cyan-200 dark:border-cyan-500/30">
-              <Shield className="text-cyan-600 dark:text-cyan-400" size={24} />
-            </div>
-          </div>
-        </div>
+    <div className="space-y-3 min-h-screen p-4">
 
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-lg p-5 border border-slate-200 dark:border-rose-500/30 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-rose-400/5 dark:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <p className="text-sm text-slate-600 dark:text-rose-400 font-medium tracking-wide">失败次数</p>
-              <p className="text-3xl font-bold text-slate-800 dark:text-rose-200 mt-2 font-mono">{failureCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-rose-500/10 dark:bg-rose-500/20 rounded-lg flex items-center justify-center border border-rose-200 dark:border-rose-500/30">
-              <XCircle className="text-rose-600 dark:text-rose-400" size={24} />
-            </div>
+      {/* ── 统计卡片 ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* 日志条数 */}
+        <CyberCard className="px-5 py-4 flex items-center justify-between hover:border-blue-400 dark:hover:border-blue-500 transition-colors rounded-sm">
+          <div>
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 mb-1 tracking-wide">总日志条数</p>
+            <p className="text-[28px] font-semibold text-slate-800 dark:text-white leading-none font-mono">{totalCount}</p>
           </div>
-        </div>
+          <div className="w-10 h-10 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <Shield size={18} className="text-blue-600 dark:text-blue-400" />
+          </div>
+        </CyberCard>
 
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-lg p-5 border border-slate-200 dark:border-purple-500/30 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-purple-400/5 dark:bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <p className="text-sm text-slate-600 dark:text-purple-400 font-medium tracking-wide">异常次数</p>
-              <p className="text-3xl font-bold text-slate-800 dark:text-purple-200 mt-2 font-mono">{abnormalCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-500/30">
-              <AlertCircle className="text-purple-600 dark:text-purple-400" size={24} />
-            </div>
+        {/* 成功次数 */}
+        <CyberCard className="px-5 py-4 flex items-center justify-between hover:border-green-400 dark:hover:border-green-500 transition-colors rounded-sm">
+          <div>
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 mb-1 tracking-wide">成功次数</p>
+            <p className="text-[28px] font-semibold text-green-600 dark:text-green-400 leading-none font-mono">{successCount}</p>
           </div>
-        </div>
+          <div className="w-10 h-10 rounded bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
+          </div>
+        </CyberCard>
 
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-lg p-5 border border-slate-200 dark:border-emerald-500/30 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-emerald-400/5 dark:bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <p className="text-sm text-slate-600 dark:text-emerald-400 font-medium tracking-wide">成功次数</p>
-              <p className="text-3xl font-bold text-slate-800 dark:text-emerald-200 mt-2 font-mono">{successCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-200 dark:border-emerald-500/30">
-              <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={24} />
-            </div>
+        {/* 失败次数 */}
+        <CyberCard className="px-5 py-4 flex items-center justify-between hover:border-red-400 dark:hover:border-red-500 transition-colors rounded-sm">
+          <div>
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 mb-1 tracking-wide">失败次数</p>
+            <p className="text-[28px] font-semibold text-red-500 dark:text-red-400 leading-none font-mono">{failureCount}</p>
           </div>
-        </div>
+          <div className="w-10 h-10 rounded bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <XCircle size={18} className="text-red-500 dark:text-red-400" />
+          </div>
+        </CyberCard>
+
+        {/* 异常次数 */}
+        <CyberCard className="px-5 py-4 flex items-center justify-between hover:border-orange-400 dark:hover:border-orange-500 transition-colors rounded-sm">
+          <div>
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 mb-1 tracking-wide">异常次数</p>
+            <p className="text-[28px] font-semibold text-orange-500 dark:text-orange-400 leading-none font-mono">{abnormalCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+            <AlertCircle size={18} className="text-orange-500 dark:text-orange-400" />
+          </div>
+        </CyberCard>
       </div>
 
-      <div className="rounded-md border border-slate-200 bg-white dark:rounded-none dark:border-0 dark:bg-slate-950/30 dark:backdrop-blur-sm">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-            <CyberButton onClick={handleExport} className="shadow-lg shadow-cyan-500/20 group">
-              <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              导出日志
-            </CyberButton>
-          </div>
+      {/* ── 主内容区 ── */}
+      <div className="overflow-hidden rounded-sm">
 
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
-              <input
+        {/* 筛选栏 */}
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* 左侧：搜索 + 筛选器 */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* 搜索框 */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <CyberInput
                 type="text"
-                placeholder="搜索IP地址..."
+                placeholder="搜索 IP 地址..."
                 value={uiFilters.search || ''}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
+                className="pl-9 pr-3 h-8 w-52 text-[13px]"
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 w-full md:w-auto">
-              <Select
-                value={uiFilters.status || 'all'}
-                onValueChange={(value) => handleStatusChange(value as 'all' | 'success' | 'failure')}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="全部状态" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部状态</SelectItem>
-                  <SelectItem value="success">成功</SelectItem>
-                  <SelectItem value="failure">失败</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* 状态 */}
+            <Select
+              value={uiFilters.status || 'all'}
+              onValueChange={(value) => handleStatusChange(value as 'all' | 'success' | 'failure')}
+            >
+              <SelectTrigger className="h-8 w-28 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                <SelectValue placeholder="全部状态" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部状态</SelectItem>
+                <SelectItem value="success">成功</SelectItem>
+                <SelectItem value="failure">失败</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Select
-                value={uiFilters.event_type || 'all'}
-                onValueChange={(value) => handleEventTypeChange(value)}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="全部事件" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部事件</SelectItem>
-                  <SelectItem value="login">登录</SelectItem>
-                  <SelectItem value="logout">登出</SelectItem>
-                  <SelectItem value="refresh">刷新</SelectItem>
-                  <SelectItem value="register">注册</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* 事件类型 */}
+            <Select
+              value={uiFilters.event_type || 'all'}
+              onValueChange={(value) => handleEventTypeChange(value)}
+            >
+              <SelectTrigger className="h-8 w-28 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                <SelectValue placeholder="全部事件" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部事件</SelectItem>
+                <SelectItem value="login">登录</SelectItem>
+                <SelectItem value="logout">登出</SelectItem>
+                <SelectItem value="refresh">刷新</SelectItem>
+                <SelectItem value="register">注册</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Select
-                value={uiFilters.account_type || 'all'}
-                onValueChange={(value) => handleAccountTypeChange(value)}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="全部账户类型" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部账户类型</SelectItem>
-                  <SelectItem value="admin">管理员</SelectItem>
-                  <SelectItem value="operator">运营</SelectItem>
-                  <SelectItem value="analyst">分析师</SelectItem>
-                  <SelectItem value="api">API账号</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 账户类型 */}
+            <Select
+              value={uiFilters.account_type || 'all'}
+              onValueChange={(value) => handleAccountTypeChange(value)}
+            >
+              <SelectTrigger className="h-8 w-32 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                <SelectValue placeholder="全部账户类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部账户类型</SelectItem>
+                <SelectItem value="admin">管理员</SelectItem>
+                <SelectItem value="operator">运营</SelectItem>
+                <SelectItem value="analyst">分析师</SelectItem>
+                <SelectItem value="api">API账号</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* 右侧：导出 */}
+          <CyberButton onClick={handleExport} className="h-8 text-[13px] px-3 flex items-center gap-1.5 shrink-0">
+            <Download size={14} />
+            导出日志
+          </CyberButton>
         </div>
 
-        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white dark:rounded-none dark:border-0 dark:bg-slate-950/30 dark:backdrop-blur-sm">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/80 dark:border-slate-800">
-              <tr className="hover:bg-transparent border-slate-200 dark:border-slate-800">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  用户信息
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  时间
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  来源位置
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  事件类型
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  状态
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider h-12 dark:text-cyan-500/60 dark:font-mono dark:tracking-widest">
-                  操作
-                </th>
+        {/* 表格 */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                {['用户信息', '登录时间', '来源位置', '事件类型', '状态', '操作'].map((col) => (
+                  <th
+                    key={col}
+                    className="px-4 py-3 text-left text-[12px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap"
+                  >
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+
+            <tbody>
               {safeItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center border-slate-100 dark:border-slate-800">
-                    <div className="flex flex-col items-center gap-3">
-                      <AlertCircle size={48} className="text-gray-300 dark:text-slate-600" />
-                      <div>
-                        <p className="text-gray-500 dark:text-slate-400 font-medium">暂无符合条件的审计日志</p>
-                        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">请尝试调整筛选条件</p>
+                  <td colSpan={6} className="px-4 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <AlertCircle size={22} className="text-slate-300 dark:text-slate-600" />
                       </div>
+                      <p className="text-[13px] text-slate-400">暂无符合条件的审计日志</p>
+                      <p className="text-[12px] text-slate-300 dark:text-slate-600">请尝试调整筛选条件</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 safeItems.map((log) => (
                   <React.Fragment key={log.id}>
+                    {/* 主行 */}
                     <tr
-                      className={`group transition-all duration-200 cursor-pointer border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-cyan-950/20 dark:hover:shadow-[inset_2px_0_0_0_rgba(34,211,238,0.5)] ${
-                        expandedRow === log.id
-                          ? 'bg-slate-100 dark:bg-cyan-950/30'
-                          : ''
-                      }`}
+                      className={`border-b border-slate-100 dark:border-slate-800 cursor-pointer transition-colors duration-100
+                        hover:bg-blue-50/60 dark:hover:bg-blue-500/5
+                        ${expandedRow === log.id ? 'bg-blue-50/40 dark:bg-blue-500/5' : ''}`}
                       onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
                     >
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
+                      {/* 用户信息 */}
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm ${
-                            log.account_type === 'admin' ? 'bg-purple-500 dark:bg-purple-600' :
-                            log.account_type === 'operator' ? 'bg-blue-500 dark:bg-blue-600' :
-                            log.account_type === 'analyst' ? 'bg-emerald-500 dark:bg-emerald-600' :
-                            'bg-gray-500 dark:bg-slate-600'
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-semibold shrink-0 ${
+                            log.account_type === 'admin' ? 'bg-purple-500' :
+                            log.account_type === 'operator' ? 'bg-blue-500' :
+                            log.account_type === 'analyst' ? 'bg-emerald-500' :
+                            'bg-slate-400'
                           }`}>
-                            {log.username ? String(log.username).charAt(0) : '?'}
+                            {log.username ? String(log.username).charAt(0).toUpperCase() : '?'}
                           </div>
-                          <div>
-                            <div className="text-sm font-medium text-slate-900 dark:text-slate-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">{String(log.username || 'Unknown')}</div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{String(log.user_id || '-')}</div>
-                            <div className="text-xs mt-0.5">
-                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium border ${
-                                log.account_type === 'admin' || log.account_type === 'superadmin' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20' :
-                                log.account_type === 'operator' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20' :
-                                log.account_type === 'analyst' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20' :
-                                'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                              }`}>
-                                {getRoleDisplayName(log.account_type as string | null | undefined)}
-                              </span>
-                            </div>
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-medium text-slate-800 dark:text-slate-200 truncate">{String(log.username || 'Unknown')}</div>
+                            <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">{String(log.user_id || '-')}</div>
+                            <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium leading-none ${
+                              log.account_type === 'admin' || log.account_type === 'superadmin'
+                                ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400'
+                                : log.account_type === 'operator'
+                                ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400'
+                                : log.account_type === 'analyst'
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                            }`}>
+                              {getRoleDisplayName(log.account_type as string | null | undefined)}
+                            </span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
-                          <span className="font-mono text-xs">{formatTimestamp(log.timestamp)}</span>
+
+                      {/* 时间 */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-400">
+                          <Calendar size={12} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                          <span className="font-mono text-[12px]">{formatTimestamp(log.timestamp)}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin size={14} className="text-slate-400 dark:text-slate-500" />
-                            {log.geo_location || '-'}
-                          </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-500 font-mono">{log.source_ip || '-'}</div>
+
+                      {/* 来源位置 */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-[13px] text-slate-700 dark:text-slate-300">
+                          <MapPin size={12} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                          <span>{log.geo_location || '-'}</span>
                         </div>
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5 pl-[18px]">{log.source_ip || '-'}</div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium text-slate-900 dark:text-slate-200">{log.event_type || '-'}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">{getEventTypeLabel(log.event_type as string | null | undefined)}</div>
-                        </div>
+
+                      {/* 事件类型 */}
+                      <td className="px-4 py-3">
+                        <div className="text-[13px] text-slate-700 dark:text-slate-300">{getEventTypeLabel(log.event_type as string | null | undefined)}</div>
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">{log.event_type || '-'}</div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
+
+                      {/* 状态 */}
+                      <td className="px-4 py-3">
                         {normalizeStatus(log.status) === 'success' ? (
-                          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/50 dark:shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                            <CheckCircle size={14} className="text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-sm font-medium">成功</span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[12px] font-medium bg-green-50 text-green-600 border border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20">
+                            <CheckCircle size={12} />
+                            成功
+                          </span>
                         ) : (
-                          <div className="space-y-1">
-                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/50 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]">
-                              <XCircle size={14} className="text-red-600 dark:text-rose-400" />
-                              <span className="text-sm font-medium">失败</span>
-                            </div>
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[12px] font-medium bg-red-50 text-red-500 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                              <XCircle size={12} />
+                              失败
+                            </span>
                             {log.error_code && (
-                              <div className="text-xs text-rose-600 dark:text-rose-300/80 font-mono">
+                              <div className="text-[11px] text-red-400 dark:text-red-400/70 font-mono mt-1">
                                 {log.error_code}: {log.reason}
                               </div>
                             )}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-normal dark:font-light">
+
+                      {/* 操作 */}
+                      <td className="px-4 py-3">
                         <button
-                          className={`flex items-center gap-1 text-sm font-medium transition-colors ${
+                          className={`inline-flex items-center gap-1 text-[13px] transition-colors ${
                             expandedRow === log.id
-                              ? 'text-cyan-700 dark:text-cyan-300'
-                              : 'text-cyan-600 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-300'
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                           }`}
                         >
                           详情
                           <ChevronDown
-                            size={16}
+                            size={14}
                             className={`transition-transform duration-200 ${expandedRow === log.id ? 'rotate-180' : ''}`}
                           />
                         </button>
                       </td>
                     </tr>
 
+                    {/* 展开行 */}
                     {expandedRow === log.id && (
-                      <tr className="bg-slate-50 dark:bg-slate-900/30 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <td colSpan={6} className="px-6 py-6 border-b border-slate-200 dark:border-slate-800 relative">
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 dark:bg-cyan-500" />
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                              <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-200 flex items-center gap-2">
-                                <Monitor size={16} className="text-cyan-600 dark:text-cyan-400" />
-                                设备信息
-                              </h4>
-                              <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                                <div className="flex flex-col gap-1 text-sm group/row hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1 rounded transition-colors">
-                                  <span className="text-slate-600 dark:text-slate-400">User Agent:</span>
-                                  <span className="text-slate-900 dark:text-slate-200 font-mono text-xs break-all leading-relaxed">{log.user_agent || '-'}</span>
+                      <tr className="bg-slate-50/80 dark:bg-slate-900">
+                        <td colSpan={6} className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+                          <div className="flex items-stretch gap-0 border-l-2 border-blue-500 pl-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+                              {/* 设备信息 */}
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Monitor size={14} className="text-blue-500" />
+                                  <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">设备信息</span>
+                                </div>
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-3">
+                                  <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1">User Agent</div>
+                                  <div className="text-[12px] text-slate-700 dark:text-slate-300 font-mono break-all leading-relaxed">{log.user_agent || '-'}</div>
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="space-y-4">
-                              <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-200 flex items-center gap-2">
-                                <Shield size={16} className="text-purple-600 dark:text-purple-400" />
-                                会话追踪
-                              </h4>
-                              <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                                <div className="flex justify-between text-sm group/row hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1 rounded transition-colors">
-                                  <span className="text-slate-600 dark:text-slate-400">原始时间戳:</span>
-                                  <span className="text-slate-900 dark:text-slate-200 font-mono text-xs">{log.timestamp || '-'}</span>
+                              {/* 会话追踪 */}
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Shield size={14} className="text-purple-500" />
+                                  <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">会话追踪</span>
+                                </div>
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-3 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] text-slate-400 dark:text-slate-500">原始时间戳</span>
+                                    <span className="text-[12px] text-slate-700 dark:text-slate-300 font-mono">{log.timestamp || '-'}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -520,7 +519,9 @@ export default function LoginAuditPage() {
           </table>
         </div>
 
+        {/* 分页栏 */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+          {/* 左侧：条数 + 每页 */}
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
             <span>共 {totalCount} 条</span>
             <div className="flex items-center gap-1">
@@ -544,6 +545,7 @@ export default function LoginAuditPage() {
             </div>
           </div>
 
+          {/* 右侧：分页 */}
           {totalPages > 0 && (
             <Pagination className="mx-0">
               <PaginationContent className="gap-1">
