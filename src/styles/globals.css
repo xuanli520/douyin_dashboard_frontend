@@ -91,7 +91,18 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
   }
+}
+
+/* Enterprise Theme Font Override */
+:root[data-theme="enterprise"] body {
+  font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
+}
+
+/* Cyberpunk Theme Font Override */
+:root[data-theme="cyberpunk"] body {
+  font-family: 'Microsoft YaHei', 'PingFang SC', monospace;
 }
 
 /* --- 扩大 react-grid-layout resize handle 判定范围 --- */
