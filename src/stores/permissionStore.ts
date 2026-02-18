@@ -73,7 +73,7 @@ export const usePermissionStore = create<PermissionStore>()(
 
           set({ isLoading: true, error: null });
           try {
-            const response = await permissionService.getPermissions(1, 1000);
+            const response = await permissionService.getPermissions(1, 100);
             set({
               permissions: response.items || [],
               lastFetched: Date.now(),

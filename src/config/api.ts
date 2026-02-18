@@ -35,6 +35,8 @@ export const API_ENDPOINTS = {
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,
   SCRAPING_RULE_DETAIL: (rule_id: number) => `${API_BASE_PATH}/scraping-rules/${rule_id}`,
+
+  AUDIT_LOGS: `${API_BASE_PATH}/audit/logs`,
 } as const;
 
 export const SUCCESS_CODES = [200, 201, 202, 203, 204, 205, 206, 207, 208, 209] as const;
