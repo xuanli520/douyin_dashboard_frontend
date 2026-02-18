@@ -8,7 +8,7 @@ export interface PaginatedResponse<T> {
   results: T[];
   total: number;
   page: number;
-  page_size: number;
+  size: number;
   total_pages: number;
 }
 
@@ -16,13 +16,13 @@ export interface PaginatedData<T> {
   results: T[];
   total: number;
   page: number;
-  page_size: number;
+  size: number;
   total_pages: number;
 }
 
 export interface PageMeta {
   page: number;
-  page_size: number;
+  size: number;
   total: number;
   total_pages: number;
 }
