@@ -92,7 +92,7 @@ describe('dataSourceApi', () => {
     it('should create data source', async () => {
       const mockData = {
         name: 'New Source',
-        type: 'douyin_api' as const,
+        type: 'DOUYIN_API' as const,
         config: { apiKey: 'test' },
       };
       const mockResponse = {
