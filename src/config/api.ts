@@ -26,6 +26,18 @@ export const API_ENDPOINTS = {
 
   PERMISSIONS_ME: `${API_BASE_PATH}/permissions/me`,
 
+  ANALYSIS_OVERVIEW: `${API_BASE_PATH}/analysis`,
+  ALERTS_LIST: `${API_BASE_PATH}/alerts`,
+  REPORTS_OVERVIEW: `${API_BASE_PATH}/reports`,
+  SCHEDULES_LIST: `${API_BASE_PATH}/schedules`,
+  SHOPS_LIST: `${API_BASE_PATH}/shops`,
+  SHOP_SCORE: (shop_id: number) => `${API_BASE_PATH}/shops/${shop_id}/score`,
+  METRIC_DETAIL: (metric_type: string) => `${API_BASE_PATH}/metrics/${metric_type}`,
+  TASKS_LIST: `${API_BASE_PATH}/tasks`,
+  TASK_RUN: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/run`,
+  TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
+  TASK_STOP: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/stop`,
+
   DATA_SOURCES: `${API_BASE_PATH}/data-sources`,
   DATA_SOURCE_DETAIL: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}`,
   DATA_SOURCE_ACTIVATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/activate`,

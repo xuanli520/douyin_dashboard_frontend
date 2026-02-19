@@ -76,7 +76,9 @@ describe('permissionStore', () => {
     expect(result.current.checkRole('editor')).toBe(false);
   });
 
-  it('should migrate from v1 to v2', () => {
+  it('should migrate from v1 to v2', async () => {
+    const { migratePermissionStore } = await import('../permissionStore');
+
     const migratedState = {
       permissions: [],
       allRoles: [],
@@ -90,12 +92,11 @@ describe('permissionStore', () => {
       _version: 1,
     };
 
-    const { migrate } = require('../permissionStore');
-    const migratePermissionStore = migrate as (state: unknown, version: number) => unknown;
-    const result = migratePermissionStore(migratedState, 1);
-    
-    expect((result as { userRoles: unknown[] }).userRoles).toEqual([]);
-    expect((result as { resourcePermissions: unknown[] }).resourcePermissions).toEqual([]);
-    expect((result as { lastFetched: unknown }).lastFetched).toBeNull();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = migratePermissionStore(migratedState as any, 1);
+
+    expect(result.userRoles).toEqual([]);
+    expect(result.resourcePermissions).toEqual([]);
+    expect(result.lastFetched).toBeNull();
   });
 });

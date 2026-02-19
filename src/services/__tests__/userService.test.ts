@@ -34,13 +34,8 @@ vi.mock('@/config/api', () => ({
 
 describe('wrappedRequest', () => {
   it('should throw error for invalid HTTP method', async () => {
-    const { authGet } = await import('@/lib/api-client');
     const { login } = await import('../userService');
-    
-    // The wrappedRequest is not exported, but we can test it indirectly
-    // by trying to pass an invalid method through other means
-    
-    // First let's verify the module loads correctly
+
     expect(typeof login).toBe('function');
   });
 });
