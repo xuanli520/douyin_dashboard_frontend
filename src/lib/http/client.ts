@@ -237,6 +237,7 @@ export class HttpClient {
 export const httpClient = new HttpClient();
 
 // 添加默认拦截器
-import { authInterceptor, tokenRefreshInterceptor } from './interceptors';
+import { authInterceptor, endpointStatusInterceptor, tokenRefreshInterceptor } from './interceptors';
 httpClient.addRequestInterceptor(authInterceptor);
 httpClient.addResponseInterceptor(tokenRefreshInterceptor);
+httpClient.addResponseInterceptor(endpointStatusInterceptor);

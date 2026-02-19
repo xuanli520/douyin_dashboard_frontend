@@ -3,3 +3,5 @@
  */
 
 export { useEasterEgg } from './useEasterEgg';
+export { useApiError } from './useApiError';
+export { useEndpointStatus } from './useEndpointStatus';

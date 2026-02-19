@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "start:standalone": "node server.js",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
