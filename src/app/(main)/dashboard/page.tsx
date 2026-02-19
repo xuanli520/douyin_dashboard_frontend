@@ -13,14 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { SHOP_OPTIONS } from '@/data/shops';
 import CompassWidget from '@/components/dashboard/CompassWidget';
-import ScoreGauge from '@/components/dashboard/ScoreGauge';
 import MetricCard from '@/components/dashboard/MetricCard';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
-import KPIWidget from '@/components/dashboard/KPIWidget';
-import TrendChartWidget from '@/components/dashboard/TrendChartWidget';
-import ChannelPieWidget from '@/components/dashboard/ChannelPieWidget';
-import RiskAlertsWidget from '@/components/dashboard/RiskAlertsWidget';
-import TaskMonitorWidget from '@/components/dashboard/TaskMonitorWidget';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -40,86 +34,44 @@ const GlassPanel = ({ children, className = "", noBorder = false }: { children: 
 const LAYOUT_PRESETS: Record<string, any> = {
   standard: {
     lg: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 8, h: 8 },
-      { i: 'channel-pie', x: 8, y: 4, w: 4, h: 8 },
-      { i: 'risk-alerts', x: 0, y: 12, w: 6, h: 8 },
-      { i: 'task-monitor', x: 6, y: 12, w: 6, h: 8 },
-      { i: 'gauge-merchant', x: 0, y: 20, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 20, w: 3, h: 4 },
-      { i: 'card-merchant', x: 6, y: 20, w: 3, h: 6 },
-      { i: 'card-product', x: 9, y: 20, w: 3, h: 6 },
-      { i: 'card-logistics', x: 0, y: 26, w: 6, h: 8 },
-      { i: 'card-service', x: 6, y: 26, w: 6, h: 8 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 6, y: 0, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-merchant', x: 6, y: 8, w: 6, h: 8 },
     ],
     md: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
-      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
-      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
-      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
-      { i: 'gauge-merchant', x: 0, y: 26, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 26, w: 3, h: 4 },
-      { i: 'card-merchant', x: 0, y: 30, w: 6, h: 6 },
-      { i: 'card-product', x: 0, y: 36, w: 6, h: 6 },
-      { i: 'card-logistics', x: 0, y: 42, w: 6, h: 6 },
-      { i: 'card-service', x: 0, y: 48, w: 6, h: 6 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 16, w: 6, h: 8 },
+      { i: 'card-merchant', x: 0, y: 24, w: 6, h: 8 },
     ]
   },
-  focus: { 
+  focus: {
     lg: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 8, h: 8 },
-      { i: 'channel-pie', x: 8, y: 4, w: 4, h: 8 },
-      { i: 'risk-alerts', x: 0, y: 12, w: 6, h: 8 },
-      { i: 'task-monitor', x: 6, y: 12, w: 6, h: 8 },
-      { i: 'gauge-merchant', x: 0, y: 20, w: 4, h: 4 },
-      { i: 'gauge-product', x: 4, y: 20, w: 4, h: 4 },
-      { i: 'card-logistics', x: 8, y: 20, w: 4, h: 4 },
-      { i: 'card-merchant', x: 0, y: 24, w: 4, h: 8 },
-      { i: 'card-product', x: 4, y: 24, w: 4, h: 8 },
-      { i: 'card-service', x: 8, y: 24, w: 4, h: 8 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 6, y: 0, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-merchant', x: 6, y: 8, w: 6, h: 8 },
     ],
     md: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
-      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
-      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
-      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
-      { i: 'gauge-merchant', x: 0, y: 26, w: 2, h: 4 },
-      { i: 'gauge-product', x: 2, y: 26, w: 2, h: 4 },
-      { i: 'card-logistics', x: 4, y: 26, w: 2, h: 4 },
-      { i: 'card-merchant', x: 0, y: 30, w: 2, h: 8 },
-      { i: 'card-product', x: 2, y: 30, w: 2, h: 8 },
-      { i: 'card-service', x: 4, y: 30, w: 2, h: 8 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 16, w: 6, h: 8 },
+      { i: 'card-merchant', x: 0, y: 24, w: 6, h: 8 },
     ]
   },
-  grid: { 
+  grid: {
     lg: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 12, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
-      { i: 'channel-pie', x: 6, y: 4, w: 6, h: 8 },
-      { i: 'risk-alerts', x: 0, y: 12, w: 4, h: 8 },
-      { i: 'task-monitor', x: 4, y: 12, w: 4, h: 8 },
-      { i: 'gauge-merchant', x: 8, y: 12, w: 4, h: 4 },
-      { i: 'gauge-product', x: 8, y: 16, w: 4, h: 4 },
-      { i: 'card-merchant', x: 0, y: 20, w: 4, h: 6 },
-      { i: 'card-product', x: 4, y: 20, w: 4, h: 6 },
-      { i: 'card-logistics', x: 8, y: 20, w: 4, h: 6 },
-      { i: 'card-service', x: 0, y: 26, w: 12, h: 6 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 6, y: 0, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-merchant', x: 6, y: 8, w: 6, h: 8 },
     ],
     md: [
-      { i: 'kpi-cards', x: 0, y: 0, w: 6, h: 4 },
-      { i: 'trend-chart', x: 0, y: 4, w: 6, h: 8 },
-      { i: 'channel-pie', x: 0, y: 12, w: 6, h: 6 },
-      { i: 'risk-alerts', x: 0, y: 18, w: 3, h: 8 },
-      { i: 'task-monitor', x: 3, y: 18, w: 3, h: 8 },
-      { i: 'gauge-merchant', x: 0, y: 26, w: 3, h: 4 },
-      { i: 'gauge-product', x: 3, y: 26, w: 3, h: 4 },
-      { i: 'card-merchant', x: 0, y: 30, w: 2, h: 6 },
-      { i: 'card-product', x: 2, y: 30, w: 2, h: 6 },
-      { i: 'card-logistics', x: 4, y: 30, w: 2, h: 6 },
-      { i: 'card-service', x: 0, y: 36, w: 6, h: 6 },
+      { i: 'card-product', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'card-logistics', x: 0, y: 8, w: 6, h: 8 },
+      { i: 'card-service', x: 0, y: 16, w: 6, h: 8 },
+      { i: 'card-merchant', x: 0, y: 24, w: 6, h: 8 },
     ]
   }
 };
@@ -142,18 +94,11 @@ interface WidgetData {
 interface WidgetItem {
   id: string;
   title: string;
-  type: 'gauge' | 'kpi' | 'trend' | 'channel' | 'risk' | 'task' | 'metric';
+  type: 'metric';
   data?: WidgetData;
 }
 
 const WIDGETS: WidgetItem[] = [
-  { id: 'gauge-merchant', title: '商家体验分', type: 'gauge', data: { score: 100 } },
-  { id: 'gauge-product', title: '商品体验分', type: 'gauge', data: { score: 100 } },
-  { id: 'kpi-cards', title: '核心指标', type: 'kpi' },
-  { id: 'trend-chart', title: '运营趋势', type: 'trend' },
-  { id: 'channel-pie', title: '渠道分布', type: 'channel' },
-  { id: 'risk-alerts', title: '风险预警', type: 'risk' },
-  { id: 'task-monitor', title: '任务状态', type: 'task' },
   {
     id: 'card-product', title: '商品体验详情', type: 'metric',
     data: {
@@ -445,38 +390,22 @@ function DashboardPageContent() {
                       isEditMode ? 'drag-handle cursor-move bg-primary/5' : 'cursor-default'
                     }`}
                   >
-                    <div className={`flex-1 h-full overflow-hidden relative select-none ${widget.type === 'metric' ? 'p-0' : 'p-5'}`}>
-                      {widget.type === 'gauge' ? (
-                        <div className="flex flex-col items-center justify-center h-full">
-                           <ScoreGauge score={widget.data?.score ?? 0} label={widget.title} />
-                        </div>
-                      ) : widget.type === 'metric' ? (
-                        <MetricCard
-                          totalScore={widget.data?.totalScore ?? 0}
-                          totalLabel={widget.data?.totalLabel ?? ''}
-                          items={widget.data?.items ?? []}
-                          onItemClick={() => {
-                            const typeMap: Record<string, string> = {
-                              'card-product': 'product',
-                              'card-logistics': 'logistics',
-                              'card-service': 'service',
-                              'card-merchant': 'risk'
-                            };
-                            const type = typeMap[widget.id] || 'product';
-                            router.push(`/metric-detail?type=${type}`);
-                          }}
-                        />
-                      ) : widget.type === 'kpi' ? (
-                        <KPIWidget />
-                      ) : widget.type === 'trend' ? (
-                        <TrendChartWidget />
-                      ) : widget.type === 'channel' ? (
-                        <ChannelPieWidget />
-                      ) : widget.type === 'risk' ? (
-                        <RiskAlertsWidget />
-                      ) : widget.type === 'task' ? (
-                        <TaskMonitorWidget />
-                      ) : null}
+                    <div className="flex-1 h-full overflow-hidden relative select-none p-0">
+                      <MetricCard
+                        totalScore={widget.data?.totalScore ?? 0}
+                        totalLabel={widget.data?.totalLabel ?? ''}
+                        items={widget.data?.items ?? []}
+                        onItemClick={() => {
+                          const typeMap: Record<string, string> = {
+                            'card-product': 'product',
+                            'card-logistics': 'logistics',
+                            'card-service': 'service',
+                            'card-merchant': 'risk'
+                          };
+                          const type = typeMap[widget.id] || 'product';
+                          router.push(`/metric-detail?type=${type}`);
+                        }}
+                      />
                     </div>
                   </CompassWidget>
                 </GlassPanel>
