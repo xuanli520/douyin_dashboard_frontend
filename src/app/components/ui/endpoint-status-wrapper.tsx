@@ -35,7 +35,7 @@ export function EndpointStatusWrapper({
     return <>{children}</>;
   }
 
-  if (endpointStatus.isDevelopment || endpointStatus.isPlanned) {
+  if ((endpointStatus.isDevelopment && !endpointStatus.isMock) || endpointStatus.isPlanned) {
     return (
       <DevPlaceholder
         status={endpointStatus.status}

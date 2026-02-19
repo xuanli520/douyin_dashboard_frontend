@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { cn } from './utils';
 import { EndpointStatus } from '@/types/endpoint';
 import { DevModeBadge } from './dev-mode-badge';
+import { Wrench, ClipboardList, AlertTriangle } from 'lucide-react';
 
 interface DevPlaceholderProps {
   status: EndpointStatus;
@@ -17,17 +18,17 @@ interface DevPlaceholderProps {
   className?: string;
 }
 
-const STATUS_CONFIG: Record<EndpointStatus, { icon: string; bgColor: string }> = {
+const STATUS_CONFIG: Record<EndpointStatus, { icon: ReactNode; bgColor: string }> = {
   development: {
-    icon: '🔧',
+    icon: <Wrench size={40} className="text-blue-500" />,
     bgColor: 'bg-blue-50 dark:bg-blue-950',
   },
   planned: {
-    icon: '📋',
+    icon: <ClipboardList size={40} className="text-yellow-500" />,
     bgColor: 'bg-yellow-50 dark:bg-yellow-950',
   },
   deprecated: {
-    icon: '⚠️',
+    icon: <AlertTriangle size={40} className="text-red-500" />,
     bgColor: 'bg-red-50 dark:bg-red-950',
   },
 };
@@ -68,7 +69,7 @@ export function DevPlaceholder({
     >
       <div className="text-center space-y-4 max-w-md">
         <div className="flex items-center justify-center gap-2">
-          <span className="text-4xl">{displayIcon}</span>
+          <div>{displayIcon}</div>
           <DevModeBadge
             status={status}
             expectedRelease={expectedRelease}
