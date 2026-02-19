@@ -6,13 +6,13 @@ import { WidthProvider } from '@/components/dashboard/WidthProvider';
 // import { motion, AnimatePresence } from 'framer-motion'; 
 import { LayoutDashboard, Sun, Moon, LayoutTemplate } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import ShopCard from '@/components/compass/ShopCard';
 import { MOCK_SHOPS } from '@/data/shops';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { useThemeStore } from '@/stores/themeStore';
 
 // Import RGL styles
 import 'react-grid-layout/css/styles.css';
@@ -100,7 +100,7 @@ const DEFAULT_CARD_SIZE = { w: 4, h: 8 };
 
 export default function CompassPage() {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { appTheme, colorMode, setColorMode } = useThemeStore();
   const [mounted, setMounted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [layouts, setLayouts] = useState(LAYOUT_PRESETS['3']);
@@ -289,7 +289,7 @@ export default function CompassPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  onClick={() => setColorMode(appTheme === 'enterprise' || colorMode === 'dark' ? 'light' : 'dark')}
                   className="w-9 h-9 text-text-secondary hover:text-secondary hover:bg-secondary/10 rounded-full"
                 >
                   <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

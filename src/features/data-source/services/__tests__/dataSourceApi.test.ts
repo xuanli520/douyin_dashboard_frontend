@@ -21,6 +21,7 @@ vi.mock('@/config/api', () => ({
     DATA_SOURCE_DEACTIVATE: (id: number) => `/api/data-sources/${id}/deactivate`,
     DATA_SOURCE_RULES: (id: number) => `/api/data-sources/${id}/rules`,
     DATA_SOURCE_VALIDATE: (id: number) => `/api/data-sources/${id}/validate`,
+    DATA_SOURCE_SCRAPING_RULES: (id: number) => `/api/data-sources/${id}/scraping-rules`,
   },
 }));
 
@@ -91,7 +92,7 @@ describe('dataSourceApi', () => {
     it('should create data source', async () => {
       const mockData = {
         name: 'New Source',
-        type: 'douyin_api' as const,
+        type: 'DOUYIN_API' as const,
         config: { apiKey: 'test' },
       };
       const mockResponse = {
@@ -184,7 +185,7 @@ describe('dataSourceApi', () => {
 
       const result = await dataSourceApi.validate(1);
 
-      expect(result.success).toBe(true);
+      expect(result.valid).toBe(true);
       expect(result.message).toBe('Connection successful');
     });
   });

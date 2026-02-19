@@ -57,7 +57,7 @@ export default function MetricCard({
 
   return (
     <div className={cn(
-      "flex flex-col h-full w-full bg-white dark:bg-slate-900/60 dark:backdrop-blur-md rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(6,182,212,0.1)] border border-gray-100 dark:border-cyan-500/30 font-sans font-medium", 
+      "flex flex-col h-full w-full bg-white dark:bg-slate-900/60 dark:backdrop-blur-md rounded-lg p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(6,182,212,0.1)] border border-gray-100 dark:border-cyan-500/30 font-sans font-medium", 
       className
     )}>
       {/* 头部区域 */}
