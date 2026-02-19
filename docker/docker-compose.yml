@@ -5,8 +5,8 @@
 services:
   web:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     image: douyin-frontend:latest
     container_name: douyin-frontend
     ports:
