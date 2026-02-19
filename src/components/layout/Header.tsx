@@ -72,7 +72,7 @@ export function Header() {
           {/* Logo - 点击触发彩蛋 */}
           <button 
             onClick={handleLogoClick}
-            className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-slate-100 ${
+            className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-slate-100 dark:hover:bg-white/10 ${
               isTriggered ? 'scale-95' : ''
             }`}
             title="点击Logo 5次切换主题"
@@ -85,13 +85,13 @@ export function Header() {
               className="rounded-md"
             />
             <div className="flex flex-col items-start">
-              <span className="text-lg font-bold text-[#1e3a5a]">智服云声数据看板</span>
+              <span className="enterprise-brand-title text-lg font-bold text-[#1e3a5a] dark:text-slate-100">智服云声数据看板</span>
             </div>
           </button>
           
-          <div className="h-8 w-px bg-slate-200 mx-2" />
+          <div className="h-8 w-px bg-slate-200 dark:bg-slate-700/80 mx-2" />
           
-          <h1 className="page-title text-xl font-semibold text-[#1e3a5a]">
+          <h1 className="page-title text-xl font-semibold text-[#1e3a5a] dark:text-slate-100">
             {currentItem?.label || '用户管理'}
           </h1>
         </div>
@@ -100,17 +100,17 @@ export function Header() {
         <div className="flex items-center gap-4">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
             <input
               type="text"
               placeholder="搜索..."
-              className="w-[240px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] text-slate-700 placeholder-slate-400"
+              className="w-[240px] pl-10 pr-4 py-2 text-sm bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] text-slate-700 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
             />
           </div>
 
           {/* Notification Button */}
           <button 
-            className="relative p-2.5 rounded-md text-slate-500 hover:text-[#0ea5e9] hover:bg-slate-100 transition-all duration-200"
+            className="relative p-2.5 rounded-md text-slate-500 dark:text-slate-300 hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-200"
             title="通知"
           >
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full" />
@@ -130,8 +130,8 @@ export function Header() {
           <h1 className="page-title text-2xl font-bold tracking-wider font-mono uppercase">
             {currentItem?.label || '用户管理'}
           </h1>
-          <div className="px-2 py-0.5 rounded-full bg-[#C8FDE6]/20 border border-[#C8FDE6]/30 text-[10px] text-[#C8FDE6] font-mono tracking-widest">
-            SYS.ONLINE
+          <div className="sys-online-tag px-2 py-0.5 rounded-full text-[10px] font-mono tracking-widest">
+            <span className="sys-online-text">SYS.ONLINE</span>
           </div>
 
           {/* Logo - Cyberpunk Easter Egg Trigger (MOVED HERE) */}

@@ -167,20 +167,33 @@
 }
 
 /* Cyberpunk Header Styles */
-:root[data-theme="cyberpunk"] .header-cyberpunk .page-title {
-  background: linear-gradient(to right, #ffffff, #C8FDE6, #F4D5BD);
+:root[data-theme="cyberpunk"] .header-cyberpunk .page-title,
+:root[data-theme="cyberpunk"] .header-cyberpunk .sys-online-text {
+  background: linear-gradient(to right, #0f766e, #0e7490, #9a3412);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 10px rgba(200, 253, 230, 0.5);
+  text-shadow: 0 0 8px rgba(14, 116, 144, 0.22);
   font-family: monospace;
 }
 
-:root[data-theme="cyberpunk"] .dark .header-cyberpunk .page-title {
-  background: linear-gradient(to right, #ffffff, #C8FDE6, #F4D5BD);
+:root[data-theme="cyberpunk"].dark .header-cyberpunk .page-title,
+:root[data-theme="cyberpunk"].dark .header-cyberpunk .sys-online-text {
+  background: linear-gradient(to right, #c8fde6, #67e8f9, #fdba74);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: 0 0 14px rgba(34, 211, 238, 0.35);
+}
+
+:root[data-theme="cyberpunk"] .header-cyberpunk .sys-online-tag {
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid rgba(14, 116, 144, 0.32);
+}
+
+:root[data-theme="cyberpunk"].dark .header-cyberpunk .sys-online-tag {
+  background: rgba(200, 253, 230, 0.1);
+  border: 1px solid rgba(200, 253, 230, 0.35);
 }
 
 /* Cyberpunk Glow Effects */

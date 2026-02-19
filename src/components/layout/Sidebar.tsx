@@ -130,7 +130,7 @@ export function Sidebar() {
     return (
       <div
         ref={sidebarRef}
-        className="h-[calc(100vh-32px)] my-4 ml-4 rounded-lg flex flex-col items-center justify-center z-50 w-[200px] bg-[#e0f2fe] border border-[#bfdbfe]"
+        className="h-[calc(100vh-32px)] my-4 ml-4 rounded-lg flex flex-col items-center justify-center z-50 w-[200px] bg-[#e0f2fe] dark:bg-[#0f172a] border border-[#bfdbfe] dark:border-[#1e293b]"
       >
         <div className="w-8 h-8 border-2 rounded-full animate-spin border-slate-300 border-t-[#0ea5e9]" />
       </div>
@@ -142,13 +142,13 @@ export function Sidebar() {
     return (
       <div 
         ref={sidebarRef} 
-        className="sidebar-enterprise w-[200px] h-[calc(100vh-32px)] my-4 ml-4 rounded-lg bg-[#e0f2fe] border border-[#bfdbfe] flex flex-col z-50 shadow-sm"
+        className="sidebar-enterprise w-[200px] h-[calc(100vh-32px)] my-4 ml-4 rounded-lg bg-[#e0f2fe] dark:bg-[#0f172a] border border-[#bfdbfe] dark:border-[#1e293b] flex flex-col z-50 shadow-sm dark:shadow-[0_20px_45px_-18px_rgba(0,0,0,0.75)]"
       >
         {/* Logo区域 - 点击触发彩蛋 */}
-        <div className="p-4 border-b border-[#bfdbfe]">
+        <div className="p-4 border-b border-[#bfdbfe] dark:border-[#1e293b]">
           <button 
             onClick={handleLogoClick}
-            className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-[#f0f9ff] transition-colors"
+            className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-[#f0f9ff] dark:hover:bg-[#16263d] transition-colors"
             title="点击Logo 5次切换主题"
           >
             <Image 
@@ -158,7 +158,7 @@ export function Sidebar() {
               height={36}
               className="rounded"
             />
-            <span className="text-sm font-semibold text-[#1e3a5a]">智服云声</span>
+            <span className="text-sm font-semibold text-[#1e3a5a] dark:text-slate-100">智服云声</span>
           </button>
         </div>
 
@@ -185,7 +185,7 @@ export function Sidebar() {
                     className={`relative px-4 py-3 mx-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                       isAnyActive
                         ? 'bg-[#0ea5e9] text-white shadow-sm'
-                        : 'text-[#1e3a5a] hover:bg-[#f0f9ff]'
+                        : 'text-[#1e3a5a] dark:text-slate-200 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d]'
                     }`}
                   >
                     <Icon size={18} />
@@ -209,8 +209,8 @@ export function Sidebar() {
 href={subItem.href || '#'}
                             className={`relative px-4 py-2.5 rounded-lg flex items-center gap-3 transition-all duration-200 text-sm ${
                               isActive
-                                ? 'bg-[#0ea5e9]/10 text-[#0ea5e9] font-medium'
-                                : 'text-[#475569] hover:bg-[#f0f9ff] hover:text-[#1e3a5a]'
+                                ? 'bg-[#0ea5e9]/10 dark:bg-[#0ea5e9]/20 text-[#0ea5e9] dark:text-[#7dd3fc] font-medium'
+                                : 'text-[#475569] dark:text-slate-400 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d] hover:text-[#1e3a5a] dark:hover:text-slate-100'
                             }`}
                           >
                             <SubIcon size={16} />
@@ -233,7 +233,7 @@ href={subItem.href || '#'}
                 className={`relative px-4 py-3 mx-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                   isActive
                     ? 'bg-[#0ea5e9] text-white shadow-sm'
-                    : 'text-[#1e3a5a] hover:bg-[#f0f9ff]'
+                    : 'text-[#1e3a5a] dark:text-slate-200 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d]'
                 }`}
               >
                 <Icon size={18} />
@@ -244,19 +244,19 @@ href={subItem.href || '#'}
         </nav>
 
         {/* 用户信息区域 */}
-        <div className="border-t border-[#bfdbfe] p-3" ref={userMenuRef}>
+        <div className="border-t border-[#bfdbfe] dark:border-[#1e293b] p-3" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
             className={`w-full p-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
-              showUserMenu ? 'bg-[#f0f9ff]' : 'hover:bg-[#f0f9ff]'
+              showUserMenu ? 'bg-[#f0f9ff] dark:bg-[#16263d]' : 'hover:bg-[#f0f9ff] dark:hover:bg-[#16263d]'
             }`}
           >
             {isLoading ? (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#f0f9ff]">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#f0f9ff] dark:bg-[#16263d]">
                 <div className="w-4 h-4 border-2 border-slate-300 border-t-[#0ea5e9] rounded-full animate-spin" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#bfdbfe]">
+              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#bfdbfe] dark:ring-[#334155]">
                 <Image
                   src={currentUser?.gender === 'female' ? femaleProfileImage : profileImage}
                   alt="用户头像"
@@ -267,27 +267,27 @@ href={subItem.href || '#'}
               </div>
             )}
             <div className="flex-1 text-left overflow-hidden">
-              <div className="text-sm font-semibold text-[#1e3a5a] truncate">
+              <div className="text-sm font-semibold text-[#1e3a5a] dark:text-slate-100 truncate">
                 {isLoading ? '加载中...' : getRoleText()}
               </div>
-              <div className="text-xs text-[#64748b] truncate">
+              <div className="text-xs text-[#64748b] dark:text-slate-400 truncate">
                 {isLoading ? '请稍候' : (isSuperuser ? '管理员' : '在线')}
               </div>
             </div>
             <ChevronUp
               size={16}
-              className={`text-[#64748b] transition-transform ${showUserMenu ? 'rotate-180 text-[#0ea5e9]' : ''}`}
+              className={`text-[#64748b] dark:text-slate-400 transition-transform ${showUserMenu ? 'rotate-180 text-[#0ea5e9] dark:text-[#38bdf8]' : ''}`}
             />
           </button>
 
           {/* 用户菜单弹窗 */}
           {showUserMenu && !isLoading && (
-            <div className="absolute bottom-20 left-4 w-[180px] bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden z-50">
-              <div className="px-4 py-3 border-b border-slate-100">
-                <div className="text-sm font-medium text-[#1e3a5a]">
+            <div className="absolute bottom-20 left-4 w-[180px] bg-white dark:bg-[#0f172a] rounded-lg shadow-lg dark:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-[#1e293b] overflow-hidden z-50">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-[#1e293b]">
+                <div className="text-sm font-medium text-[#1e3a5a] dark:text-slate-100">
                   {currentUser?.username || '未知用户'}
                 </div>
-                <div className="text-xs text-[#64748b] mt-0.5">
+                <div className="text-xs text-[#64748b] dark:text-slate-400 mt-0.5">
                   {currentUser?.email || '无邮箱'}
                 </div>
               </div>
@@ -296,7 +296,7 @@ href={subItem.href || '#'}
                   setShowUserMenu(false);
                   router.push('/profile');
                 }}
-                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-[#475569] hover:bg-[#f0f9ff] hover:text-[#0ea5e9] transition-colors border-b border-slate-100"
+                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-[#475569] dark:text-slate-300 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d] hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] transition-colors border-b border-slate-100 dark:border-[#1e293b]"
               >
                 <User size={16} />
                 <span>个人信息</span>
@@ -306,20 +306,20 @@ href={subItem.href || '#'}
                   setShowUserMenu(false);
                   router.push('/system-settings');
                 }}
-                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-[#475569] hover:bg-[#f0f9ff] hover:text-[#0ea5e9] transition-colors border-b border-slate-100"
+                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-[#475569] dark:text-slate-300 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d] hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] transition-colors border-b border-slate-100 dark:border-[#1e293b]"
               >
                 <Settings size={16} />
                 <span>系统设置</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                className="w-full px-4 py-2.5 flex items-center gap-3 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
               >
                 <LogOut size={16} />
                 <span>退出登录</span>
               </button>
               {logoutError && (
-                <div className="px-4 py-2 text-xs text-red-500 bg-red-50">
+                <div className="px-4 py-2 text-xs text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10">
                   {logoutError}
                 </div>
               )}

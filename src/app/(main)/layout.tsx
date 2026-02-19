@@ -17,15 +17,15 @@ export default function MainLayout({
   const { appTheme, isHydrated } = useThemeStore();
 
   if (!isHydrated) {
-    return <div className="flex h-screen bg-[#f8fafc]" />;
+    return <div className="flex h-screen bg-background" />;
   }
 
   // 企业主题布局 - 简洁专业风格
   if (appTheme === 'enterprise') {
     return (
-      <div className="flex h-screen bg-[#f8fafc] text-[#0f172a] relative overflow-hidden">
+      <div className="enterprise-main-layout flex h-screen bg-background text-foreground relative overflow-hidden transition-colors duration-300">
         {/* 企业主题背景 - 简洁淡蓝渐变 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#e0f2fe]/30 via-[#f8fafc] to-[#f0f9ff] z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e0f2fe]/30 via-[#f8fafc] to-[#f0f9ff] dark:from-[#10233b]/60 dark:via-[#0b1423] dark:to-[#111b2a] z-0 pointer-events-none transition-colors duration-300" />
 
         {/* 侧边栏 */}
         <div className="relative z-10 flex h-full">
