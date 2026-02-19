@@ -2,13 +2,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAccessToken, setAccessToken, clearTokens } from '@/lib/auth';
+import { getAccessToken, setAccessToken, clearTokens, TOKEN_REFRESH_INTERVAL_MS } from '@/lib/auth';
 import { refreshToken } from '@/services/userService';
 import { useRouter } from 'next/navigation';
-
-// Token 有效期配置 (秒)
-const ACCESS_TOKEN_EXPIRY = 1800; // 30分钟
-const REFRESH_BEFORE_EXPIRY = 60 * 29; // 29分钟后刷新 (提前1分钟)
 
 interface UseTokenManagerReturn {
   isAuthenticated: boolean;
@@ -46,9 +42,6 @@ export function useTokenManager(): UseTokenManagerReturn {
       return;
     }
 
-    // 计算刷新时间 (29分钟后)
-    const refreshDelay = REFRESH_BEFORE_EXPIRY * 1000;
-
     refreshTimer.current = setTimeout(async () => {
       try {
         await refreshToken();
@@ -61,7 +54,7 @@ export function useTokenManager(): UseTokenManagerReturn {
         setIsAuthenticated(false);
         router.push('/login?reason=session_expired');
       }
-    }, refreshDelay);
+    }, TOKEN_REFRESH_INTERVAL_MS);
   }, [clearRefreshTimer, router]);
 
   // 手动刷新 token
@@ -112,7 +105,6 @@ class TokenRefreshManager {
     this.stop();
     this.refreshCallback = callback;
 
-    const delay = REFRESH_BEFORE_EXPIRY * 1000;
     this.timer = setTimeout(async () => {
       try {
         await callback();
@@ -122,7 +114,7 @@ class TokenRefreshManager {
         console.error('Token refresh failed:', error);
         this.stop();
       }
-    }, delay);
+    }, TOKEN_REFRESH_INTERVAL_MS);
   }
 
   stop(): void {

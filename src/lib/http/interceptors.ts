@@ -1,5 +1,5 @@
-import { RequestInterceptor, ResponseInterceptor, HttpError, RequestConfig } from './types';
-import { getAccessToken, setAccessToken, getRefreshToken, clearTokens } from '@/lib/auth';
+import { RequestInterceptor, ResponseInterceptor, HttpError, HttpResponse, RequestConfig } from './types';
+import { buildRefreshTokenUrl, clearTokens, getAccessToken, normalizeTokenResponse, setAccessToken } from '@/lib/auth';
 import { API_ENDPOINTS } from '@/config/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -23,18 +23,16 @@ function withBaseUrl(url?: string) {
 }
 
 async function doRefreshToken(): Promise<string> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) throw new Error('No refresh token');
-
-  const refreshUrl = withBaseUrl(`${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshToken)}`);
-  const response = await fetch(refreshUrl, { method: 'POST' });
+  const refreshUrl = withBaseUrl(buildRefreshTokenUrl(API_ENDPOINTS.JWT_REFRESH));
+  const response = await fetch(refreshUrl, { method: 'POST', credentials: 'include' });
 
   if (!response.ok) {
     throw new Error('Refresh failed');
   }
 
   const result = await response.json();
-  const newAccessToken = result?.data?.access_token;
+  const tokenData = normalizeTokenResponse<{ access_token: string }>(result);
+  const newAccessToken = tokenData.access_token;
   if (!newAccessToken) {
     throw new Error('Invalid refresh response');
   }
@@ -43,7 +41,7 @@ async function doRefreshToken(): Promise<string> {
   return newAccessToken;
 }
 
-async function retryRequest(originalConfig: RequestConfig, token: string) {
+async function retryRequest(originalConfig: RequestConfig, token: string): Promise<HttpResponse<unknown>> {
   const retryConfig: RequestConfig = {
     ...originalConfig,
     headers: {
@@ -52,7 +50,10 @@ async function retryRequest(originalConfig: RequestConfig, token: string) {
     },
   };
 
-  const res = await fetch(withBaseUrl(retryConfig.url!), retryConfig);
+  const res = await fetch(withBaseUrl(retryConfig.url!), {
+    ...retryConfig,
+    credentials: 'include',
+  });
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`) as HttpError;
     err.status = res.status;
@@ -60,12 +61,17 @@ async function retryRequest(originalConfig: RequestConfig, token: string) {
     throw err;
   }
 
-  const data = await res.json();
-  const err = new Error('Response interceptor returned non-error') as HttpError;
-  err.status = res.status;
-  err.config = retryConfig;
-  err.data = data;
-  return err;
+  const contentType = res.headers.get('content-type');
+  const data = contentType?.includes('application/json')
+    ? await res.json()
+    : await res.text();
+
+  return {
+    data,
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers,
+  };
 }
 
 export const authInterceptor: RequestInterceptor = {

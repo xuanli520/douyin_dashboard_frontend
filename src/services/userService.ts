@@ -1,9 +1,9 @@
 import { httpClient } from '@/lib/http/client';
 import { ApiResponse } from '@/lib/http/types';
 import {
-  getAccessToken,
+  buildRefreshTokenUrl,
+  normalizeTokenResponse,
   setAccessToken,
-  getRefreshToken,
   clearTokens,
   storeTokens,
 } from '@/lib/auth';
@@ -25,25 +25,19 @@ import { API_ENDPOINTS } from '@/config/api';
 let refreshTokenPromise: Promise<{ access_token: string; token_type: string }> | null = null;
 
 export async function refreshToken(): Promise<{ access_token: string; token_type: string }> {
-  const refreshTokenValue = getRefreshToken();
-  if (!refreshTokenValue) {
-    throw new Error('无法获取刷新令牌，请重新登录');
-  }
-
   if (refreshTokenPromise) {
     return refreshTokenPromise;
   }
 
   refreshTokenPromise = (async () => {
     try {
-      const response = await httpClient.post<{ access_token: string; token_type: string }>(
-        `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
+      const response = await httpClient.post(
+        buildRefreshTokenUrl(API_ENDPOINTS.JWT_REFRESH)
       );
-
-      setAccessToken(response.access_token);
-      setSecureCookie('auth_token', response.access_token, 60 * 60 * 24);
-
-      return response;
+      const tokenData = normalizeTokenResponse<{ access_token: string; token_type: string }>(response);
+      setAccessToken(tokenData.access_token);
+      setSecureCookie('auth_token', tokenData.access_token, 60 * 60 * 24);
+      return tokenData;
     } finally {
       refreshTokenPromise = null;
     }
@@ -60,26 +54,21 @@ export async function login(params: LoginParams): Promise<TokenResponse> {
     formData.append('captchaVerifyParam', params.captchaVerifyParam);
   }
 
-  const response = await httpClient.post<ApiResponse<TokenResponse>>(
+  const response = await httpClient.post(
     API_ENDPOINTS.JWT_LOGIN,
     formData,
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 
-  storeTokens(response.data);
-  return response.data;
+  const tokenData = normalizeTokenResponse<TokenResponse>(response);
+  storeTokens(tokenData);
+  return tokenData;
 }
 
 export async function logout(): Promise<void> {
-  const refreshTokenValue = getRefreshToken();
-
-  if (refreshTokenValue) {
-    try {
-      await httpClient.post<ApiResponse<null>>(
-        `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`
-      );
-    } catch {
-    }
+  try {
+    await httpClient.post<ApiResponse<null>>(buildRefreshTokenUrl(API_ENDPOINTS.JWT_LOGOUT));
+  } catch {
   }
 
   clearTokens();

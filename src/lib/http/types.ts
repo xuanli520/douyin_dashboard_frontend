@@ -26,7 +26,7 @@ export interface RequestInterceptor {
 
 export interface ResponseInterceptor {
   onResponse?: <T>(response: HttpResponse<T>) => Promise<HttpResponse<T>> | HttpResponse<T>;
-  onResponseError?: (error: HttpError) => Promise<HttpError> | HttpError;
+  onResponseError?: (error: HttpError) => Promise<HttpError | HttpResponse<unknown>> | HttpError | HttpResponse<unknown>;
 }
 
 export interface HttpClientConfig {

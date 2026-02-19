@@ -5,14 +5,12 @@ import React, { createContext, useContext, useState, useCallback, useEffect, Rea
 import type { User, UserCreate, UserUpdate, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
 import { useRouter } from 'next/navigation';
-import { getAccessToken } from '@/lib/auth';
+import { getAccessToken, TOKEN_REFRESH_INTERVAL_MS } from '@/lib/auth';
+import { useAuthStore } from './authStore';
 import { initializePermissionStore, usePermissionStore } from './permissionStore';
 
 // Token 刷新定时器引用
 let refreshTimer: NodeJS.Timeout | null = null;
-
-// 刷新间隔 (29分钟后刷新)
-const REFRESH_INTERVAL = 29 * 60 * 1000;
 
 interface UserState {
   users: User[];
@@ -89,7 +87,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         });
         router.push('/login?reason=session_expired');
       }
-    }, REFRESH_INTERVAL);
+    }, TOKEN_REFRESH_INTERVAL_MS);
   }, [router]);
 
   const fetchCurrentUser = useCallback(async (retryCount = 3) => {
@@ -147,6 +145,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       await initializePermissionStore();
       // 登录成功后启动自动刷新定时器
       startRefreshTimer();
+      useAuthStore.getState().initialize();
       return true;
     } catch (error: any) {
       setState((prev) => ({
@@ -167,6 +166,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } finally {
       // 清除刷新定时器
       clearRefreshTimer();
+      useAuthStore.getState().setUnauthenticated();
       setState({
         users: [],
         currentUser: null,
@@ -274,6 +274,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // 初始化时获取当前用户并启动刷新定时器
   useEffect(() => {
     const initializeAuth = async () => {
+      useAuthStore.getState().initialize();
       const hasToken = !!getAccessToken();
       if (hasToken) {
         // 如果有 token，启动刷新定时器并获取用户信息

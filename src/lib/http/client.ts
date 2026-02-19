@@ -64,11 +64,17 @@ export class HttpClient {
     return result;
   }
   
-  private async applyResponseErrorInterceptors(error: HttpError): Promise<HttpError> {
-    let result = error;
+  private async applyResponseErrorInterceptors(
+    error: HttpError
+  ): Promise<HttpError | HttpResponse<unknown>> {
+    let result: HttpError | HttpResponse<unknown> = error;
     for (const interceptor of this.responseInterceptors.getAll()) {
       if (interceptor.onResponseError) {
-        result = await interceptor.onResponseError(result);
+        if (result instanceof Error) {
+          result = await interceptor.onResponseError(result);
+        } else {
+          return result;
+        }
       }
     }
     return result;
@@ -181,7 +187,11 @@ export class HttpClient {
         }
       }
       
-      throw await this.applyResponseErrorInterceptors(httpError);
+      const recovered = await this.applyResponseErrorInterceptors(httpError);
+      if (recovered instanceof Error) {
+        throw recovered;
+      }
+      return recovered as HttpResponse<T>;
     }
   }
   

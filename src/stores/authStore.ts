@@ -47,15 +47,19 @@ export const useAuthStore = create<AuthStore>()(
         initialize: () => {
           const hasToken = !!getAccessToken();
           if (hasToken) {
-            set({ isLoading: false });
-          } else {
             set({
-              isAuthenticated: false,
+              isAuthenticated: true,
               isLoading: false,
-              userId: null,
-              username: null,
             });
+            return;
           }
+
+          set({
+            isAuthenticated: false,
+            isLoading: false,
+            userId: null,
+            username: null,
+          });
         },
       }),
       {
