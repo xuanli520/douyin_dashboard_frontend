@@ -87,8 +87,8 @@ export default function ProfilePage() {
   };
 
   const getRoleLabel = (): string => {
-    if (isSuperuser) return '系统管理员 (Superuser)';
-    return '普通用户 (User)';
+    if (isSuperuser) return '系统管理员';
+    return '普通用户';
   };
 
   if (!currentUser && !formData.username) {
@@ -110,10 +110,10 @@ export default function ProfilePage() {
         <div className="border-b border-slate-200 dark:border-white/10 pb-6 mb-8 flex justify-between items-end">
             <div>
                  <NeonTitle icon={User}>个人信息中心</NeonTitle>
-                 <p className="text-sm text-slate-500 font-mono mt-1">Manage your personal account details</p>
+                 <p className="text-sm text-slate-500 font-mono mt-1">管理您的个人账户信息</p>
             </div>
              <div className="px-3 py-1 rounded-full bg-cyan-500/10 dark:bg-cyan-950/30 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-mono shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                STATUS: {currentUser?.is_active ? 'ACTIVE' : 'INACTIVE'}
+                状态: {currentUser?.is_active ? '已激活' : '未激活'}
              </div>
         </div>
 
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                         <Shield size={18} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-mono uppercase">Role</div>
+                         <div className="text-xs text-slate-500 font-mono uppercase">角色</div>
                         <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">{getRoleLabel()}</div>
                     </div>
                 </div>
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                         <Award size={18} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-mono uppercase">Level</div>
+                         <div className="text-xs text-slate-500 font-mono uppercase">等级</div>
                         <div className="text-sm text-slate-700 dark:text-slate-200 font-medium">{formData.level}</div>
                     </div>
                 </div>
@@ -177,9 +177,9 @@ export default function ProfilePage() {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 用户名 */}
               <div className="space-y-2">
-                <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <User size={14} /> 用户名 (Username)
-                </label>
+                 <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                     <User size={14} /> 用户名
+                 </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -197,8 +197,8 @@ export default function ProfilePage() {
               {/* 邮箱 */}
               <div className="space-y-2">
                  <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <Mail size={14} /> 邮箱 (Email)
-                </label>
+                     <Mail size={14} /> 邮箱
+                 </label>
                 {isEditing ? (
                   <input
                     type="email"
@@ -216,8 +216,8 @@ export default function ProfilePage() {
               {/* 手机号 */}
               <div className="space-y-2">
                  <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <Phone size={14} /> 手机号 (Phone)
-                </label>
+                     <Phone size={14} /> 手机号
+                 </label>
                 {isEditing ? (
                   <input
                     type="tel"
@@ -235,9 +235,9 @@ export default function ProfilePage() {
 
               {/* 部门 */}
               <div className="space-y-2">
-                <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <Building size={14} /> 部门 (Department)
-                </label>
+                 <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                     <Building size={14} /> 部门
+                 </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -255,9 +255,9 @@ export default function ProfilePage() {
 
               {/* 性别 */}
               <div className="space-y-2">
-                <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <UserCheck size={14} /> 性别 (Gender)
-                </label>
+                 <label className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                     <UserCheck size={14} /> 性别
+                 </label>
                 {isEditing ? (
                   <FormSelect
                     value={formData.gender || 'unset'}

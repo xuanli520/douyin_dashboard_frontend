@@ -283,7 +283,7 @@ export function UserFormDialog({
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="hidden"
                   />
-                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-cyan-700 dark:group-hover:text-cyan-200 transition-colors">账户激活 (ACCOUNT_ACTIVE)</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-cyan-700 dark:group-hover:text-cyan-200 transition-colors">账户激活</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-2 rounded hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer group">
@@ -296,7 +296,7 @@ export function UserFormDialog({
                     onChange={(e) => setFormData({ ...formData, is_superuser: e.target.checked })}
                     className="hidden"
                   />
-                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">超级管理员权限 (ROOT_ACCESS)</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">超级管理员权限</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-2 rounded hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer group">
@@ -309,7 +309,7 @@ export function UserFormDialog({
                     onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
                     className="hidden"
                   />
-                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">邮箱已验证 (EMAIL_VERIFIED)</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400 font-mono group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">邮箱已验证</span>
                 </label>
               </div>
             </div>

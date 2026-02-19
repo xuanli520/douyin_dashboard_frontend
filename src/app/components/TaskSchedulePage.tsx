@@ -80,21 +80,21 @@ export default function TaskSchedulePage() {
     <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
       
       <div className="flex items-center justify-between">
-           <NeonTitle icon={Clock}>任务调度中心 (Cron Command)</NeonTitle>
+            <NeonTitle icon={Clock}>任务调度中心</NeonTitle>
           
            <div className="flex gap-3">
               <div className="relative group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={14} />
                     <input
                         type="text"
-                        placeholder="Search tasks..."
+                        placeholder="搜索任务..."
                         className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-700 dark:text-slate-200"
                     />
                 </div>
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
-                <Plus size={14} />
-                Create Task
-              </button>
+               <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
+                 <Plus size={14} />
+                 新建任务
+               </button>
            </div>
       </div>
 
@@ -126,7 +126,7 @@ export default function TaskSchedulePage() {
                       : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
                   }`}>
                      {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                    {task.lastStatus === '成功' ? 'SUCCESS' : 'FAILED'}
+                    {task.lastStatus === '成功' ? '成功' : '失败'}
                   </span>
                 </TableCell>
                 <TableCell>{task.lastRun}</TableCell>
@@ -136,14 +136,14 @@ export default function TaskSchedulePage() {
                     <button 
                       onClick={() => handleViewLog(task)}
                       className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 rounded transition-colors"
-                      title="View Logs"
+                      title="查看日志"
                     >
                       <Terminal size={14} />
                     </button>
-                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Edit">
+                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="编辑">
                       <Edit size={14} />
                     </button>
-                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="Clone">
+                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors" title="复制">
                       <Copy size={14} />
                     </button>
                   </div>

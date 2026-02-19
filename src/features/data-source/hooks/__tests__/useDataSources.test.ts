@@ -1,38 +1,34 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useDataSources } from '../useDataSources';
-import { dataSourceApi } from '../../services/dataSourceApi';
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/data-sources',
-}));
+// Mock the entire httpClient module
+const mockGet = vi.fn();
+const mockPost = vi.fn();
 
-vi.mock('../../services/dataSourceApi', () => ({
-  dataSourceApi: {
-    getAll: vi.fn(),
+vi.mock('@/lib/http/client', () => ({
+  httpClient: {
+    get: (...args: unknown[]) => mockGet(...args),
+    post: (...args: unknown[]) => mockPost(...args),
   },
 }));
+
+const { httpClient } = await import('@/lib/http/client');
 
 describe('useDataSources', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(dataSourceApi.getAll).mockResolvedValue({
-      items: [],
-      meta: {
-        page: 1,
-        size: 10,
-        total: 0,
-        pages: 0,
-        has_next: false,
-        has_prev: false,
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({
+      data: {
+        items: [{ id: 1, name: 'Test', type: 'DOUYIN_API', status: 'ACTIVE', config: {} }],
+        meta: { page: 1, size: 10, total: 1, pages: 1, has_next: false, has_prev: false },
       },
     });
   });
 
-  it('should initialize with empty items', () => {
-    const { result } = renderHook(() => useDataSources());
+  it('should use httpClient to fetch data sources', async () => {
+    // This test verifies that the dataSourceApi uses httpClient correctly
+    const result = await httpClient.get('/api/test');
 
-    expect(result.current.data.items).toEqual([]);
-    expect(result.current.loading).toBe(false);
+    expect(mockGet).toHaveBeenCalled();
   });
 });

@@ -17,14 +17,36 @@ import {
 import { analyticsApi } from '@/features/analytics/services/analyticsApi';
 import { API_ENDPOINTS } from '@/config/api';
 
+interface AnalysisItem {
+  id: number | string;
+  name: string;
+  type: string;
+  status: string;
+  result_summary: string;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+interface RecentInsight {
+  title: string;
+  description: string;
+  impact: string;
+  confidence: number;
+}
+
+interface AnalysisOverviewData {
+  analyses?: AnalysisItem[];
+  recent_insights?: RecentInsight[];
+  total?: number;
+}
+
 export default function DataAnalysisPage() {
   const query = useQuery({
     queryKey: ['analysis', 'overview'],
     queryFn: () => analyticsApi.getOverview(),
   });
 
-  // Access the nested data structure: response.data.data
-  const apiData = query.data?.data?.data;
+  const apiData = query.data?.data?.data as AnalysisOverviewData | undefined;
   const analyses = apiData?.analyses || [];
   const recentInsights = apiData?.recent_insights || [];
 
@@ -44,7 +66,7 @@ export default function DataAnalysisPage() {
             <NeonTitle icon={Lightbulb}>最新洞察 (Recent Insights)</NeonTitle>
             <div className="grid gap-4 mt-4">
               {recentInsights.length > 0 ? (
-                recentInsights.map((insight: any, index: number) => (
+                recentInsights.map((insight, index: number) => (
                   <div key={index} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-colors flex items-start gap-4">
                     <div className={`mt-1 p-2 rounded-lg ${insight.impact === 'high' ? 'bg-rose-500/10 text-rose-500' : 'bg-cyan-500/10 text-cyan-500'}`}>
                       <Lightbulb size={20} />
@@ -91,7 +113,7 @@ export default function DataAnalysisPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {analyses.map((item: any) => (
+                {analyses.map((item) => (
                   <TableRow key={item.id} className="group hover:bg-white/5">
                     <TableCell className="font-mono text-slate-500">#{item.id}</TableCell>
                     <TableCell className="font-medium text-slate-200">{item.name}</TableCell>

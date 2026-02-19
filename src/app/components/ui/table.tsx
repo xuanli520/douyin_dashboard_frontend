@@ -6,7 +6,7 @@ import { cn } from "./utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div className="relative w-full overflow-hidden rounded-xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#0f172a]/40 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
+    <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 bg-white/80 shadow-sm backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#0f172a]/40 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
       {/* Top Highlight */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 dark:via-cyan-500/30 to-transparent opacity-50" />
       <div

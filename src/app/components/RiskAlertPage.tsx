@@ -9,14 +9,34 @@ import { EndpointStatusWrapper } from '@/app/components/ui/endpoint-status-wrapp
 import { riskApi } from '@/features/risk/services/riskApi';
 import { API_ENDPOINTS } from '@/config/api';
 
+interface RiskAlertItem {
+  id: number | string;
+  level: string;
+  title: string;
+  time: string;
+  status: string;
+}
+
+interface RiskSummary {
+  critical: number;
+  warning: number;
+  info: number;
+  total: number;
+  unread: number;
+}
+
+interface RiskAlertsData {
+  alerts?: RiskAlertItem[];
+  summary?: RiskSummary;
+}
+
 export default function RiskAlertPage() {
   const query = useQuery({
     queryKey: ['alerts', 'list'],
     queryFn: () => riskApi.getAlerts(),
   });
   
-  // Access nested data: response.data.data
-  const apiData = query.data?.data?.data;
+  const apiData = query.data?.data?.data as RiskAlertsData | undefined;
   const alerts = apiData?.alerts || [];
   const summary = apiData?.summary || { critical: 0, warning: 0, info: 0, total: 0, unread: 0 };
 
@@ -82,7 +102,7 @@ export default function RiskAlertPage() {
             {/* Alert List */}
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-3">
-                {alerts.map((alert: any) => (
+                {alerts.map((alert) => (
                   <div key={alert.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 hover:border-cyan-500/30 rounded-xl transition-all group relative overflow-hidden shadow-sm hover:shadow-md dark:shadow-none backdrop-blur-sm">
                     {/* Subtle Gradient Hover Effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-50/30 to-transparent dark:via-cyan-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

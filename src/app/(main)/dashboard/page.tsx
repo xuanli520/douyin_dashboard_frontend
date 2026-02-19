@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Responsive } from 'react-grid-layout';
 import { WidthProvider } from '@/components/dashboard/WidthProvider';
-import { useTheme } from 'next-themes';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { 
   Moon, Sun, LayoutDashboard, LayoutTemplate
@@ -15,6 +14,7 @@ import { SHOP_OPTIONS } from '@/data/shops';
 import CompassWidget from '@/components/dashboard/CompassWidget';
 import MetricCard from '@/components/dashboard/MetricCard';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
+import { useThemeStore } from '@/stores/themeStore';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
 }
 
 function DashboardPageContent() {
-  const { theme, setTheme } = useTheme();
+  const { appTheme, colorMode, setColorMode } = useThemeStore();
   const [mounted, setMounted] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -347,7 +347,7 @@ function DashboardPageContent() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  onClick={() => setColorMode(appTheme === 'enterprise' || colorMode === 'dark' ? 'light' : 'dark')}
                   className="w-9 h-9 text-text-secondary hover:text-secondary hover:bg-secondary/10 rounded-full"
                 >
                   <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

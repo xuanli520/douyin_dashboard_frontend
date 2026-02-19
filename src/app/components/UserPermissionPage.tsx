@@ -88,8 +88,8 @@ export default function UserPermissionPage() {
   };
 
   const getRoleLabel = (user: User): string => {
-    if (user?.is_superuser) return '管理员 (Admin)';
-    return '用户 (User)';
+    if (user?.is_superuser) return '管理员';
+    return '普通用户';
   };
 
   const isSuperuser = currentUser?.is_superuser ?? false;
@@ -98,7 +98,7 @@ export default function UserPermissionPage() {
     <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <NeonTitle icon={Users}>用户权限管理 (IAM)</NeonTitle>
+        <NeonTitle icon={Users}>用户权限管理</NeonTitle>
 
         <div className="flex items-center gap-3">
           <div className="relative group">
@@ -108,7 +108,7 @@ export default function UserPermissionPage() {
             />
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="搜索用户..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="pl-10 pr-4 py-2 w-[300px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 transition-all"
@@ -207,7 +207,7 @@ export default function UserPermissionPage() {
                           user.is_active ? 'bg-emerald-500' : 'bg-slate-500'
                         }`}
                       />
-                      {user.is_active ? 'ACTIVE' : 'DISABLED'}
+                      {user.is_active ? '已激活' : '已禁用'}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -218,14 +218,14 @@ export default function UserPermissionPage() {
                             onClick={() => handleEdit(user)}
                             className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 font-mono underline decoration-cyan-500/30 underline-offset-4"
                           >
-                            EDIT_PERMS
+                            编辑权限
                           </button>
                           {currentUser?.id !== user.id && (
                             <button
                               onClick={() => handleDelete(user)}
                               className="text-xs text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-mono underline decoration-red-500/30 underline-offset-4"
                             >
-                              DELETE
+                              删除
                             </button>
                           )}
                         </>
