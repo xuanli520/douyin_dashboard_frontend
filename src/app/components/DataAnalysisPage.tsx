@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { X, ChevronDown, Calendar, Filter, BarChart2 } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
+import { EndpointStatusWrapper } from '@/app/components/ui/endpoint-status-wrapper';
 import {
   Table,
   TableHeader,
@@ -14,6 +16,9 @@ import {
   TableCell,
   TableFooter,
 } from '@/app/components/ui/table';
+import { analyticsApi } from '@/features/analytics/services/analyticsApi';
+import { API_ENDPOINTS } from '@/config/api';
+import { HttpError } from '@/lib/http/types';
 
 const chartData = [
   { month: '1月', sales: 220, profit: 150, profitRate: 35 },
@@ -81,6 +86,12 @@ export default function DataAnalysisPage() {
     categories: ['销售额', '毛利率'],
   });
 
+  const query = useQuery({
+    queryKey: ['analysis', 'overview'],
+    queryFn: () => analyticsApi.getOverview(),
+  });
+  const responseData = query.data ?? ((query.error as HttpError | null)?.data as { code?: number; data?: Record<string, unknown> } | undefined);
+
   const removeFilter = (type: 'stores' | 'categories', value: string) => {
     setFilters(prev => ({
       ...prev,
@@ -89,6 +100,11 @@ export default function DataAnalysisPage() {
   };
 
   return (
+    <EndpointStatusWrapper
+      path={API_ENDPOINTS.ANALYSIS_OVERVIEW}
+      responseData={responseData}
+      placeholderProps={{ icon: '📊' }}
+    >
     <div className="min-h-screen bg-transparent text-foreground p-6 space-y-6 relative overflow-hidden">
        {/* Background Ambience */}
       <div className="fixed top-20 right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[100px] pointer-events-none" />
@@ -278,5 +294,6 @@ export default function DataAnalysisPage() {
         </Table>
       </div>
     </div>
+    </EndpointStatusWrapper>
   );
 }

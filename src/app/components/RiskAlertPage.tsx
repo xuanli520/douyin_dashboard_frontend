@@ -1,9 +1,14 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ShieldAlert, Zap, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { GlassCard } from '@/app/components/ui/glass-card';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { RiskLevelIcon } from '@/app/components/ui/RiskLevelIcon';
+import { EndpointStatusWrapper } from '@/app/components/ui/endpoint-status-wrapper';
+import { riskApi } from '@/features/risk/services/riskApi';
+import { API_ENDPOINTS } from '@/config/api';
+import { HttpError } from '@/lib/http/types';
 
 const alerts = [
   { 
@@ -72,7 +77,18 @@ const alerts = [
 ];
 
 export default function RiskAlertPage() {
+  const query = useQuery({
+    queryKey: ['alerts', 'list'],
+    queryFn: () => riskApi.getAlerts(),
+  });
+  const responseData = query.data ?? ((query.error as HttpError | null)?.data as { code?: number; data?: Record<string, unknown> } | undefined);
+
   return (
+    <EndpointStatusWrapper
+      path={API_ENDPOINTS.ALERTS_LIST}
+      responseData={responseData}
+      placeholderProps={{ icon: '🛡️' }}
+    >
     <div className="min-h-screen bg-transparent text-foreground p-6 space-y-6">
       
       <GlassCard className="min-h-[80vh] flex flex-col p-0">
@@ -166,5 +182,6 @@ export default function RiskAlertPage() {
         </div>
       </GlassCard>
     </div>
+    </EndpointStatusWrapper>
   );
 }

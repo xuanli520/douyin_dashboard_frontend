@@ -1,35 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { useDataSources } from '../useDataSources';
+import { dataSourceApi } from '../../services/dataSourceApi';
 
-// Mock the api-client
-const mockAuthGet = vi.fn();
-
-vi.mock('@/lib/api-client', () => ({
-  authGet: (...args: any[]) => mockAuthGet(...args),
-  authPost: vi.fn(),
-  authPut: vi.fn(),
-  authDel: vi.fn(),
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/data-sources',
 }));
 
-import { useDataSources } from '../useDataSources';
+vi.mock('../../services/dataSourceApi', () => ({
+  dataSourceApi: {
+    getAll: vi.fn(),
+  },
+}));
 
 describe('useDataSources', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuthGet.mockReset();
-    mockAuthGet.mockResolvedValue({ 
-      data: { 
-        items: [{ id: 1, name: 'Test', type: 'DOUYIN_API', status: 'ACTIVE', config: {} }], 
-        total: 1 
-      } 
+    vi.mocked(dataSourceApi.getAll).mockResolvedValue({
+      items: [],
+      meta: {
+        page: 1,
+        size: 10,
+        total: 0,
+        pages: 0,
+        has_next: false,
+        has_prev: false,
+      },
     });
   });
 
-  it('should render without immediate fetch', () => {
-    const { result } = renderHook(() => useDataSources(undefined, { immediate: false }));
-    
-    expect(result.current.data.list).toEqual([]);
+  it('should initialize with empty items', () => {
+    const { result } = renderHook(() => useDataSources());
+
+    expect(result.current.data.items).toEqual([]);
     expect(result.current.loading).toBe(false);
-    expect(mockAuthGet).not.toHaveBeenCalled();
   });
 });
