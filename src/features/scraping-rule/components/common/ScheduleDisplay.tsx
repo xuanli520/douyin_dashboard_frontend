@@ -10,7 +10,7 @@ interface ScheduleDisplayProps {
 export function ScheduleDisplay({ type, value }: ScheduleDisplayProps) {
   if (type === 'cron') {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground" title="Cron Expression">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground" title="Cron 表达式">
         <Clock size={14} />
         <span className="font-mono bg-muted px-1 rounded">{value}</span>
       </div>
@@ -19,17 +19,17 @@ export function ScheduleDisplay({ type, value }: ScheduleDisplayProps) {
 
   if (type === 'interval') {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground" title="Interval (seconds)">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground" title="间隔（秒）">
         <Timer size={14} />
-        <span>Every {value}s</span>
+        <span>每 {value} 秒</span>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground" title="Run Once">
+    <div className="flex items-center gap-2 text-xs text-muted-foreground" title="仅运行一次">
       <Calendar size={14} />
-      <span>Once</span>
+      <span>仅一次</span>
     </div>
   );
 }

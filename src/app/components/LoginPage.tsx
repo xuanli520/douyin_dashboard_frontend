@@ -5,8 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import pigFishIcon from '@/assets/profile.jpg';
-import oceanBg from '@/assets/backgrond.jpg';
+import logoImage from '@/assets/logo.png';
 import { handleAuthError } from '@/services/userService';
 import { useUserStore } from '@/stores/userStore';
 import RegisterPage from './RegisterPage';
@@ -223,7 +222,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
           const redirectPath = searchParams.get('redirect') || '/compass';
           router.push(redirectPath);
           toast.success('登录成功', {
-            description: '欢迎回到猪鱼数据',
+            description: '欢迎回到智服云声数据',
           });
         }
       } catch (err) {
@@ -290,62 +289,10 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#050714]"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#0a1628]"
       onMouseMove={handleMouseMove}
     >
-      {/* --- 背景层：深海沉浸感 --- */}
-
-      {/* 1. 基础图片与覆盖层 */}
-      <div className="absolute inset-0 z-0">
-        <motion.div
-          className="absolute inset-0 opacity-40 mix-blend-luminosity"
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        >
-          <img src={oceanBg.src} alt="" className="w-full h-full object-cover grayscale-[30%] contrast-125" />
-        </motion.div>
-        {/* 渐变遮罩 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020410] via-[#0a1525]/70 to-[#020410]/60" />
-      </div>
-
-      {/* 2. 极简的动态光斑 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          suppressHydrationWarning
-          className="absolute -top-[20%] -left-[10%] w-[60vw] h-[60vw] bg-cyan-500/10 rounded-full blur-[120px]"
-          animate={{ x: mousePosition.x * -0.02, y: mousePosition.y * -0.02 }}
-        />
-        <motion.div
-          suppressHydrationWarning
-          className="absolute top-[40%] -right-[10%] w-[50vw] h-[50vw] bg-indigo-600/10 rounded-full blur-[100px]"
-          animate={{ x: mousePosition.x * -0.03, y: mousePosition.y * -0.03 }}
-        />
-      </div>
-
-      {/* 3. 悬浮尘埃粒子 */}
-      {PARTICLES.map((particle) => (
-        <motion.div
-          key={particle.id}
-          suppressHydrationWarning
-          className="absolute bg-white/20 rounded-full blur-[1px]"
-          style={{
-            width: `${particle.width}px`,
-            height: `${particle.height}px`,
-            left: `${particle.left}%`,
-            top: `${particle.top}%`,
-          }}
-          animate={{
-            y: [0, -100],
-            opacity: [0, 0.5, 0],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: particle.delay
-          }}
-        />
-      ))}
+      {/* --- 纯色深蓝背景 --- */}
 
       {/* --- 主内容区 --- */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -362,9 +309,9 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
             <motion.img
-              src={pigFishIcon.src}
-              alt="Pig Fish"
-              className="relative z-10 w-[480px] object-contain drop-shadow-2xl"
+              src={logoImage.src}
+              alt="智服云声"
+              className="relative z-10 w-[360px] object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -15, 0],
                 rotateZ: [0, 1, 0, -1, 0]
@@ -383,7 +330,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
           <div className="mt-12 text-center space-y-2">
             <h2 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-white tracking-tight">
-              猪鱼数据
+              智服云声数据
             </h2>
             <p className="text-cyan-200/40 text-sm font-mono tracking-[0.3em] uppercase">
               Enterprise Neural Network v2.0

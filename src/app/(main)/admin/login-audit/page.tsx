@@ -114,7 +114,7 @@ export default function LoginAuditPage() {
   const hasPrevPage = safeMeta.has_prev;
 
   const getRoleDisplayName = useCallback((accountType: string | null | undefined): string => {
-    if (!accountType) return 'Unknown';
+    if (!accountType) return '未知';
     return accountType;
   }, []);
 
@@ -172,7 +172,7 @@ export default function LoginAuditPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `login-audit-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `登录审计-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -273,7 +273,7 @@ export default function LoginAuditPage() {
       <div className="overflow-hidden rounded-sm">
 
         {/* 筛选栏 */}
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="filter-bar-container m-4 mb-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* 左侧：搜索 + 筛选器 */}
           <div className="flex flex-wrap items-center gap-2">
             {/* 搜索框 */}
@@ -284,7 +284,7 @@ export default function LoginAuditPage() {
                 placeholder="搜索 IP 地址..."
                 value={uiFilters.search || ''}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9 pr-3 h-8 w-52 text-[13px]"
+                className="pl-9 pr-3 h-8 w-52 text-[13px] bg-white border-none"
               />
             </div>
 
@@ -293,7 +293,7 @@ export default function LoginAuditPage() {
               value={uiFilters.status || 'all'}
               onValueChange={(value) => handleStatusChange(value as 'all' | 'success' | 'failure')}
             >
-              <SelectTrigger className="h-8 w-28 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+              <SelectTrigger className="h-8 w-28 text-[13px] bg-white border-none rounded-sm text-slate-700">
                 <SelectValue placeholder="全部状态" />
               </SelectTrigger>
               <SelectContent>
@@ -308,7 +308,7 @@ export default function LoginAuditPage() {
               value={uiFilters.event_type || 'all'}
               onValueChange={(value) => handleEventTypeChange(value)}
             >
-              <SelectTrigger className="h-8 w-28 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+              <SelectTrigger className="h-8 w-28 text-[13px] bg-white border-none rounded-sm text-slate-700">
                 <SelectValue placeholder="全部事件" />
               </SelectTrigger>
               <SelectContent>
@@ -325,7 +325,7 @@ export default function LoginAuditPage() {
               value={uiFilters.account_type || 'all'}
               onValueChange={(value) => handleAccountTypeChange(value)}
             >
-              <SelectTrigger className="h-8 w-32 text-[13px] border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+              <SelectTrigger className="h-8 w-32 text-[13px] bg-white border-none rounded-sm text-slate-700">
                 <SelectValue placeholder="全部账户类型" />
               </SelectTrigger>
               <SelectContent>
@@ -339,7 +339,7 @@ export default function LoginAuditPage() {
           </div>
 
           {/* 右侧：导出 */}
-          <CyberButton onClick={handleExport} className="h-8 text-[13px] px-3 flex items-center gap-1.5 shrink-0">
+          <CyberButton onClick={handleExport} className="h-8 text-[13px] px-3 flex items-center gap-1.5 shrink-0 bg-white text-sky-600 border-none hover:bg-slate-50">
             <Download size={14} />
             导出日志
           </CyberButton>
@@ -489,7 +489,7 @@ export default function LoginAuditPage() {
                                   <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">设备信息</span>
                                 </div>
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-3">
-                                  <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1">User Agent</div>
+                                  <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1">用户代理</div>
                                   <div className="text-[12px] text-slate-700 dark:text-slate-300 font-mono break-all leading-relaxed">{log.user_agent || '-'}</div>
                                 </div>
                               </div>

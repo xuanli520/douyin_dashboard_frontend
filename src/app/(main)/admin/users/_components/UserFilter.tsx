@@ -55,13 +55,11 @@ export function UserFilter({ value, onChange, onReset, roles = [] }: UserFilterP
   ];
 
   return (
-    <div className="py-4">
-      <FilterBar 
-        items={items} 
-        value={value} 
-        onChange={onChange} 
-        onReset={onReset} 
-      />
-    </div>
+    <FilterBar 
+      items={items} 
+      value={value} 
+      onChange={onChange} 
+      onReset={onReset} 
+    />
   );
 }

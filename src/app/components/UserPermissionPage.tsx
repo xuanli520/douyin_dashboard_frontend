@@ -100,10 +100,10 @@ export default function UserPermissionPage() {
       <div className="flex items-center justify-between">
         <NeonTitle icon={Users}>用户权限管理</NeonTitle>
 
-        <div className="flex items-center gap-3">
-          <div className="relative group">
+        <div className="filter-bar-container flex items-center gap-3">
+          <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={16}
             />
             <input
@@ -111,14 +111,14 @@ export default function UserPermissionPage() {
               placeholder="搜索用户..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="pl-10 pr-4 py-2 w-[300px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 transition-all"
+              className="pl-10 pr-4 py-2 w-[300px] bg-white border-none rounded-md text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50"
             />
           </div>
 
           {isSuperuser && (
             <button
               onClick={handleCreate}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/50 rounded-lg transition-all shadow-[0_0_15px_rgba(99,102,241,0.2)] text-sm font-medium"
+              className="px-4 py-2 bg-white text-sky-600 border-none rounded-md hover:bg-slate-50 transition-all text-sm font-medium shadow-sm"
             >
               新增用户
             </button>

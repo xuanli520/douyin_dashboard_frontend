@@ -14,6 +14,17 @@ import {
 } from '@/services/adminService';
 import { RoleRead, RoleWithPermissions, PermissionRead } from '@/types';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
+
+// 模块名称映射
+const MODULE_NAME_MAP: Record<string, string> = {
+  user: '用户',
+  role: '角色',
+  permission: '权限',
+  data: '数据',
+  report: '报告',
+  settings: '设置',
+  system: '系统',
+};
 import { CyberInput } from '@/components/ui/cyber/CyberInput';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
@@ -208,7 +219,7 @@ export function RolesPageContent() {
       header: '模块',
       render: (perm) => (
         <CyberBadge variant="outline" className="uppercase tracking-wider text-[10px]">
-          {perm.module || '系统'}
+          {MODULE_NAME_MAP[perm.module] || perm.module || '系统'}
         </CyberBadge>
       ),
     },

@@ -51,7 +51,7 @@ export default function IndicatorDetailPage({
                 <h1 className="text-xl font-semibold flex items-center gap-2">
                   <span className="text-foreground">{indicator.categoryName}</span>
                   <span className="text-muted-foreground text-sm font-normal">
-                    SYS.ONLINE
+                    系统在线
                   </span>
                 </h1>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-4">
@@ -200,7 +200,7 @@ export default function IndicatorDetailPage({
                   </div>
 
                   {/* Ranges Row */}
-                  <div className="text-right pr-2 py-1 opacity-0">Range</div>
+                  <div className="text-right pr-2 py-1 opacity-0">范围</div>
                   <div className="flex justify-between">
                     {indicator.scoreRanges.map((range, index) => (
                       <div key={index} className="flex-1 text-center text-[10px]">

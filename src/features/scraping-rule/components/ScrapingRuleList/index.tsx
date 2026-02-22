@@ -62,21 +62,21 @@ export function ScrapingRuleList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
+        <div className="filter-bar-container flex items-center gap-3">
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <Input
               placeholder="搜索规则..."
               value={filters.name || ''}
               onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
-              className="pl-9 w-[200px]"
+              className="pl-9 w-[200px] bg-white border-none"
             />
           </div>
           <Select
             value={filters.target_type || 'all'}
             onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] bg-white border-none">
               <SelectValue placeholder="全部类型" />
             </SelectTrigger>
             <SelectContent>

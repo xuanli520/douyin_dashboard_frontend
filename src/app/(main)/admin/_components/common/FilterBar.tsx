@@ -78,7 +78,7 @@ export function FilterBar({ items, value, onChange, onReset, className }: Filter
   });
 
   return (
-    <div className={`flex flex-wrap items-end gap-4 ${className}`}>
+    <div className={`filter-bar-container flex flex-wrap items-end gap-4 ${className}`}>
       {items.map((item) => {
         if (item.type === 'input') {
           return (

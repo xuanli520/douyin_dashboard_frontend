@@ -132,7 +132,7 @@ export function Sidebar() {
         ref={sidebarRef}
         className="h-[calc(100vh-32px)] my-4 ml-4 rounded-lg flex flex-col items-center justify-center z-50 w-[200px] bg-[#e0f2fe] dark:bg-[#0f172a] border border-[#bfdbfe] dark:border-[#1e293b]"
       >
-        <div className="w-8 h-8 border-2 rounded-full animate-spin border-slate-300 border-t-[#0ea5e9]" />
+        <div className="w-8 h-8 border-2 rounded-full animate-spin border-slate-300 border-t-[#0284c7]" />
       </div>
     );
   }
@@ -152,12 +152,12 @@ export function Sidebar() {
             title="点击Logo 5次切换主题"
           >
             <Image 
-              src={logoImage} 
-              alt="智服云声" 
-              width={36} 
-              height={36}
-              className="rounded"
-            />
+               src={logoImage} 
+               alt="智服云声" 
+               width={44} 
+               height={44}
+               className="rounded"
+             />
             <span className="text-sm font-semibold text-[#1e3a5a] dark:text-slate-100">智服云声</span>
           </button>
         </div>
@@ -184,7 +184,7 @@ export function Sidebar() {
                     onClick={() => toggleMenu(item.id)}
                     className={`relative px-4 py-3 mx-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                       isAnyActive
-                        ? 'bg-[#0ea5e9] text-white shadow-sm'
+                        ? 'bg-[#0284c7] text-white shadow-sm'
                         : 'text-[#1e3a5a] dark:text-slate-200 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d]'
                     }`}
                   >
@@ -209,7 +209,7 @@ export function Sidebar() {
 href={subItem.href || '#'}
                             className={`relative px-4 py-2.5 rounded-lg flex items-center gap-3 transition-all duration-200 text-sm ${
                               isActive
-                                ? 'bg-[#0ea5e9]/10 dark:bg-[#0ea5e9]/20 text-[#0ea5e9] dark:text-[#7dd3fc] font-medium'
+                                ? 'bg-[#0284c7]/10 dark:bg-[#0ea5e9]/20 text-[#0284c7] dark:text-[#0ea5e9] font-medium'
                                 : 'text-[#475569] dark:text-slate-400 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d] hover:text-[#1e3a5a] dark:hover:text-slate-100'
                             }`}
                           >
@@ -232,7 +232,7 @@ href={subItem.href || '#'}
                 href={item.href || '#'}
                 className={`relative px-4 py-3 mx-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#0ea5e9] text-white shadow-sm'
+                    ? 'bg-[#0284c7] text-white shadow-sm'
                     : 'text-[#1e3a5a] dark:text-slate-200 hover:bg-[#f0f9ff] dark:hover:bg-[#16263d]'
                 }`}
               >

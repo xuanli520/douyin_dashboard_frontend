@@ -9,7 +9,7 @@ import { ThemeInit } from '@/components/ThemeInit';
 
 export const metadata: Metadata = {
   title: '智服云声数据看板',
-  description: 'Data Analysis and Management System',
+  description: '数据分析与管理系统',
 };
 
 export default function RootLayout({

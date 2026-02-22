@@ -6,6 +6,7 @@ import { DataTable, DataTableColumn } from '@/app/(main)/admin/_components/commo
 import { StatusTag } from '../common/StatusTag';
 import { TypeTag } from '../common/TypeTag';
 import { useRouter } from 'next/navigation';
+import { getDataSourceTypeLabel } from '@/lib/enums';
 
 interface DataSourceTableProps {
   data: DataSource[];
@@ -37,8 +38,8 @@ export function DataSourceTable({ data, loading, pagination, onPageChange, onSiz
       key: 'type',
       header: '类型',
       render: (source) => (
-        <span className="text-sm text-slate-500 dark:text-slate-400 font-mono capitalize">
-          {source.type}
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          {getDataSourceTypeLabel(source.type)}
         </span>
       ),
     },

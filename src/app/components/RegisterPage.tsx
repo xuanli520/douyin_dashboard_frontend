@@ -4,8 +4,7 @@ import { useState, useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2, UserPlus } from 'lucide-react';
-import pigFishIcon from '@/assets/profile.jpg';
-import oceanBg from '@/assets/backgrond.jpg';
+import logoImage from '@/assets/logo.png';
 import { register, handleAuthError, checkPasswordStrength } from '@/services/userService';
 
 interface RegisterPageProps {

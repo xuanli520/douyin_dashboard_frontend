@@ -15,42 +15,42 @@ import {
 const tasks = [
   {
     id: 1,
-    name: '数据同步任务 (Data Sync)',
+    name: '数据同步任务',
     lastStatus: '成功',
     lastRun: '2023-17-03 18:00:38',
     duration: '04ms'
   },
   {
     id: 2,
-    name: '库存校准 (Inventory Check)',
+    name: '库存校准',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:03:39',
     duration: '96ms'
   },
   {
     id: 3,
-    name: '报表生成 (Report Gen)',
+    name: '报表生成',
     lastStatus: '失败',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
   },
   {
     id: 4,
-    name: '用户行为分析 (User Analytics)',
+    name: '用户行为分析',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:30',
     duration: '03ms'
   },
   {
     id: 5,
-    name: '日志清理 (Log Cleanup)',
+    name: '日志清理',
     lastStatus: '失败',
     lastRun: '2023-17-08 14:50:39',
     duration: '03ms'
   },
   {
     id: 6,
-    name: '系统备份 (Backup)',
+    name: '系统备份',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
@@ -82,20 +82,20 @@ export default function TaskSchedulePage() {
       <div className="flex items-center justify-between">
             <NeonTitle icon={Clock}>任务调度中心</NeonTitle>
           
-           <div className="flex gap-3">
-              <div className="relative group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={14} />
-                    <input
-                        type="text"
-                        placeholder="搜索任务..."
-                        className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-700 dark:text-slate-200"
-                    />
-                </div>
-               <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
-                 <Plus size={14} />
-                 新建任务
-               </button>
-           </div>
+           <div className="filter-bar-container flex gap-3">
+               <div className="relative">
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                     <input
+                         type="text"
+                         placeholder="搜索任务..."
+                         className="pl-9 pr-4 py-1.5 w-[200px] bg-white border-none rounded-md text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                     />
+                 </div>
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-white text-sky-600 border-none rounded-md hover:bg-slate-50 transition-all text-xs font-medium shadow-sm">
+                  <Plus size={14} />
+                  新建任务
+                </button>
+            </div>
       </div>
 
       {/* 任务表格 */}

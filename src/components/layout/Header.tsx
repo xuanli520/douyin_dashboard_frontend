@@ -44,20 +44,20 @@ export function Header() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 px-3 py-2">
             <Image
-              src={logoImage}
-              alt="智服云声"
-              width={40}
-              height={40}
-              className="rounded-md"
-            />
-            <div className="flex flex-col items-start">
-              <span className="text-lg font-bold text-[#1e3a5a]">智服云声数据看板</span>
-            </div>
-          </div>
-          <div className="h-8 w-px bg-slate-200 mx-2" />
-          <h1 className="text-xl font-semibold text-[#1e3a5a]">
-            {currentItem?.label || '用户管理'}
-          </h1>
+               src={logoImage}
+               alt="智服云声"
+               width={48}
+               height={48}
+               className="rounded-md"
+             />
+             <div className="flex flex-col items-start">
+               <span className="text-lg font-bold text-[#1e3a5a]">智服云声数据看板</span>
+             </div>
+           </div>
+           <div className="h-8 w-px bg-slate-200 mx-2" />
+           <h1 className="text-lg font-bold text-[#1e3a5a]">
+             {currentItem?.label || '用户管理'}
+           </h1>
         </div>
       </header>
     );
@@ -77,13 +77,13 @@ export function Header() {
             }`}
             title="点击Logo 5次切换主题"
           >
-            <Image 
-              src={logoImage} 
-              alt="智服云声" 
-              width={40} 
-              height={40} 
-              className="rounded-md"
-            />
+            <Image
+               src={logoImage}
+               alt="智服云声"
+               width={48}
+               height={48}
+               className="rounded-md"
+             />
             <div className="flex flex-col items-start">
               <span className="enterprise-brand-title text-lg font-bold text-[#1e3a5a] dark:text-slate-100">智服云声数据看板</span>
             </div>
@@ -91,7 +91,7 @@ export function Header() {
           
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-700/80 mx-2" />
           
-          <h1 className="page-title text-xl font-semibold text-[#1e3a5a] dark:text-slate-100">
+          <h1 className="page-title text-lg font-bold text-[#1e3a5a] dark:text-slate-100">
             {currentItem?.label || '用户管理'}
           </h1>
         </div>

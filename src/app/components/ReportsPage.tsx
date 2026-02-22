@@ -36,10 +36,10 @@ export default function ReportsPage() {
       <div className="mb-6 border-b border-slate-200 dark:border-white/10">
         <div className="flex gap-8">
           <button className="pb-3 text-sm font-mono font-medium text-cyan-600 dark:text-cyan-400 border-b-2 border-cyan-500 dark:border-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
-            定期报表 (Regular)
+            定期报表
           </button>
           <button className="pb-3 text-sm font-mono font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 transition-colors">
-            自定义导出 (Custom)
+            自定义导出
           </button>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function ReportsPage() {
                   
                   <button className="px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-cyan-500/20 border border-slate-200 dark:border-white/10 hover:border-cyan-500/50 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 text-xs font-mono rounded-full transition-all flex items-center gap-2">
                     <Download size={14} />
-                    Download
+                    下载
                   </button>
                 </div>
               </GlassCard>
@@ -91,9 +91,9 @@ export default function ReportsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Filename</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead className="text-right">Status</TableHead>
+              <TableHead>文件名</TableHead>
+              <TableHead>大小</TableHead>
+              <TableHead className="text-right">状态</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -126,7 +126,7 @@ export default function ReportsPage() {
                 <TableRow>
                     <TableCell colSpan={3}>
                         <div className="text-center">
-                            <button className="text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 font-mono transition-colors">View All History &rarr;</button>
+                            <button className="text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 font-mono transition-colors">查看全部历史 &rarr;</button>
                         </div>
                     </TableCell>
                 </TableRow>
