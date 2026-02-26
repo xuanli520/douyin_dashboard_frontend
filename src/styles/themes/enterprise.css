@@ -201,47 +201,60 @@
   border-radius: 0.375rem; /* 6px */
 }
 
-/* Enterprise Filter Bar Styles - 统一筛选框蓝色背景 */
 :root[data-theme="enterprise"] .filter-bar-container {
-  background-color: #0284c7;
-  padding: 12px 16px;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  background-color: #12314d;
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  box-shadow: 0 10px 25px -18px rgba(15, 23, 42, 0.95);
 }
 
 :root[data-theme="enterprise"] .filter-bar-container input,
 :root[data-theme="enterprise"] .filter-bar-container select,
+:root[data-theme="enterprise"] .filter-bar-container [data-slot="select-trigger"],
 :root[data-theme="enterprise"] .filter-bar-container .filter-input {
-  background-color: #ffffff;
-  border: none;
-  border-radius: 0.375rem;
+  background-color: #f8fafc;
+  color: #0f172a;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
 }
 
-:root[data-theme="enterprise"] .filter-bar-container input:focus,
-:root[data-theme="enterprise"] .filter-bar-container select:focus {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+:root[data-theme="enterprise"] .filter-bar-container input::placeholder,
+:root[data-theme="enterprise"] .filter-bar-container .filter-input::placeholder {
+  color: #64748b;
 }
 
-:root[data-theme="enterprise"] .filter-bar-container [data-slot="select-trigger"] {
-  background-color: #ffffff;
-  border: none;
-  border-radius: 0.375rem;
+:root[data-theme="enterprise"] .filter-bar-container input:focus-visible,
+:root[data-theme="enterprise"] .filter-bar-container select:focus-visible,
+:root[data-theme="enterprise"] .filter-bar-container [data-slot="select-trigger"]:focus-visible,
+:root[data-theme="enterprise"] .filter-bar-container .filter-input:focus-visible {
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.28);
+  outline: none;
 }
 
 :root[data-theme="enterprise"] .filter-bar-container label {
-  color: #ffffff;
+  color: #e2e8f0;
   font-weight: 500;
 }
 
-/* Dark mode styles for filter bar */
+:root[data-theme="enterprise"] .filter-bar-container button {
+  border-radius: calc(var(--radius) - 2px);
+}
+
 :root[data-theme="enterprise"].dark .filter-bar-container {
-  background-color: #0369a1;
+  background-color: #0f2135;
 }
 
 :root[data-theme="enterprise"].dark .filter-bar-container input,
 :root[data-theme="enterprise"].dark .filter-bar-container select,
-:root[data-theme="enterprise"].dark .filter-bar-container .filter-input,
-:root[data-theme="enterprise"].dark .filter-bar-container [data-slot="select-trigger"] {
-  background-color: #1e293b;
+:root[data-theme="enterprise"].dark .filter-bar-container [data-slot="select-trigger"],
+:root[data-theme="enterprise"].dark .filter-bar-container .filter-input {
+  background-color: #0b1220;
   color: #e2e8f0;
+}
+
+:root[data-theme="enterprise"].dark .filter-bar-container input::placeholder,
+:root[data-theme="enterprise"].dark .filter-bar-container .filter-input::placeholder {
+  color: #94a3b8;
 }

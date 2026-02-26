@@ -220,10 +220,77 @@ export default function LoginAuditPage() {
 
   // ─── Main ───────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-3 min-h-screen p-4">
+    <div className="min-h-screen space-y-4 p-4">
+      <div className="filter-bar-container flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+            <CyberInput
+              type="text"
+              placeholder="搜索 IP 地址..."
+              value={uiFilters.search || ''}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="filter-input h-9 w-56 pl-9 pr-3 text-[13px]"
+            />
+          </div>
 
-      {/* ── 统计卡片 ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Select
+            value={uiFilters.status || 'all'}
+            onValueChange={(value) => handleStatusChange(value as 'all' | 'success' | 'failure')}
+          >
+            <SelectTrigger className="filter-input h-9 w-32 text-[13px]">
+              <SelectValue placeholder="全部状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部状态</SelectItem>
+              <SelectItem value="success">成功</SelectItem>
+              <SelectItem value="failure">失败</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={uiFilters.event_type || 'all'}
+            onValueChange={(value) => handleEventTypeChange(value)}
+          >
+            <SelectTrigger className="filter-input h-9 w-32 text-[13px]">
+              <SelectValue placeholder="全部事件" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部事件</SelectItem>
+              <SelectItem value="login">登录</SelectItem>
+              <SelectItem value="logout">登出</SelectItem>
+              <SelectItem value="refresh">刷新</SelectItem>
+              <SelectItem value="register">注册</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={uiFilters.account_type || 'all'}
+            onValueChange={(value) => handleAccountTypeChange(value)}
+          >
+            <SelectTrigger className="filter-input h-9 w-36 text-[13px]">
+              <SelectValue placeholder="全部账户类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部账户类型</SelectItem>
+              <SelectItem value="admin">管理员</SelectItem>
+              <SelectItem value="operator">运营</SelectItem>
+              <SelectItem value="analyst">分析师</SelectItem>
+              <SelectItem value="api">API账号</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <CyberButton
+          onClick={handleExport}
+          className="h-9 shrink-0 border border-white/30 bg-transparent px-3 text-[13px] text-slate-100 hover:bg-white/10"
+        >
+          <Download size={14} />
+          导出日志
+        </CyberButton>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* 日志条数 */}
         <CyberCard className="px-5 py-4 flex items-center justify-between hover:border-blue-400 dark:hover:border-blue-500 transition-colors rounded-sm">
           <div>
@@ -269,83 +336,7 @@ export default function LoginAuditPage() {
         </CyberCard>
       </div>
 
-      {/* ── 主内容区 ── */}
       <div className="overflow-hidden rounded-sm">
-
-        {/* 筛选栏 */}
-        <div className="filter-bar-container m-4 mb-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* 左侧：搜索 + 筛选器 */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* 搜索框 */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <CyberInput
-                type="text"
-                placeholder="搜索 IP 地址..."
-                value={uiFilters.search || ''}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9 pr-3 h-8 w-52 text-[13px] bg-white border-none"
-              />
-            </div>
-
-            {/* 状态 */}
-            <Select
-              value={uiFilters.status || 'all'}
-              onValueChange={(value) => handleStatusChange(value as 'all' | 'success' | 'failure')}
-            >
-              <SelectTrigger className="h-8 w-28 text-[13px] bg-white border-none rounded-sm text-slate-700">
-                <SelectValue placeholder="全部状态" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="success">成功</SelectItem>
-                <SelectItem value="failure">失败</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* 事件类型 */}
-            <Select
-              value={uiFilters.event_type || 'all'}
-              onValueChange={(value) => handleEventTypeChange(value)}
-            >
-              <SelectTrigger className="h-8 w-28 text-[13px] bg-white border-none rounded-sm text-slate-700">
-                <SelectValue placeholder="全部事件" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部事件</SelectItem>
-                <SelectItem value="login">登录</SelectItem>
-                <SelectItem value="logout">登出</SelectItem>
-                <SelectItem value="refresh">刷新</SelectItem>
-                <SelectItem value="register">注册</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* 账户类型 */}
-            <Select
-              value={uiFilters.account_type || 'all'}
-              onValueChange={(value) => handleAccountTypeChange(value)}
-            >
-              <SelectTrigger className="h-8 w-32 text-[13px] bg-white border-none rounded-sm text-slate-700">
-                <SelectValue placeholder="全部账户类型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部账户类型</SelectItem>
-                <SelectItem value="admin">管理员</SelectItem>
-                <SelectItem value="operator">运营</SelectItem>
-                <SelectItem value="analyst">分析师</SelectItem>
-                <SelectItem value="api">API账号</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* 右侧：导出 */}
-          <CyberButton onClick={handleExport} className="h-8 text-[13px] px-3 flex items-center gap-1.5 shrink-0 bg-white text-sky-600 border-none hover:bg-slate-50">
-            <Download size={14} />
-            导出日志
-          </CyberButton>
-        </div>
-
-        {/* 表格 */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>

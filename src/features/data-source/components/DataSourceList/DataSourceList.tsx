@@ -149,54 +149,54 @@ export function DataSourceList() {
   };
 
   return (
-    <div className="bg-transparent text-foreground p-6 space-y-4">
+    <div className="bg-transparent p-6 text-foreground space-y-5">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <NeonTitle icon={Database}>数据源管理</NeonTitle>
 
-        <div className="filter-bar-container flex items-center gap-3">
-          <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
-            <SelectTrigger className="w-[140px] bg-white border-none">
-              <SelectValue placeholder="全部类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部类型</SelectItem>
-              <SelectItem value="DOUYIN_API">抖音API</SelectItem>
-              <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
-              <SelectItem value="SELF_HOSTED">数据库</SelectItem>
-              <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
-            </SelectContent>
-          </Select>
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="group flex items-center gap-2 rounded-md border border-cyan-500/50 bg-cyan-600/20 px-4 py-2 text-sm font-medium text-cyan-100 transition-all hover:bg-cyan-600/30"
+        >
+          <Plus size={16} className="transition-transform group-hover:rotate-90" />
+          添加数据源
+        </button>
+      </div>
 
-          <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[120px] bg-white border-none">
-              <SelectValue placeholder="全部状态" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部状态</SelectItem>
-              <SelectItem value="ACTIVE">活跃</SelectItem>
-              <SelectItem value="INACTIVE">停用</SelectItem>
-              <SelectItem value="ERROR">错误</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
+          <SelectTrigger className="filter-input w-[160px]">
+            <SelectValue placeholder="全部类型" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部类型</SelectItem>
+            <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+            <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+            <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+            <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              type="text"
-              placeholder="搜索数据源..."
-              value={searchText}
-              onChange={handleSearch}
-              className="pl-10 pr-4 py-2 w-[200px] bg-white border-none rounded-md text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-            />
-          </div>
+        <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
+          <SelectTrigger className="filter-input w-[140px]">
+            <SelectValue placeholder="全部状态" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部状态</SelectItem>
+            <SelectItem value="ACTIVE">活跃</SelectItem>
+            <SelectItem value="INACTIVE">停用</SelectItem>
+            <SelectItem value="ERROR">错误</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-sky-600 border-none rounded-md hover:bg-slate-50 transition-all text-sm font-medium shadow-sm"
-          >
-            <Plus size={16} className="group-hover:rotate-90 transition-transform" />
-            添加数据源
-          </button>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            type="text"
+            placeholder="搜索数据源..."
+            value={searchText}
+            onChange={handleSearch}
+            className="filter-input h-9 w-[240px] pl-10 pr-4 text-sm focus-visible:ring-0"
+          />
         </div>
       </div>
 

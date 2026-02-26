@@ -183,8 +183,6 @@ function UsersPageContent() {
         </PermissionGate>
       </div>
 
-      <UserStats stats={stats} isLoading={isStatsLoading} />
-
       <UserFilter 
         value={query} 
         onChange={setQuery} 
@@ -198,6 +196,8 @@ function UsersPageContent() {
              role_id: undefined 
         }, { resetPage: true })}
       />
+
+      <UserStats stats={stats} isLoading={isStatsLoading} />
 
       <UserTable
         data={data}

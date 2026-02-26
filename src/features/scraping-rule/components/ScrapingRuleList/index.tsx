@@ -62,37 +62,7 @@ export function ScrapingRuleList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="filter-bar-container flex items-center gap-3">
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <Input
-              placeholder="搜索规则..."
-              value={filters.name || ''}
-              onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
-              className="pl-9 w-[200px] bg-white border-none"
-            />
-          </div>
-          <Select
-            value={filters.target_type || 'all'}
-            onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
-          >
-            <SelectTrigger className="w-[140px] bg-white border-none">
-              <SelectValue placeholder="全部类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部类型</SelectItem>
-              <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
-              <SelectItem value="TRAFFIC">流量</SelectItem>
-              <SelectItem value="PRODUCT">商品</SelectItem>
-              <SelectItem value="LIVE">直播</SelectItem>
-              <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
-              <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
-              <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
-              <SelectItem value="CUSTOMER">客户</SelectItem>
-              <SelectItem value="ADS">广告</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">采集规则管理</h2>
         <Button
           onClick={() => setIsCreateOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group"
@@ -100,6 +70,38 @@ export function ScrapingRuleList() {
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
           创建规则
         </Button>
+      </div>
+
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Input
+            placeholder="搜索规则..."
+            value={filters.name || ''}
+            onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
+            className="filter-input w-[220px] pl-9"
+          />
+        </div>
+        <Select
+          value={filters.target_type || 'all'}
+          onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
+        >
+          <SelectTrigger className="filter-input w-[150px]">
+            <SelectValue placeholder="全部类型" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部类型</SelectItem>
+            <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
+            <SelectItem value="TRAFFIC">流量</SelectItem>
+            <SelectItem value="PRODUCT">商品</SelectItem>
+            <SelectItem value="LIVE">直播</SelectItem>
+            <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
+            <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
+            <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
+            <SelectItem value="CUSTOMER">客户</SelectItem>
+            <SelectItem value="ADS">广告</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {error && <div className="text-left text-red-500 py-8">错误: {error.message}</div>}
