@@ -137,11 +137,13 @@ const TopNavigation = ({
   const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; minWidth: number } | null>(null);
 
   useEffect(() => {
+    // 仅在下拉展开时挂载监听，避免无用的全局事件
+    if (!openDropdownTab) {
+      setDropdownStyle(null);
+      return;
+    }
+
     const updateDropdownPosition = () => {
-      if (!openDropdownTab) {
-        setDropdownStyle(null);
-        return;
-      }
       const anchor = buttonRefs.current[openDropdownTab];
       if (!anchor) {
         setDropdownStyle(null);
