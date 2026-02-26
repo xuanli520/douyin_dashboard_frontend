@@ -29,8 +29,8 @@
  */
 
 :root[data-theme="enterprise"] {
-  /* Font Family */
-  --font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
+  /* Font Family inherits global; override via variables if needed */
+  --font-sans: var(--font-sans);
   
   /* Base Colors */
   --background: #f8fafc;
@@ -172,7 +172,6 @@
 
 /* Enterprise Header Styles */
 :root[data-theme="enterprise"] .header-enterprise {
-  font-family: var(--font-family);
   color: var(--foreground);
 }
 

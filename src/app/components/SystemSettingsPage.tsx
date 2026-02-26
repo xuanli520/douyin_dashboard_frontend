@@ -7,13 +7,101 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Bell, Lock, Save, Moon, Sun, Monitor } from 'lucide-react';
+import { Settings, Bell, Lock, Save, Moon, Sun, Monitor, Type, Code } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { SettingSelect } from '@/app/components/ui/styled-select';
 import { SelectItem } from '@/app/components/ui/select';
 
 export default function SystemSettingsPage() {
   const { appTheme, colorMode, setColorMode, isHydrated } = useThemeStore();
+  const { fontCn, fontEn, fontMono, setFontCn, setFontEn, setFontMono } = useThemeStore();
+
+  const fontOptions = {
+    cn: [
+      "'Source Han Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB'",
+      "'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif",
+      "'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Source Han Sans SC'",
+    ],
+    en: [
+      "'Inter', 'Helvetica Neue', 'Arial'",
+      "'Arial', 'Helvetica Neue', 'sans-serif'",
+    ],
+    mono: [
+      "'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas'",
+      "'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'",
+    ],
+  };
+
+  const FontSection = () => (
+    <div className="space-y-4" data-testid="font-section">
+      <div className="flex items-center gap-2 mb-2">
+        <Type size={18} className="text-[#0ea5e9] dark:text-[#7dd3fc]" />
+        <h2 className="text-lg font-medium text-[#1e3a5a] dark:text-slate-100">字体设置</h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2" data-testid="font-cn-select">
+          <p className="text-sm text-muted-foreground">中文正文</p>
+          <SettingSelect
+            value={fontCn}
+            onValueChange={(val) => setFontCn(val)}
+            className="w-full"
+          >
+            {fontOptions.cn.map((v) => (
+              <SelectItem key={v} value={v}>{v.split(',')[0].replace(/'/g, '')}</SelectItem>
+            ))}
+          </SettingSelect>
+        </div>
+        <div className="space-y-2" data-testid="font-en-select">
+          <p className="text-sm text-muted-foreground">英文正文</p>
+          <SettingSelect
+            value={fontEn}
+            onValueChange={(val) => setFontEn(val)}
+            className="w-full"
+          >
+            {fontOptions.en.map((v) => (
+              <SelectItem key={v} value={v}>{v.split(',')[0].replace(/'/g, '')}</SelectItem>
+            ))}
+          </SettingSelect>
+        </div>
+        <div className="space-y-2" data-testid="font-mono-select">
+          <p className="text-sm text-muted-foreground">等宽 / 代码</p>
+          <SettingSelect
+            value={fontMono}
+            onValueChange={(val) => setFontMono(val)}
+            className="w-full"
+          >
+            {fontOptions.mono.map((v) => (
+              <SelectItem key={v} value={v}>{v.split(',')[0].replace(/'/g, '')}</SelectItem>
+            ))}
+          </SettingSelect>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          data-testid="font-preview-body"
+          className="p-4 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-sm"
+          style={{ fontFamily: `${fontCn}, ${fontEn}, sans-serif` }}
+        >
+          <p className="text-sm text-foreground">
+            这是一段中文正文示例，Mixed English text for preview.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            字体链首选 {fontCn.split(',')[0].replace(/'/g, '')}
+          </p>
+        </div>
+        <pre
+          data-testid="font-preview-mono"
+          className="p-4 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 text-sm overflow-auto"
+          style={{ fontFamily: fontMono }}
+        >
+{`function greet(name) {
+  return \`Hello, ${'${name}'}\`;
+}`}
+        </pre>
+      </div>
+    </div>
+  );
   const [settings, setSettings] = useState({
     // 通知设置
     emailNotification: true,
@@ -204,6 +292,9 @@ export default function SystemSettingsPage() {
               </div>
             </div>
 
+            {/* 字体设置 */}
+            <FontSection />
+
             {/* 提示信息 */}
             <div className="p-4 bg-[#e0f2fe] dark:bg-[#13243b] rounded-lg border border-[#bfdbfe] dark:border-[#1e3a5a]">
               <p className="text-sm text-[#1e3a5a] dark:text-[#cfe4ff]">
@@ -320,10 +411,10 @@ export default function SystemSettingsPage() {
 
           {/* 外观设置 - 仅赛博朋克主题显示暗/亮模式切换 */}
           <div>
-             <div className="flex items-center gap-2 mb-4">
-               <Monitor size={18} className="text-[#0e7490] dark:text-cyan-400" />
-               <h2 className="text-lg font-bold text-foreground font-mono">外观设置</h2>
-             </div>
+            <div className="flex items-center gap-2 mb-4">
+              <Monitor size={18} className="text-[#0e7490] dark:text-cyan-400" />
+              <h2 className="text-lg font-bold text-foreground font-mono">外观设置</h2>
+            </div>
              <div className="p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl">
                 <p className="text-sm font-medium text-foreground mb-4">界面模式</p>
                 <div className="grid grid-cols-3 gap-4">
@@ -363,6 +454,9 @@ export default function SystemSettingsPage() {
                 </div>
               </div>
           </div>
+
+          {/* 字体设置 */}
+          <FontSection />
 
           {/* 提示信息 */}
           <div className="p-4 bg-[#c8fde6]/30 dark:bg-cyan-500/10 rounded-xl border border-[#8ee8cf] dark:border-cyan-500/20">
