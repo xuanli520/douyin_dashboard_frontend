@@ -89,8 +89,8 @@ export default function DataAnalysisPage() {
                       <Lightbulb size={20} />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-slate-200">{insight.title}</h4>
-                      <p className="text-sm text-slate-400 mt-1">{insight.description}</p>
+                      <h4 className="font-medium text-slate-900 dark:text-slate-200">{insight.title}</h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{insight.description}</p>
                       <div className="flex items-center gap-4 mt-3 text-xs font-mono text-slate-500">
                       <span className="flex items-center gap-1">
                         影响度: <span className={insight.impact === 'high' ? 'text-rose-400' : 'text-cyan-400'}>{IMPACT_MAP[insight.impact] || insight.impact}</span>
@@ -133,7 +133,7 @@ export default function DataAnalysisPage() {
                 {analyses.map((item) => (
                   <TableRow key={item.id} className="group hover:bg-white/5">
                     <TableCell className="font-mono text-slate-500">#{item.id}</TableCell>
-                    <TableCell className="font-medium text-slate-200">{item.name}</TableCell>
+                    <TableCell className="font-medium text-slate-700 dark:text-slate-50">{item.name}</TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-300 text-xs border border-slate-700">
                         {ANALYSIS_TYPE_MAP[item.type] || item.type}
@@ -149,7 +149,7 @@ export default function DataAnalysisPage() {
                         {item.status === 'completed' ? '已完成' : item.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-slate-400 max-w-xs truncate" title={item.result_summary}>
+                    <TableCell className="text-slate-700 dark:text-slate-400 max-w-xs truncate" title={item.result_summary}>
                       {item.result_summary}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-slate-500">
