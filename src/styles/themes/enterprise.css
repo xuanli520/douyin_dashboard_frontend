@@ -209,6 +209,11 @@
   box-shadow: 0 10px 25px -18px rgba(15, 23, 42, 0.95);
 }
 
+:root[data-theme="enterprise"] .metric-detail-primary-switch {
+  padding-top: 1.125rem;
+  padding-bottom: 1.125rem;
+}
+
 :root[data-theme="enterprise"] .filter-bar-container input,
 :root[data-theme="enterprise"] .filter-bar-container select,
 :root[data-theme="enterprise"] .filter-bar-container [data-slot="select-trigger"],
