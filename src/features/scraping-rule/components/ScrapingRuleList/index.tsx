@@ -5,12 +5,12 @@ import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
 import { useActivateScrapingRule } from '../../hooks/useActivateScrapingRule';
-import { Button } from '@/app/components/ui/button';
 import { Plus, Filter } from 'lucide-react';
 import { Input } from '@/app/components/ui/input';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { CreateForm } from '../ScrapingRuleForm/CreateForm';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Select,
   SelectContent,
@@ -63,13 +63,13 @@ export function ScrapingRuleList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">采集规则管理</h2>
-        <Button
+        <CyberButton
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group"
+          className="shadow-lg shadow-cyan-500/20 group"
         >
-          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
           创建规则
-        </Button>
+        </CyberButton>
       </div>
 
       <div className="filter-bar-container flex flex-wrap items-center gap-3">

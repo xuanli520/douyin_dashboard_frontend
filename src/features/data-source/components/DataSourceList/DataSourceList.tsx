@@ -7,13 +7,13 @@ import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
 import { useDeleteDataSource } from '../../hooks/useDeleteDataSource';
 import { DataSourceTable } from './DataSourceTable';
 import { DataSourceForm } from '../DataSourceForm';
-import { NeonTitle } from '@/app/components/ui/neon-title';
-import { Search, Database, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { DataSourceType, DataSourceStatus, DataSourceCreate, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
 import { useQueryState } from '@/app/(main)/admin/_components/common/QueryState';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Select,
   SelectContent,
@@ -151,15 +151,15 @@ export function DataSourceList() {
   return (
     <div className="bg-transparent p-6 text-foreground space-y-5">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <NeonTitle icon={Database}>数据源管理</NeonTitle>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">数据源管理</h2>
 
-        <button
+        <CyberButton
           onClick={() => setIsCreateOpen(true)}
-          className="group flex items-center gap-2 rounded-md border border-cyan-500/50 bg-cyan-600/20 px-4 py-2 text-sm font-medium text-cyan-100 transition-all hover:bg-cyan-600/30"
+          className="shadow-lg shadow-cyan-500/20 group"
         >
-          <Plus size={16} className="transition-transform group-hover:rotate-90" />
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
           添加数据源
-        </button>
+        </CyberButton>
       </div>
 
       <div className="filter-bar-container flex flex-wrap items-center gap-3">

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit, Copy, X, Terminal, Clock, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
-import { NeonTitle } from '@/app/components/ui/neon-title';
+import { Edit, Copy, X, Terminal, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Table,
   TableHeader,
@@ -79,11 +79,11 @@ export default function TaskSchedulePage() {
   return (
     <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <NeonTitle icon={Clock}>任务调度中心</NeonTitle>
-        <button className="flex items-center gap-2 rounded-md border border-cyan-500/50 bg-cyan-600/20 px-3 py-1.5 text-xs font-medium text-cyan-100 transition-all hover:bg-cyan-600/30">
-          <Plus size={14} />
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">任务调度中心</h2>
+        <CyberButton className="shadow-lg shadow-cyan-500/20 group">
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
           新建任务
-        </button>
+        </CyberButton>
       </div>
 
       <div className="filter-bar-container flex flex-wrap items-center gap-3">
