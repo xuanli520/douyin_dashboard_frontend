@@ -242,6 +242,38 @@
   border-radius: calc(var(--radius) - 2px);
 }
 
+:root[data-theme="enterprise"] .filter-bar-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border: 1px solid rgba(148, 163, 184, 0.36);
+  background-color: rgba(248, 250, 252, 0.08);
+  color: #e2e8f0;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+:root[data-theme="enterprise"] .filter-bar-tab:hover {
+  border-color: rgba(186, 230, 253, 0.8);
+  background-color: rgba(248, 250, 252, 0.15);
+}
+
+:root[data-theme="enterprise"] .filter-bar-tab-active {
+  border-color: transparent;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+:root[data-theme="enterprise"] .filter-bar-tab-sub {
+  min-width: 14rem;
+  justify-content: space-between;
+}
+
+:root[data-theme="enterprise"] .filter-bar-tab-risk.filter-bar-tab-active {
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.35);
+}
+
 :root[data-theme="enterprise"].dark .filter-bar-container {
   background-color: #0f2135;
 }
@@ -257,4 +289,22 @@
 :root[data-theme="enterprise"].dark .filter-bar-container input::placeholder,
 :root[data-theme="enterprise"].dark .filter-bar-container .filter-input::placeholder {
   color: #94a3b8;
+}
+
+:root[data-theme="enterprise"].dark .filter-bar-tab {
+  border-color: rgba(71, 85, 105, 0.7);
+  background-color: rgba(15, 23, 42, 0.56);
+  color: #cbd5e1;
+}
+
+:root[data-theme="enterprise"].dark .filter-bar-tab:hover {
+  border-color: rgba(56, 189, 248, 0.65);
+  background-color: rgba(30, 41, 59, 0.78);
+  color: #e2e8f0;
+}
+
+:root[data-theme="enterprise"].dark .filter-bar-tab-active {
+  border-color: rgba(56, 189, 248, 0.4);
+  background-color: #0b1220;
+  color: #e2e8f0;
 }

@@ -4,9 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Package, Truck, MessageCircle, AlertTriangle,
-  Activity, ShieldAlert, ArrowUpRight
+  Activity
 } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
 import IndicatorDetailPage from '@/components/dashboard/IndicatorDetailPage';
 import type { Indicator } from '@/types/indicator';
 
@@ -116,8 +115,8 @@ function convertToIndicator(data: any, subMetric: any): Indicator {
 // --- 组件：顶部响应式导航 ---
 const TopNavigation = ({ activeTab, onTabChange }: { activeTab: string, onTabChange: (id: string) => void }) => {
   return (
-    <div className="w-full sticky top-0 z-20 pt-4 pb-2 bg-white/40 dark:bg-[#0f172a]/20 backdrop-blur-xl">
-      <div className="flex overflow-x-auto p-2 md:justify-center gap-2 md:gap-4 px-4 no-scrollbar">
+    <div className="filter-bar-container metric-detail-primary-switch">
+      <div className="metric-detail-primary-switch-list flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar md:justify-center">
         {Object.entries(THEME_CONFIG).map(([key, config]) => {
           const isActive = activeTab === key;
           const data = METRICS_DATA[key as keyof typeof METRICS_DATA];
@@ -125,20 +124,15 @@ const TopNavigation = ({ activeTab, onTabChange }: { activeTab: string, onTabCha
           return (
             <button
               key={key}
+              type="button"
               onClick={() => onTabChange(key)}
-              className={`
-                flex items-center gap-3 px-8 py-4 rounded-xl border transition-all duration-200 whitespace-nowrap
-                ${isActive 
-                  ? `bg-white dark:bg-slate-800 shadow-md ${config.light.text} ${config.dark.text} ${config.light.border} ${config.dark.border} ring-1 ${config.light.active} ${config.dark.active}`
-                  : 'bg-white dark:bg-slate-900 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800'
-                }
-              `}
+              className={`filter-bar-tab metric-detail-primary-switch-item shrink-0 ${isActive ? 'filter-bar-tab-active' : ''}`}
             >
-              <config.icon size={24} />
-              <span className="font-medium text-lg">{config.label}</span>
+              <config.icon size={16} />
+              <span className="text-sm font-medium">{config.label}</span>
               <span className={`
-                ml-1 px-2 py-1 rounded text-base font-mono font-bold
-                ${isActive ? 'bg-slate-100 dark:bg-slate-950' : 'bg-transparent'}
+                metric-detail-primary-switch-score rounded px-2 py-0.5 text-xs font-mono font-semibold
+                ${isActive ? 'bg-slate-200/80 text-slate-900 dark:bg-slate-700 dark:text-slate-100' : 'bg-white/10 text-slate-200 dark:bg-slate-800/70 dark:text-slate-300'}
               `}>
                 {data.score}
               </span>
@@ -163,62 +157,40 @@ const SubMetricCards = ({
   themeKey: string
 }) => {
   const config = THEME_CONFIG[themeKey as keyof typeof THEME_CONFIG];
+  const isRiskCategory = themeKey === 'risk';
 
   return (
-    <div className="flex flex-wrap justify-center gap-3 mb-6 px-4">
+    <div className="metric-detail-sub-switch-container rounded-2xl border border-slate-200/70 bg-white/70 p-2 backdrop-blur-sm shadow-sm dark:border-white/10 dark:bg-[#0f172a]/40 dark:shadow-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
       {subMetrics.map((item, index) => {
         const isSelected = selectedIndex === index;
-        const isRisk = item.isRisk || themeKey === 'risk';
-        
-        // 动态计算样式
-        // 风险项特殊处理：如果是 Risk 类型，始终偏红
+        const isRisk = item.isRisk || isRiskCategory;
         const activeConfig = isRisk ? THEME_CONFIG.risk : config;
         
         return (
-          <div
+          <button
             key={item.id}
+            type="button"
             onClick={() => onSelect(index)}
             className={`
-              relative cursor-pointer p-3 md:p-4 rounded-xl border transition-all duration-200
-              flex flex-col justify-between min-h-[90px] md:min-h-[110px]
-              w-[calc(50%-0.5rem)] md:w-64
+              metric-detail-sub-switch-item
+              shrink-0 min-w-[220px] rounded-xl border px-3 py-2 text-left transition-all duration-200
               ${isSelected
-                ? `bg-white/60 dark:bg-[#0f172a]/40 backdrop-blur-md shadow-lg scale-[1.02] border-white/30 dark:border-white/10 ${activeConfig.light.border} ${activeConfig.dark.border}`
-                : 'bg-white/40 dark:bg-[#0f172a]/20 backdrop-blur-sm border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-[#0f172a]/40'
+                ? `bg-white dark:bg-slate-900 ${activeConfig.light.text} ${activeConfig.dark.text} ${activeConfig.light.border} ${activeConfig.dark.border} shadow-sm`
+                : 'bg-white/55 text-slate-600 border-slate-200/80 hover:bg-white dark:bg-slate-900/45 dark:text-slate-300 dark:border-slate-700/60 dark:hover:bg-slate-900/70'
               }
             `}
           >
-            {/* 选中时的左侧高亮条 (日间模式增强识别) */}
-            {isSelected && (
-              <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${isRisk ? 'bg-red-500' : 'bg-blue-500 dark:bg-cyan-500'}`} />
-            )}
-
-            <div className="flex justify-between items-start mb-2 pl-2">
-              <span className={`text-xs md:text-sm font-medium line-clamp-1 ${isSelected ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                {item.title}
-              </span>
-              {isRisk ? (
-                 <ShieldAlert size={14} className={isSelected ? 'text-red-500' : 'text-slate-400'} />
-              ) : (
-                 <Activity size={14} className={isSelected ? 'text-blue-500 dark:text-cyan-400' : 'text-slate-400'} />
-              )}
-            </div>
-
-            <div className="pl-2">
-              <div className={`text-lg md:text-xl font-bold font-mono ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-500'}`}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="truncate text-sm font-medium">{item.title}</span>
+              <span className={`text-xs font-mono font-semibold ${isSelected ? 'text-current' : 'text-slate-400 dark:text-slate-500'}`}>
                 {item.value}
-              </div>
-              {/* 仅在选中时显示的小装饰 */}
-              {isSelected && (
-                 <div className="flex items-center gap-1 mt-1">
-                    <span className="text-[10px] text-slate-400">查看详情</span>
-                    <ArrowUpRight size={10} className="text-slate-400"/>
-                 </div>
-              )}
+              </span>
             </div>
-          </div>
+          </button>
         );
       })}
+      </div>
     </div>
   );
 };
@@ -266,39 +238,29 @@ function MetricDetailContent() {
          <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-cyan-900/20 blur-[100px] rounded-full" />
       </div>
 
-      <div className="relative z-10 w-full md:py-6">
-        
-        {/* 核心导航 - 顶部横排 */}
+      <div className="relative z-10 w-full space-y-4 px-4 py-4 md:px-6 md:py-6">
         <TopNavigation activeTab={activeTab} onTabChange={handleTabChange as any} />
 
-        {/* 主体内容区 */}
-        <div className="mt-4 md:mt-8">
-          
-          {/* 子指标选择器 - 响应式网格 */}
-          <SubMetricCards 
-            subMetrics={currentData.subMetrics}
-            selectedIndex={safeIndex}
-            onSelect={setSelectedSubMetricIndex}
-            themeKey={currentData.themeKey}
-          />
+        <SubMetricCards 
+          subMetrics={currentData.subMetrics}
+          selectedIndex={safeIndex}
+          onSelect={setSelectedSubMetricIndex}
+          themeKey={currentData.themeKey}
+        />
 
-          {/* 详情组件容器 - 使用磨砂玻璃特效 */}
-          <div className="px-4">
-             <GlassPanel className="p-1 min-h-[400px]">
-               {currentSubMetric ? (
-                 <IndicatorDetailPage
-                   indicator={convertToIndicator(currentData, currentSubMetric)}
-                   onBack={() => {}}
-                 />
-               ) : (
-                 <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                    <Activity className="mb-2 animate-pulse" />
-                    <p>加载中...</p>
-                 </div>
-               )}
-             </GlassPanel>
-          </div>
-        </div>
+        <GlassPanel className="p-1 min-h-[400px]">
+          {currentSubMetric ? (
+            <IndicatorDetailPage
+              indicator={convertToIndicator(currentData, currentSubMetric)}
+              onBack={() => {}}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+              <Activity className="mb-2 animate-pulse" />
+              <p>加载中...</p>
+            </div>
+          )}
+        </GlassPanel>
       </div>
     </div>
   );
