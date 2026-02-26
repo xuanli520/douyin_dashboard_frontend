@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Users, Shield, Check, MoreVertical, Loader2 } from 'lucide-react';
+import { Search, X, Users, Shield, MoreVertical, Loader2 } from 'lucide-react';
 import { NeonTitle } from '@/app/components/ui/neon-title';
 import { UserFormDialog } from './UserFormDialog';
 import { useUserStore } from '@/stores/userStore';
@@ -96,37 +96,35 @@ export default function UserPermissionPage() {
 
   return (
     <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <NeonTitle icon={Users}>用户权限管理</NeonTitle>
 
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="搜索用户..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="pl-10 pr-4 py-2 w-[300px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 transition-all"
-            />
-          </div>
+        {isSuperuser && (
+          <button
+            onClick={handleCreate}
+            className="px-4 py-2 rounded-md border border-cyan-500/50 bg-cyan-600/20 text-sm font-medium text-cyan-100 transition-all hover:bg-cyan-600/30"
+          >
+            新增用户
+          </button>
+        )}
+      </div>
 
-          {isSuperuser && (
-            <button
-              onClick={handleCreate}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/50 rounded-lg transition-all shadow-[0_0_15px_rgba(99,102,241,0.2)] text-sm font-medium"
-            >
-              新增用户
-            </button>
-          )}
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={16}
+          />
+          <input
+            type="text"
+            placeholder="搜索用户..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="filter-input h-9 w-[300px] pl-10 pr-4 text-sm focus-visible:ring-0"
+          />
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
           <span>{error}</span>
@@ -136,14 +134,12 @@ export default function UserPermissionPage() {
         </div>
       )}
 
-      {/* Loading State */}
       {isLoading && (
         <div className="flex-1 flex items-center justify-center py-12">
           <Loader2 className="animate-spin text-cyan-500" size={32} />
         </div>
       )}
 
-      {/* User Table */}
       {!isLoading && (
         <div className="flex-1 overflow-x-auto">
           <Table>
@@ -249,7 +245,6 @@ export default function UserPermissionPage() {
         </div>
       )}
 
-      {/* User Form Dialog */}
       <UserFormDialog
         isOpen={showFormDialog}
         onClose={() => setShowFormDialog(false)}

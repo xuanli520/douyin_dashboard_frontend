@@ -5,12 +5,12 @@ import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
 import { useActivateScrapingRule } from '../../hooks/useActivateScrapingRule';
-import { Button } from '@/app/components/ui/button';
 import { Plus, Filter } from 'lucide-react';
 import { Input } from '@/app/components/ui/input';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { CreateForm } from '../ScrapingRuleForm/CreateForm';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Select,
   SelectContent,
@@ -62,44 +62,46 @@ export function ScrapingRuleList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-            <Input
-              placeholder="搜索规则..."
-              value={filters.name || ''}
-              onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
-              className="pl-9 w-[200px]"
-            />
-          </div>
-          <Select
-            value={filters.target_type || 'all'}
-            onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="全部类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部类型</SelectItem>
-              <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
-              <SelectItem value="TRAFFIC">流量</SelectItem>
-              <SelectItem value="PRODUCT">商品</SelectItem>
-              <SelectItem value="LIVE">直播</SelectItem>
-              <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
-              <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
-              <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
-              <SelectItem value="CUSTOMER">客户</SelectItem>
-              <SelectItem value="ADS">广告</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">采集规则管理</h2>
+        <CyberButton
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group"
+          className="shadow-lg shadow-cyan-500/20 group"
         >
-          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
           创建规则
-        </Button>
+        </CyberButton>
+      </div>
+
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Input
+            placeholder="搜索规则..."
+            value={filters.name || ''}
+            onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
+            className="filter-input w-[220px] pl-9"
+          />
+        </div>
+        <Select
+          value={filters.target_type || 'all'}
+          onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
+        >
+          <SelectTrigger className="filter-input w-[150px]">
+            <SelectValue placeholder="全部类型" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部类型</SelectItem>
+            <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
+            <SelectItem value="TRAFFIC">流量</SelectItem>
+            <SelectItem value="PRODUCT">商品</SelectItem>
+            <SelectItem value="LIVE">直播</SelectItem>
+            <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
+            <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
+            <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
+            <SelectItem value="CUSTOMER">客户</SelectItem>
+            <SelectItem value="ADS">广告</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {error && <div className="text-left text-red-500 py-8">错误: {error.message}</div>}

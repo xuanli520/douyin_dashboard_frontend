@@ -1,11 +1,19 @@
 import React, { forwardRef } from 'react';
-import { motion } from 'framer-motion'; 
+import { motion } from 'framer-motion';
 import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 import productBg from '@/assets/product_experience.png';
 import logisticsBg from '@/assets/Logistics_Experience.png';
 import serviceBg from '@/assets/Service_Experience.png';
 import negativeBg from '@/assets/Negative_Behavior.png';
+
+// 店铺状态映射
+const SHOP_STATUS_MAP: Record<string, string> = {
+  live: '营业中',
+  offline: '已离线',
+  warning: '警告',
+  critical: '严重',
+};
 
 export interface ShopData {
   id: string;
@@ -167,7 +175,7 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
               "text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded",
               isRisk ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
             )}>
-              {shop.status.toUpperCase()}
+              {SHOP_STATUS_MAP[shop.status] || shop.status}
             </span>
           </div>
         </div>

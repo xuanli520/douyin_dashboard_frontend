@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/app/components/ui/input';
 import {
   Select,
@@ -27,7 +27,6 @@ interface FilterBarProps {
   className?: string;
 }
 
-// Internal component for Debounced Input to manage local state
 function DebouncedInput({ 
   value, 
   onChange, 
@@ -57,38 +56,38 @@ function DebouncedInput({
   }, [localValue, onChange, value, debounceMs]);
 
   return (
-    <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="relative w-full">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder={placeholder}
-        className={`pl-9 ${className}`}
+        className={`h-9 w-full pl-9 ${className ?? ''}`}
         />
     </div>
   );
 }
 
 export function FilterBar({ items, value, onChange, onReset, className }: FilterBarProps) {
-  // Determine if any filter is active to show Reset button
   const hasActiveFilters = items.some(item => {
     const val = value[item.key];
-    if (item.type === 'switch') return val === true || val === 'true'; // Assuming switch default is false/off
+    if (item.type === 'switch') return val === true || val === 'true';
     return val !== undefined && val !== '' && val !== null;
   });
 
   return (
-    <div className={`flex flex-wrap items-end gap-4 ${className}`}>
+    <div className={`filter-bar-container w-full flex flex-wrap items-end gap-3 md:gap-4 ${className ?? ''}`}>
       {items.map((item) => {
         if (item.type === 'input') {
           return (
-            <div key={item.key} className="flex flex-col gap-1.5 w-[200px]">
+            <div key={item.key} className="flex min-w-[220px] flex-1 flex-col gap-1.5 md:flex-none md:w-[220px]">
                {item.label && <Label className="text-xs font-medium">{item.label}</Label>}
               <DebouncedInput
                 value={value[item.key] || ''}
                 onChange={(val) => onChange({ [item.key]: val }, { resetPage: true })}
                 placeholder={item.placeholder || '搜索...'}
                 debounceMs={item.debounceMs}
+                className="filter-input border-0 shadow-none focus-visible:ring-0"
               />
             </div>
           );
@@ -96,16 +95,16 @@ export function FilterBar({ items, value, onChange, onReset, className }: Filter
         
         if (item.type === 'select') {
           return (
-            <div key={item.key} className="flex flex-col gap-1.5 w-[160px]">
+            <div key={item.key} className="flex min-w-[180px] flex-1 flex-col gap-1.5 md:flex-none md:w-[180px]">
                {item.label && <Label className="text-xs font-medium">{item.label}</Label>}
               <Select
                 value={value[item.key]?.toString() || ''}
                 onValueChange={(val) => onChange({ [item.key]: val === 'ALL' ? undefined : val }, { resetPage: true })}
               >
-                <SelectTrigger className="border-none bg-transparent hover:bg-surface/10 text-text-primary focus:ring-0 transition-all rounded-lg h-9 font-medium shadow-none pl-2">
+                <SelectTrigger className="filter-input h-9 w-full border-0 px-3 shadow-none focus:ring-0">
                   <SelectValue placeholder={item.placeholder || '请选择'} />
                 </SelectTrigger>
-                <SelectContent className="bg-surface/95 backdrop-blur-xl border-border/20 text-text-primary shadow-xl">
+                <SelectContent>
                    <SelectItem value="ALL">全部</SelectItem>
                   {item.options.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>
@@ -119,10 +118,9 @@ export function FilterBar({ items, value, onChange, onReset, className }: Filter
         }
 
         if (item.type === 'switch') {
-             // Handle boolean/string toggle
              const isChecked = value[item.key] === true || value[item.key] === 'true';
              return (
-                <div key={item.key} className="flex flex-col gap-1.5 h-[58px] justify-end pb-2">
+                <div key={item.key} className="flex h-[58px] min-w-[160px] flex-col justify-end gap-1.5 pb-2">
                     <div className="flex items-center gap-2">
                         <Switch
                             id={`filter-${item.key}`}
@@ -139,8 +137,8 @@ export function FilterBar({ items, value, onChange, onReset, className }: Filter
       })}
 
       {hasActiveFilters && (
-        <div className="flex flex-col gap-1.5 h-[58px] justify-end pb-1">
-            <Button variant="ghost" size="sm" onClick={onReset} className="h-9 px-2 text-muted-foreground hover:text-foreground">
+        <div className="flex h-[58px] flex-col justify-end gap-1.5 pb-1">
+            <Button variant="ghost" size="sm" onClick={onReset} className="h-9 px-3 text-slate-100 hover:bg-white/10 hover:text-white">
             <X className="mr-2 h-4 w-4" />
             重置筛选
             </Button>

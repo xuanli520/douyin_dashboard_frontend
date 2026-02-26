@@ -17,6 +17,23 @@ import {
 import { analyticsApi } from '@/features/analytics/services/analyticsApi';
 import { API_ENDPOINTS } from '@/config/api';
 
+// 影响度映射
+const IMPACT_MAP: Record<string, string> = {
+  high: '高',
+  low: '低',
+  medium: '中',
+};
+
+// 分析类型映射
+const ANALYSIS_TYPE_MAP: Record<string, string> = {
+  trend: '趋势分析',
+  comparison: '对比分析',
+  anomaly: '异常检测',
+  correlation: '关联分析',
+  prediction: '预测分析',
+  summary: '摘要分析',
+};
+
 interface AnalysisItem {
   id: number | string;
   name: string;
@@ -63,7 +80,7 @@ export default function DataAnalysisPage() {
         {/* Recent Insights Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <GlassCard className="p-6 col-span-full">
-            <NeonTitle icon={Lightbulb}>最新洞察 (Recent Insights)</NeonTitle>
+            <NeonTitle icon={Lightbulb}>最新洞察</NeonTitle>
             <div className="grid gap-4 mt-4">
               {recentInsights.length > 0 ? (
                 recentInsights.map((insight, index: number) => (
@@ -75,10 +92,10 @@ export default function DataAnalysisPage() {
                       <h4 className="font-medium text-slate-200">{insight.title}</h4>
                       <p className="text-sm text-slate-400 mt-1">{insight.description}</p>
                       <div className="flex items-center gap-4 mt-3 text-xs font-mono text-slate-500">
-                        <span className="flex items-center gap-1">
-                          IMPACT: <span className={insight.impact === 'high' ? 'text-rose-400' : 'text-cyan-400'}>{insight.impact.toUpperCase()}</span>
-                        </span>
-                        <span>CONFIDENCE: {(insight.confidence * 100).toFixed(0)}%</span>
+                      <span className="flex items-center gap-1">
+                        影响度: <span className={insight.impact === 'high' ? 'text-rose-400' : 'text-cyan-400'}>{IMPACT_MAP[insight.impact] || insight.impact}</span>
+                      </span>
+                      <span>置信度: {(insight.confidence * 100).toFixed(0)}%</span>
                       </div>
                     </div>
                   </div>
@@ -93,9 +110,9 @@ export default function DataAnalysisPage() {
         {/* Analysis Reports Table */}
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <NeonTitle icon={FileText}>分析报告 (Analysis Reports)</NeonTitle>
+            <NeonTitle icon={FileText}>分析报告</NeonTitle>
             <div className="text-xs font-mono text-slate-500">
-              Total: {apiData?.total || 0}
+              总计: {apiData?.total || 0}
             </div>
           </div>
           
@@ -103,7 +120,7 @@ export default function DataAnalysisPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>编号</TableHead>
                   <TableHead>分析名称</TableHead>
                   <TableHead>类型</TableHead>
                   <TableHead>状态</TableHead>
@@ -119,7 +136,7 @@ export default function DataAnalysisPage() {
                     <TableCell className="font-medium text-slate-200">{item.name}</TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-300 text-xs border border-slate-700">
-                        {item.type}
+                        {ANALYSIS_TYPE_MAP[item.type] || item.type}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -129,7 +146,7 @@ export default function DataAnalysisPage() {
                           : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                       }`}>
                         {item.status === 'completed' ? <CheckCircle size={12} /> : <Clock size={12} />}
-                        {item.status}
+                        {item.status === 'completed' ? '已完成' : item.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-slate-400 max-w-xs truncate" title={item.result_summary}>

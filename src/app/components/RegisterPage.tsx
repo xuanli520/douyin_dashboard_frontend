@@ -4,7 +4,7 @@ import { useState, useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, Loader2, UserPlus } from 'lucide-react';
-import pigFishIcon from '@/assets/profile.jpg';
+import logoImage from '@/assets/logo.png';
 import oceanBg from '@/assets/backgrond.jpg';
 import { register, handleAuthError, checkPasswordStrength } from '@/services/userService';
 
@@ -158,8 +158,8 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
             <motion.img
-              src={pigFishIcon.src}
-              alt="Pig Fish"
+              src={logoImage.src}
+              alt="猪鱼数据"
               className="relative z-10 w-[480px] object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -15, 0],

@@ -16,7 +16,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
         rules={{ required: 'URL为必填项' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>API URL</FormLabel>
+            <FormLabel>API 地址</FormLabel>
             <FormControl>
               <Input placeholder="https://api.example.com" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
@@ -43,7 +43,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
         rules={{ required: 'API Key为必填项' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>API Key</FormLabel>
+            <FormLabel>API 密钥</FormLabel>
             <FormControl>
               <Input type="password" placeholder="请输入API Key" value={field.value || ''} onChange={field.onChange} />
             </FormControl>
@@ -57,7 +57,7 @@ export function ApiConfig({ form }: ApiConfigProps) {
         rules={{ required: 'API Secret为必填项' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>API Secret</FormLabel>
+            <FormLabel>API 密钥密码</FormLabel>
             <FormControl>
               <Input type="password" placeholder="请输入API Secret" value={field.value || ''} onChange={field.onChange} />
             </FormControl>

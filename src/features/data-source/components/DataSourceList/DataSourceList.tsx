@@ -7,13 +7,13 @@ import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
 import { useDeleteDataSource } from '../../hooks/useDeleteDataSource';
 import { DataSourceTable } from './DataSourceTable';
 import { DataSourceForm } from '../DataSourceForm';
-import { NeonTitle } from '@/app/components/ui/neon-title';
-import { Search, Database, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { DataSourceType, DataSourceStatus, DataSourceCreate, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { toast } from 'sonner';
 import { useQueryState } from '@/app/(main)/admin/_components/common/QueryState';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Select,
   SelectContent,
@@ -149,57 +149,54 @@ export function DataSourceList() {
   };
 
   return (
-    <div className="bg-transparent text-foreground p-6 space-y-4">
+    <div className="bg-transparent p-6 text-foreground space-y-5">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <NeonTitle icon={Database}>数据源管理</NeonTitle>
-          <div className="flex items-center gap-2">
-            <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="全部类型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部类型</SelectItem>
-                <SelectItem value="DOUYIN_API">抖音API</SelectItem>
-                <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
-                <SelectItem value="SELF_HOSTED">数据库</SelectItem>
-                <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
-              </SelectContent>
-            </Select>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">数据源管理</h2>
 
-            <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="全部状态" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="ACTIVE">活跃</SelectItem>
-                <SelectItem value="INACTIVE">停用</SelectItem>
-                <SelectItem value="ERROR">错误</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <CyberButton
+          onClick={() => setIsCreateOpen(true)}
+          className="shadow-lg shadow-cyan-500/20 group"
+        >
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+          添加数据源
+        </CyberButton>
+      </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
-            <input
-              type="text"
-              placeholder="搜索数据源..."
-              value={searchText}
-              onChange={handleSearch}
-              className="pl-10 pr-4 py-2 w-[200px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-all"
-            />
-          </div>
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
+          <SelectTrigger className="filter-input w-[160px]">
+            <SelectValue placeholder="全部类型" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部类型</SelectItem>
+            <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+            <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
+            <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+            <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] text-sm font-medium group"
-          >
-            <Plus size={16} className="group-hover:rotate-90 transition-transform" />
-            添加数据源
-          </button>
+        <Select value={mounted ? (filters.status || 'all') : 'all'} onValueChange={handleStatusChange}>
+          <SelectTrigger className="filter-input w-[140px]">
+            <SelectValue placeholder="全部状态" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部状态</SelectItem>
+            <SelectItem value="ACTIVE">活跃</SelectItem>
+            <SelectItem value="INACTIVE">停用</SelectItem>
+            <SelectItem value="ERROR">错误</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            type="text"
+            placeholder="搜索数据源..."
+            value={searchText}
+            onChange={handleSearch}
+            className="filter-input h-9 w-[240px] pl-10 pr-4 text-sm focus-visible:ring-0"
+          />
         </div>
       </div>
 

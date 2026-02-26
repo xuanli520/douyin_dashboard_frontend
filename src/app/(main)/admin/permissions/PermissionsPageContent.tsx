@@ -11,6 +11,17 @@ import { Search, Lock, Copy, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryState, QueryCodec } from '../_components/common/QueryState';
 
+// 模块名称映射
+const MODULE_NAME_MAP: Record<string, string> = {
+  user: '用户',
+  role: '角色',
+  permission: '权限',
+  data: '数据',
+  report: '报告',
+  settings: '设置',
+  system: '系统',
+};
+
 const permissionQueryCodec: QueryCodec<PermissionListParams> = {
   parse: (sp) => ({
     page: Number(sp.get('page')) || 1,
@@ -81,7 +92,7 @@ export function PermissionsPageContent() {
       header: '模块',
       render: (perm) => (
         <CyberBadge variant="outline" className="uppercase tracking-wider text-[10px]">
-          {perm.module || '系统'}
+          {MODULE_NAME_MAP[perm.module] || perm.module || '系统'}
         </CyberBadge>
       ),
     },

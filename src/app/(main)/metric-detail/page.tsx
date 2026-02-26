@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Package, Truck, MessageCircle, AlertTriangle,
-  Activity, ShieldAlert, ArrowUpRight
+  Activity, ChevronDown
 } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
 import IndicatorDetailPage from '@/components/dashboard/IndicatorDetailPage';
 import type { Indicator } from '@/types/indicator';
 
@@ -97,6 +96,8 @@ const METRICS_DATA = {
   }
 };
 
+type MetricKey = keyof typeof METRICS_DATA;
+
 // --- 简单的转换逻辑 ---
 function convertToIndicator(data: any, subMetric: any): Indicator {
   if (!subMetric) return {} as any;
@@ -114,142 +115,178 @@ function convertToIndicator(data: any, subMetric: any): Indicator {
 }
 
 // --- 组件：顶部响应式导航 ---
-const TopNavigation = ({ activeTab, onTabChange }: { activeTab: string, onTabChange: (id: string) => void }) => {
+const TopNavigation = ({
+  activeTab,
+  onTabChange,
+  openDropdownTab,
+  onDropdownTabChange,
+  selectedSubMetricMap,
+  onSubMetricChange
+}: {
+  activeTab: MetricKey,
+  onTabChange: (id: MetricKey) => void,
+  openDropdownTab: MetricKey | null,
+  onDropdownTabChange: (key: MetricKey | null) => void,
+  selectedSubMetricMap: Record<MetricKey, number>,
+  onSubMetricChange: (tabKey: MetricKey, index: number) => void
+}) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const buttonRefs = useRef<Partial<Record<MetricKey, HTMLButtonElement | null>>>({});
+  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; minWidth: number } | null>(null);
+
+  useEffect(() => {
+    // 仅在下拉展开时挂载监听，避免无用的全局事件
+    if (!openDropdownTab) {
+      setDropdownStyle(null);
+      return;
+    }
+
+    const updateDropdownPosition = () => {
+      const anchor = buttonRefs.current[openDropdownTab];
+      if (!anchor) {
+        setDropdownStyle(null);
+        return;
+      }
+      const rect = anchor.getBoundingClientRect();
+      setDropdownStyle({
+        top: rect.bottom + 8,
+        left: rect.left,
+        minWidth: rect.width
+      });
+    };
+
+    updateDropdownPosition();
+    const listElement = listRef.current;
+    window.addEventListener('resize', updateDropdownPosition);
+    window.addEventListener('scroll', updateDropdownPosition, true);
+    listElement?.addEventListener('scroll', updateDropdownPosition);
+    return () => {
+      window.removeEventListener('resize', updateDropdownPosition);
+      window.removeEventListener('scroll', updateDropdownPosition, true);
+      listElement?.removeEventListener('scroll', updateDropdownPosition);
+    };
+  }, [openDropdownTab]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const targetNode = event.target as Node;
+      const isInsideContainer = containerRef.current?.contains(targetNode);
+      const isInsideDropdown = dropdownRef.current?.contains(targetNode);
+      if (!isInsideContainer && !isInsideDropdown) {
+        onDropdownTabChange(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onDropdownTabChange]);
+
   return (
-    <div className="w-full sticky top-0 z-20 pt-4 pb-2 bg-white/40 dark:bg-[#0f172a]/20 backdrop-blur-xl">
-      <div className="flex overflow-x-auto p-2 md:justify-center gap-2 md:gap-4 px-4 no-scrollbar">
-        {Object.entries(THEME_CONFIG).map(([key, config]) => {
+    <div ref={containerRef} className="filter-bar-container metric-detail-primary-switch">
+      <div ref={listRef} className="metric-detail-primary-switch-list flex items-start gap-2 overflow-x-auto overflow-y-hidden pb-1 no-scrollbar md:justify-center">
+        {(Object.keys(THEME_CONFIG) as MetricKey[]).map((key) => {
+          const config = THEME_CONFIG[key];
           const isActive = activeTab === key;
-          const data = METRICS_DATA[key as keyof typeof METRICS_DATA];
+          const data = METRICS_DATA[key];
           
           return (
-            <button
-              key={key}
-              onClick={() => onTabChange(key)}
-              className={`
-                flex items-center gap-3 px-8 py-4 rounded-xl border transition-all duration-200 whitespace-nowrap
-                ${isActive 
-                  ? `bg-white dark:bg-slate-800 shadow-md ${config.light.text} ${config.dark.text} ${config.light.border} ${config.dark.border} ring-1 ${config.light.active} ${config.dark.active}`
-                  : 'bg-white dark:bg-slate-900 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800'
-                }
-              `}
-            >
-              <config.icon size={24} />
-              <span className="font-medium text-lg">{config.label}</span>
-              <span className={`
-                ml-1 px-2 py-1 rounded text-base font-mono font-bold
-                ${isActive ? 'bg-slate-100 dark:bg-slate-950' : 'bg-transparent'}
-              `}>
-                {data.score}
-              </span>
-            </button>
+            <div key={key} className="shrink-0">
+              <button
+                type="button"
+                ref={(node) => {
+                  buttonRefs.current[key] = node;
+                }}
+                onClick={() => onTabChange(key)}
+                className={`filter-bar-tab metric-detail-primary-switch-item ${isActive ? 'filter-bar-tab-active' : ''}`}
+              >
+                <config.icon size={16} />
+                <span className="text-sm font-medium">{config.label}</span>
+                <span className={`
+                  metric-detail-primary-switch-score rounded px-2 py-0.5 text-xs font-mono font-semibold
+                  ${isActive ? 'bg-slate-200/80 text-slate-900 dark:bg-slate-700 dark:text-slate-100' : 'bg-white/10 text-slate-200 dark:bg-slate-800/70 dark:text-slate-300'}
+                `}>
+                  {data.score}
+                </span>
+                <ChevronDown size={14} className={`transition-transform ${openDropdownTab === key ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
           );
         })}
       </div>
-    </div>
-  );
-};
-
-// --- 组件：自适应子指标卡片 ---
-const SubMetricCards = ({ 
-  subMetrics, 
-  selectedIndex, 
-  onSelect,
-  themeKey
-}: { 
-  subMetrics: any[], 
-  selectedIndex: number, 
-  onSelect: (idx: number) => void,
-  themeKey: string
-}) => {
-  const config = THEME_CONFIG[themeKey as keyof typeof THEME_CONFIG];
-
-  return (
-    <div className="flex flex-wrap justify-center gap-3 mb-6 px-4">
-      {subMetrics.map((item, index) => {
-        const isSelected = selectedIndex === index;
-        const isRisk = item.isRisk || themeKey === 'risk';
-        
-        // 动态计算样式
-        // 风险项特殊处理：如果是 Risk 类型，始终偏红
-        const activeConfig = isRisk ? THEME_CONFIG.risk : config;
-        
-        return (
-          <div
-            key={item.id}
-            onClick={() => onSelect(index)}
-            className={`
-              relative cursor-pointer p-3 md:p-4 rounded-xl border transition-all duration-200
-              flex flex-col justify-between min-h-[90px] md:min-h-[110px]
-              w-[calc(50%-0.5rem)] md:w-64
-              ${isSelected
-                ? `bg-white/60 dark:bg-[#0f172a]/40 backdrop-blur-md shadow-lg scale-[1.02] border-white/30 dark:border-white/10 ${activeConfig.light.border} ${activeConfig.dark.border}`
-                : 'bg-white/40 dark:bg-[#0f172a]/20 backdrop-blur-sm border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-[#0f172a]/40'
-              }
-            `}
-          >
-            {/* 选中时的左侧高亮条 (日间模式增强识别) */}
-            {isSelected && (
-              <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${isRisk ? 'bg-red-500' : 'bg-blue-500 dark:bg-cyan-500'}`} />
-            )}
-
-            <div className="flex justify-between items-start mb-2 pl-2">
-              <span className={`text-xs md:text-sm font-medium line-clamp-1 ${isSelected ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                {item.title}
-              </span>
-              {isRisk ? (
-                 <ShieldAlert size={14} className={isSelected ? 'text-red-500' : 'text-slate-400'} />
-              ) : (
-                 <Activity size={14} className={isSelected ? 'text-blue-500 dark:text-cyan-400' : 'text-slate-400'} />
-              )}
-            </div>
-
-            <div className="pl-2">
-              <div className={`text-lg md:text-xl font-bold font-mono ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-500'}`}>
-                {item.value}
-              </div>
-              {/* 仅在选中时显示的小装饰 */}
-              {isSelected && (
-                 <div className="flex items-center gap-1 mt-1">
-                    <span className="text-[10px] text-slate-400">查看详情</span>
-                    <ArrowUpRight size={10} className="text-slate-400"/>
-                 </div>
-              )}
-            </div>
+      {openDropdownTab && dropdownStyle ? (
+        <div
+          ref={dropdownRef}
+          className="fixed z-30"
+          style={{ top: dropdownStyle.top, left: dropdownStyle.left, minWidth: dropdownStyle.minWidth }}
+        >
+          <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+            {METRICS_DATA[openDropdownTab].subMetrics.map((subMetric, index) => {
+              const isSelected = (selectedSubMetricMap[openDropdownTab] ?? 0) === index;
+              return (
+                <button
+                  key={subMetric.id}
+                  type="button"
+                  onClick={() => onSubMetricChange(openDropdownTab, index)}
+                  className={`block w-full px-3 py-2 text-left text-sm transition-colors ${
+                    isSelected
+                      ? 'bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-slate-100'
+                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {subMetric.title}
+                </button>
+              );
+            })}
           </div>
-        );
-      })}
+        </div>
+      ) : null}
     </div>
   );
 };
 
-// --- 主内容 ---
 function MetricDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
   // 状态：当前 Tab 和 选中的子指标
-  const typeParam = searchParams.get('type') as keyof typeof METRICS_DATA;
+  const typeParam = searchParams.get('type') as MetricKey;
   const initialTab = (typeParam && METRICS_DATA[typeParam]) ? typeParam : 'product';
-  const [activeTab, setActiveTab] = useState<keyof typeof METRICS_DATA>(initialTab);
-  const [selectedSubMetricIndex, setSelectedSubMetricIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<MetricKey>(initialTab);
+  const [openDropdownTab, setOpenDropdownTab] = useState<MetricKey | null>(null);
+  const [selectedSubMetricMap, setSelectedSubMetricMap] = useState<Record<MetricKey, number>>({
+    product: 0,
+    logistics: 0,
+    service: 0,
+    risk: 0
+  });
 
   useEffect(() => {
-    // 切换大类时重置子选项
     if (typeParam && METRICS_DATA[typeParam]) {
       setActiveTab(typeParam);
-      setSelectedSubMetricIndex(0);
     }
   }, [typeParam]);
 
-  const handleTabChange = (key: keyof typeof METRICS_DATA) => {
+  const handleTabChange = (key: MetricKey) => {
     setActiveTab(key);
+    setOpenDropdownTab((prev) => (prev === key ? null : key));
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set('type', key);
     router.replace(`?${newParams.toString()}`);
   };
 
+  const handleSubMetricChange = (tabKey: MetricKey, index: number) => {
+    setActiveTab(tabKey);
+    setOpenDropdownTab(null);
+    setSelectedSubMetricMap((prev) => ({
+      ...prev,
+      [tabKey]: index
+    }));
+  };
+
   const currentData = METRICS_DATA[activeTab];
+  const selectedSubMetricIndex = selectedSubMetricMap[activeTab] ?? 0;
   const safeIndex = Math.min(selectedSubMetricIndex, currentData.subMetrics.length - 1);
   const currentSubMetric = currentData.subMetrics[safeIndex];
 
@@ -266,39 +303,29 @@ function MetricDetailContent() {
          <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-cyan-900/20 blur-[100px] rounded-full" />
       </div>
 
-      <div className="relative z-10 w-full md:py-6">
-        
-        {/* 核心导航 - 顶部横排 */}
-        <TopNavigation activeTab={activeTab} onTabChange={handleTabChange as any} />
+      <div className="relative z-10 w-full space-y-4 px-4 py-4 md:px-6 md:py-6">
+        <TopNavigation
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          openDropdownTab={openDropdownTab}
+          onDropdownTabChange={setOpenDropdownTab}
+          selectedSubMetricMap={selectedSubMetricMap}
+          onSubMetricChange={handleSubMetricChange}
+        />
 
-        {/* 主体内容区 */}
-        <div className="mt-4 md:mt-8">
-          
-          {/* 子指标选择器 - 响应式网格 */}
-          <SubMetricCards 
-            subMetrics={currentData.subMetrics}
-            selectedIndex={safeIndex}
-            onSelect={setSelectedSubMetricIndex}
-            themeKey={currentData.themeKey}
-          />
-
-          {/* 详情组件容器 - 使用磨砂玻璃特效 */}
-          <div className="px-4">
-             <GlassPanel className="p-1 min-h-[400px]">
-               {currentSubMetric ? (
-                 <IndicatorDetailPage
-                   indicator={convertToIndicator(currentData, currentSubMetric)}
-                   onBack={() => {}}
-                 />
-               ) : (
-                 <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                    <Activity className="mb-2 animate-pulse" />
-                    <p>加载中...</p>
-                 </div>
-               )}
-             </GlassPanel>
-          </div>
-        </div>
+        <GlassPanel className="p-1 min-h-[400px]">
+          {currentSubMetric ? (
+            <IndicatorDetailPage
+              indicator={convertToIndicator(currentData, currentSubMetric)}
+              onBack={() => {}}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+              <Activity className="mb-2 animate-pulse" />
+              <p>加载中...</p>
+            </div>
+          )}
+        </GlassPanel>
       </div>
     </div>
   );
@@ -311,3 +338,4 @@ export default function MetricDetailPage() {
     </Suspense>
   );
 }
+

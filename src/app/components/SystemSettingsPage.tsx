@@ -238,8 +238,8 @@ export default function SystemSettingsPage() {
                 <Settings size={24} />
            </div>
            <div>
-               <h1 className="text-xl font-bold text-foreground tracking-tight">系统设置 (System Config)</h1>
-               <p className="text-sm text-muted-foreground font-mono mt-1">Configure global parameters and user preferences</p>
+               <h1 className="text-xl font-bold text-foreground tracking-tight">系统设置</h1>
+               <p className="text-sm text-muted-foreground font-mono mt-1">配置全局参数和用户偏好</p>
            </div>
         </div>
 
@@ -248,13 +248,13 @@ export default function SystemSettingsPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Bell size={18} className="text-[#0e7490] dark:text-cyan-400" />
-              <h2 className="text-lg font-bold text-foreground font-mono">通知设置 (Notifications)</h2>
+               <h2 className="text-lg font-bold text-foreground font-mono">通知设置</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">邮件通知</p>
-                  <p className="text-xs text-muted-foreground mt-1">Receive daily reports via email</p>
+                   <p className="text-xs text-muted-foreground mt-1">通过邮件接收每日报告</p>
                 </div>
                 <Toggle checked={settings.emailNotification} onChange={(c) => setSettings({ ...settings, emailNotification: c })} />
               </div>
@@ -262,7 +262,7 @@ export default function SystemSettingsPage() {
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">推送通知</p>
-                  <p className="text-xs text-muted-foreground mt-1">Browser push notifications</p>
+                   <p className="text-xs text-muted-foreground mt-1">浏览器推送通知</p>
                 </div>
                 <Toggle checked={settings.pushNotification} onChange={(c) => setSettings({ ...settings, pushNotification: c })} />
               </div>
@@ -270,7 +270,7 @@ export default function SystemSettingsPage() {
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">风险预警</p>
-                  <p className="text-xs text-muted-foreground mt-1">Instant alerts for P0/P1 risks</p>
+                   <p className="text-xs text-muted-foreground mt-1">P0/P1风险即时预警</p>
                 </div>
                 <Toggle checked={settings.riskAlert} onChange={(c) => setSettings({ ...settings, riskAlert: c })} />
               </div>
@@ -278,7 +278,7 @@ export default function SystemSettingsPage() {
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">任务提醒</p>
-                  <p className="text-xs text-muted-foreground mt-1">Schedule task completion alerts</p>
+                   <p className="text-xs text-muted-foreground mt-1">定时任务完成提醒</p>
                 </div>
                 <Toggle checked={settings.taskReminder} onChange={(c) => setSettings({ ...settings, taskReminder: c })} />
               </div>
@@ -289,13 +289,13 @@ export default function SystemSettingsPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Lock size={18} className="text-[#0e7490] dark:text-cyan-400" />
-              <h2 className="text-lg font-bold text-foreground font-mono">安全设置 (Security)</h2>
+               <h2 className="text-lg font-bold text-foreground font-mono">安全设置</h2>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-foreground">双因素认证 (2FA)</p>
-                  <p className="text-xs text-muted-foreground mt-1">Require mobile verification for login</p>
+                   <p className="text-xs text-muted-foreground mt-1">登录时需要手机验证码</p>
                 </div>
                 <Toggle checked={settings.twoFactorAuth} onChange={(c) => setSettings({ ...settings, twoFactorAuth: c })} />
               </div>
@@ -303,16 +303,16 @@ export default function SystemSettingsPage() {
               <div className="p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl flex items-center justify-between">
                  <div>
                     <p className="text-sm font-medium text-foreground">会话超时时间</p>
-                    <p className="text-xs text-muted-foreground mt-1">Auto-logout duration</p>
+                     <p className="text-xs text-muted-foreground mt-1">自动登出时间</p>
                  </div>
                 <SettingSelect
                   value={settings.sessionTimeout}
                   onValueChange={(val) => setSettings({ ...settings, sessionTimeout: val })}
                 >
-                  <SelectItem value="15">15 Minutes</SelectItem>
-                  <SelectItem value="30">30 Minutes</SelectItem>
-                  <SelectItem value="60">1 Hour</SelectItem>
-                  <SelectItem value="120">2 Hours</SelectItem>
+                   <SelectItem value="15">15 分钟</SelectItem>
+                  <SelectItem value="30">30 分钟</SelectItem>
+                  <SelectItem value="60">1 小时</SelectItem>
+                  <SelectItem value="120">2 小时</SelectItem>
                 </SettingSelect>
               </div>
             </div>
@@ -322,7 +322,7 @@ export default function SystemSettingsPage() {
           <div>
              <div className="flex items-center gap-2 mb-4">
                <Monitor size={18} className="text-[#0e7490] dark:text-cyan-400" />
-               <h2 className="text-lg font-bold text-foreground font-mono">外观设置 (Appearance)</h2>
+               <h2 className="text-lg font-bold text-foreground font-mono">外观设置</h2>
              </div>
              <div className="p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl">
                 <p className="text-sm font-medium text-foreground mb-4">界面模式</p>

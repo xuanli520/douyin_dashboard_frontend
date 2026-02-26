@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Edit, Copy, X, Terminal, Clock, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
-import { NeonTitle } from '@/app/components/ui/neon-title';
+import { Edit, Copy, X, Terminal, Activity, CheckCircle, XCircle, Search, Plus } from 'lucide-react';
+import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Table,
   TableHeader,
@@ -15,42 +15,42 @@ import {
 const tasks = [
   {
     id: 1,
-    name: '数据同步任务 (Data Sync)',
+    name: '数据同步任务',
     lastStatus: '成功',
     lastRun: '2023-17-03 18:00:38',
     duration: '04ms'
   },
   {
     id: 2,
-    name: '库存校准 (Inventory Check)',
+    name: '库存校准',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:03:39',
     duration: '96ms'
   },
   {
     id: 3,
-    name: '报表生成 (Report Gen)',
+    name: '报表生成',
     lastStatus: '失败',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
   },
   {
     id: 4,
-    name: '用户行为分析 (User Analytics)',
+    name: '用户行为分析',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:30',
     duration: '03ms'
   },
   {
     id: 5,
-    name: '日志清理 (Log Cleanup)',
+    name: '日志清理',
     lastStatus: '失败',
     lastRun: '2023-17-08 14:50:39',
     duration: '03ms'
   },
   {
     id: 6,
-    name: '系统备份 (Backup)',
+    name: '系统备份',
     lastStatus: '成功',
     lastRun: '2023-17-03 14:50:37',
     duration: '03ms'
@@ -78,27 +78,25 @@ export default function TaskSchedulePage() {
 
   return (
     <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
-      
       <div className="flex items-center justify-between">
-            <NeonTitle icon={Clock}>任务调度中心</NeonTitle>
-          
-           <div className="flex gap-3">
-              <div className="relative group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={14} />
-                    <input
-                        type="text"
-                        placeholder="搜索任务..."
-                        className="pl-9 pr-4 py-1.5 w-[200px] bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-cyan-500/50 text-xs text-slate-700 dark:text-slate-200"
-                    />
-                </div>
-               <button className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/50 rounded-lg hover:bg-cyan-600/30 transition-all text-xs font-medium">
-                 <Plus size={14} />
-                 新建任务
-               </button>
-           </div>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">任务调度中心</h2>
+        <CyberButton className="shadow-lg shadow-cyan-500/20 group">
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+          新建任务
+        </CyberButton>
       </div>
 
-      {/* 任务表格 */}
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+          <input
+            type="text"
+            placeholder="搜索任务..."
+            className="filter-input h-9 w-[220px] pl-9 pr-4 text-sm focus-visible:ring-0"
+          />
+        </div>
+      </div>
+
       <div className="flex-1 overflow-x-auto">
         <Table>
           <TableHeader>
@@ -154,11 +152,9 @@ export default function TaskSchedulePage() {
         </Table>
       </div>
 
-      {/* Terminal Log Modal */}
       {showLog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={() => setShowLog(false)}>
           <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-            {/* Terminal Header */}
             <div className="px-4 py-2 bg-[#1a1a1a] border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
@@ -176,7 +172,6 @@ export default function TaskSchedulePage() {
               </button>
             </div>
 
-            {/* Terminal Content */}
             <div className="flex-1 p-6 overflow-auto font-mono text-xs leading-relaxed selection:bg-green-500/30">
               {logContent.split('\n').map((line, i) => (
                   <div key={i} className={`${line.includes('[ERROR]') ? 'text-red-400' : line.includes('[WARN]') ? 'text-yellow-400' : 'text-emerald-500'}`}>
