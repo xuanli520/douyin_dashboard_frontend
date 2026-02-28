@@ -49,19 +49,26 @@ function buildStatusDescription(
   message: string,
   data?: Record<string, unknown>
 ): string {
+  const normalizeRelease = (release?: string) => {
+    if (!release) return release;
+    return release === '2026-03-01' ? '2026-03-10' : release;
+  };
+
   switch (status) {
     case 'development': {
       const isMock = data?.mock === true;
       const mockLabel = isMock ? '（演示数据）' : '';
-      const release = typeof data?.expected_release === 'string'
-        ? `，预计 ${data.expected_release} 发布`
-        : '';
+      const releaseValue = typeof data?.expected_release === 'string'
+        ? normalizeRelease(data.expected_release)
+        : '2026-03-10';
+      const release = releaseValue ? `，预计 ${releaseValue} 发布` : '';
       return `${message}${mockLabel}${release}`;
     }
     case 'planned': {
-      const release = typeof data?.expected_release === 'string'
-        ? `，预计 ${data.expected_release} 推出`
-        : '';
+      const releaseValue = typeof data?.expected_release === 'string'
+        ? normalizeRelease(data.expected_release)
+        : '2026-03-10';
+      const release = releaseValue ? `，预计 ${releaseValue} 推出` : '';
       return `${message}${release}`;
     }
     case 'deprecated': {
