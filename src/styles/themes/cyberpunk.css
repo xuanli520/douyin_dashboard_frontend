@@ -6,8 +6,9 @@
  */
 
 :root[data-theme="cyberpunk"] {
-  /* Font Family - Monospace for cyberpunk feel */
-  --font-family: 'Microsoft YaHei', 'PingFang SC', monospace;
+  /* Font Family - Monospace accent via global mono variable */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
   
   /* Base Colors - Dark Mode Default */
   --background: #030213;
@@ -178,7 +179,7 @@
   background-clip: text;
   color: transparent;
   text-shadow: 0 0 8px rgba(14, 116, 144, 0.22);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 :root[data-theme="cyberpunk"].dark .header-cyberpunk .page-title,
@@ -188,6 +189,7 @@
   background-clip: text;
   color: transparent;
   text-shadow: 0 0 14px rgba(34, 211, 238, 0.35);
+  font-family: var(--font-mono);
 }
 
 :root[data-theme="cyberpunk"] .header-cyberpunk .sys-online-tag {

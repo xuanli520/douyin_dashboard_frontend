@@ -11,6 +11,14 @@ const SHOP_STATUS_LABELS: Record<string, string> = {
   critical: '严重',
 };
 
+// 店铺状态映射
+const SHOP_STATUS_MAP: Record<string, string> = {
+  live: '营业中',
+  offline: '已离线',
+  warning: '警告',
+  critical: '严重',
+};
+
 export interface ShopData {
   id: string;
   name: string;

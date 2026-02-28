@@ -7,6 +7,12 @@
 
 @layer base {
   :root {
+    /* Font tokens */
+    --font-sans-cn: 'Source Han Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB';
+    --font-sans-en: 'Inter', 'Helvetica Neue', 'Arial';
+    --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas';
+    --font-sans: var(--font-sans-cn), var(--font-sans-en), sans-serif;
+
     /* Daylight Surface (Light Mode) */
     --background: 210 40% 98%; /* Slate-50/F8FAFC equivalent */
     --foreground: 222 47% 11%;
@@ -91,18 +97,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
+    font-family: var(--font-sans);
   }
-}
-
-/* Enterprise Theme Font Override */
-:root[data-theme="enterprise"] body {
-  font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
-}
-
-/* Cyberpunk Theme Font Override */
-:root[data-theme="cyberpunk"] body {
-  font-family: 'Microsoft YaHei', 'PingFang SC', monospace;
 }
 
 /* --- 扩大 react-grid-layout resize handle 判定范围 --- */
@@ -140,4 +136,10 @@
 /* 编辑模式下，整个卡片区域都可感知resize */
 .react-grid-item.is-edit-mode .react-resizable-handle {
   opacity: 1;
+}
+
+/* Charts / SVG inherit unified font */
+:root .recharts-wrapper text,
+:root svg text {
+  font-family: var(--font-sans);
 }
