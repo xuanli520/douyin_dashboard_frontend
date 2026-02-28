@@ -77,26 +77,29 @@ const LAYOUT_PRESETS: Record<string, any> = {
   },
   '4': {
     lg: [
-      { i: 'c1', x: 0, y: 0, w: 3, h: 8 },
-      { i: 'c2', x: 3, y: 0, w: 3, h: 8 },
-      { i: 'c3', x: 6, y: 0, w: 3, h: 8 },
-      { i: 'c4', x: 9, y: 0, w: 3, h: 8 },
-      { i: 'c5', x: 0, y: 8, w: 3, h: 8 },
-      { i: 'c6', x: 3, y: 8, w: 3, h: 8 },
-      { i: 'c7', x: 6, y: 8, w: 3, h: 8 },
-      { i: 'c8', x: 9, y: 8, w: 3, h: 8 },
+      { i: 'c1', x: 0, y: 0, w: 3, h: 4 },
+      { i: 'c2', x: 3, y: 0, w: 3, h: 4 },
+      { i: 'c3', x: 6, y: 0, w: 3, h: 4 },
+      { i: 'c4', x: 9, y: 0, w: 3, h: 4 },
+      { i: 'c5', x: 0, y: 4, w: 3, h: 4 },
+      { i: 'c6', x: 3, y: 4, w: 3, h: 4 },
+      { i: 'c7', x: 6, y: 4, w: 3, h: 4 },
+      { i: 'c8', x: 9, y: 4, w: 3, h: 4 },
     ],
     md: [
-      { i: 'c1', x: 0, y: 0, w: 5, h: 8 },
-      { i: 'c2', x: 5, y: 0, w: 5, h: 8 },
+      { i: 'c1', x: 0, y: 0, w: 5, h: 4 },
+      { i: 'c2', x: 5, y: 0, w: 5, h: 4 },
     ],
     sm: [
-      { i: 'c1', x: 0, y: 0, w: 6, h: 8 },
+      { i: 'c1', x: 0, y: 0, w: 6, h: 4 },
     ]
   }
 };
 
-const DEFAULT_CARD_SIZE = { w: 4, h: 8 };
+const getDefaultCardSize = (preset: string) => ({
+  w: 4,
+  h: preset === '4' ? 4 : 8,
+});
 
 export default function CompassPage() {
   const router = useRouter();
@@ -165,6 +168,7 @@ export default function CompassPage() {
     const itemsPerRow = parseInt(currentPreset) || 3;
     const cols = 12;
     const cardWidth = cols / itemsPerRow;
+    const defaultSize = getDefaultCardSize(currentPreset);
 
     ['lg', 'md', 'sm'].forEach(bp => {
        if (!newLayouts[bp]) newLayouts[bp] = [];
@@ -175,7 +179,7 @@ export default function CompassPage() {
          const row = Math.floor(existingCount / itemsPerRow);
          const col = existingCount % itemsPerRow;
          const x = col * cardWidth;
-         const y = row * DEFAULT_CARD_SIZE.h;
+         const y = row * defaultSize.h;
 
          newLayouts[bp] = [
            ...newLayouts[bp],
@@ -184,7 +188,7 @@ export default function CompassPage() {
              x: x,
              y: y,
              w: cardWidth,
-             h: DEFAULT_CARD_SIZE.h
+             h: defaultSize.h
            }
          ];
        }

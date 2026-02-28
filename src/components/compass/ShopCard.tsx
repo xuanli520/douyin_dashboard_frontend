@@ -2,10 +2,6 @@ import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
-import productBg from '@/assets/product_experience.png';
-import logisticsBg from '@/assets/Logistics_Experience.png';
-import serviceBg from '@/assets/Service_Experience.png';
-import negativeBg from '@/assets/Negative_Behavior.png';
 
 // 店铺状态映射
 const SHOP_STATUS_MAP: Record<string, string> = {
@@ -39,13 +35,13 @@ interface ShopCardProps extends React.HTMLAttributes<HTMLDivElement> {
   onTouchEnd?: React.TouchEventHandler;
 }
 
-// 根据标签获取背景图片
-const getBackgroundImage = (label: string) => {
-  if (label.includes('商品')) return productBg;
-  if (label.includes('物流')) return logisticsBg;
-  if (label.includes('服务')) return serviceBg;
-  if (label.includes('差行为')) return negativeBg;
-  return productBg;
+// 根据标签获取背景色
+const getBackgroundClass = (label: string) => {
+  if (label.includes('商品')) return 'bg-[#ECF5FF]';
+  if (label.includes('物流')) return 'bg-[#F4F9EE]';
+  if (label.includes('服务')) return 'bg-[#F9F3FF]';
+  if (label.includes('差行为')) return 'bg-[#FFF2F2]';
+  return 'bg-[#ECF5FF]';
 };
 
 // 四宫格单项组件
@@ -60,21 +56,16 @@ const GridItem = ({
   icon: React.ElementType;
   colorIndex: number;
 }) => {
-  const backgroundImage = getBackgroundImage(label);
+  const backgroundClass = getBackgroundClass(label);
   const isNegative = label.includes('差行为');
 
   return (
     <div className={cn(
       "relative flex h-full w-full overflow-hidden group rounded-lg border transition-all duration-300",
       "border-slate-100 dark:border-slate-800",
-      "hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700"
+      "hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700",
+      backgroundClass
     )}>
-      <img 
-        src={backgroundImage.src}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover object-right scale-105"
-      />
-      
       <div className={cn(
         "absolute inset-0 z-10 bg-gradient-to-r",
         isNegative 
