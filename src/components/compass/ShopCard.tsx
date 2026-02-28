@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Zap, Radio, GripHorizontal, Package, Truck, HeadphonesIcon, Award } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 
-// 店铺状态映射
-const SHOP_STATUS_MAP: Record<string, string> = {
+// 店铺状态映射（改名避免潜在重名冲突）
+const SHOP_STATUS_LABELS: Record<string, string> = {
   live: '营业中',
   offline: '已离线',
   warning: '警告',
@@ -166,7 +166,7 @@ const ShopCard = forwardRef<HTMLDivElement, ShopCardProps>(
               "text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded",
               isRisk ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
             )}>
-              {SHOP_STATUS_MAP[shop.status] || shop.status}
+              {SHOP_STATUS_LABELS[shop.status] || shop.status}
             </span>
           </div>
         </div>
