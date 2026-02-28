@@ -61,9 +61,8 @@ export function useEndpointStatus(options: UseEndpointStatusOptions): UseEndpoin
     }
 
     const status = statusFromResponse ?? meta?.status ?? null;
-    const expectedRelease = typeof data?.expected_release === 'string'
-      ? data.expected_release
-      : meta?.expectedRelease;
+    const expectedRelease = meta?.expectedRelease
+      ?? (typeof data?.expected_release === 'string' ? data.expected_release : undefined);
     const alternative = typeof data?.alternative === 'string'
       ? data.alternative
       : meta?.alternative;

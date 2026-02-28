@@ -17,7 +17,7 @@ npm run dev
   "msg": "该功能正在开发中，当前返回演示数据",
   "data": {
     "mock": true,
-    "expected_release": "2026-03-01",
+    "expected_release": "2026-03-10",
     "data": {}
   }
 }

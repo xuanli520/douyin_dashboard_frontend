@@ -411,10 +411,10 @@ export default function SystemSettingsPage() {
 
           {/* 外观设置 - 仅赛博朋克主题显示暗/亮模式切换 */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Monitor size={18} className="text-[#0e7490] dark:text-cyan-400" />
-              <h2 className="text-lg font-bold text-foreground font-mono">外观设置</h2>
-            </div>
+             <div className="flex items-center gap-2 mb-4">
+               <Monitor size={18} className="text-[#0e7490] dark:text-cyan-400" />
+               <h2 className="text-lg font-bold text-foreground font-mono">外观设置</h2>
+             </div>
              <div className="p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl">
                 <p className="text-sm font-medium text-foreground mb-4">界面模式</p>
                 <div className="grid grid-cols-3 gap-4">
