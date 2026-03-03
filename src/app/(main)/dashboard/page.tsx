@@ -359,7 +359,7 @@ function DashboardPageContent() {
       </header>
 
       {/* --- Main Content --- */}
-      <main className="relative z-10 p-6 pt-0 h-[calc(100vh-110px)] overflow-y-auto overflow-x-hidden scrollbar-none">
+      <main className="relative z-10 p-6 pt-0 h-[calc(100vh-110px)] overflow-y-auto overflow-x-hidden sidebar-scrollbar">
         <div className="w-full">
           <ResponsiveGridLayout
             className={`layout ${isEditMode ? 'is-edit-mode' : ''}`}

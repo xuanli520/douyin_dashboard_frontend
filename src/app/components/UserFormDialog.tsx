@@ -143,7 +143,7 @@ export function UserFormDialog({
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto sidebar-scrollbar">
           {error && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm font-mono flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>

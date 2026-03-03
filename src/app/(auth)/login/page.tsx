@@ -3,7 +3,7 @@ import LoginPage from '@/app/components/LoginPage';
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#050714] text-white">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#050714] text-white">加载中...</div>}>
       <LoginPage />
     </Suspense>
   );

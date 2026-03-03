@@ -309,13 +309,13 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
             <div className="space-y-6">
               {/* 用户名 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Identity / Email</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">账号 / 邮箱</label>
                 <input
                   type="email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light"
-                  placeholder="name@enterprise.com"
+                  placeholder="请输入邮箱账号"
                   disabled={loading}
                   required
                 />
@@ -324,7 +324,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
               {/* 密码 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Security / Password</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">安全凭证 / 密码</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -349,7 +349,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
             </div>
 
             <div className="flex items-center justify-end text-xs text-slate-400 mt-2">
-              <a href="#" className="hover:text-cyan-200 transition-colors border-b border-transparent hover:border-cyan-200/30 pb-0.5">忘记密钥?</a>
+              <a href="#" className="hover:text-cyan-200 transition-colors border-b border-transparent hover:border-cyan-200/30 pb-0.5">忘记密钥？</a>
             </div>
 
             {/* 阿里云验证码容器 */}
@@ -404,7 +404,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
           <div className="mt-8 flex items-center gap-4 text-xs text-slate-500 justify-center font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            SYSTEM OPERATIONAL 99.9%
+            系统运行状态 99.9%
           </div>
         </div>
       </motion.div>
