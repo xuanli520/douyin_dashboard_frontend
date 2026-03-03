@@ -185,7 +185,7 @@ const TopNavigation = ({
 
   return (
     <div ref={containerRef} className="filter-bar-container metric-detail-primary-switch">
-      <div ref={listRef} className="metric-detail-primary-switch-list flex items-start gap-2 overflow-x-auto overflow-y-hidden pb-1 no-scrollbar md:justify-center">
+      <div ref={listRef} className="metric-detail-primary-switch-list flex items-start gap-2 overflow-x-auto overflow-y-hidden pb-1 sidebar-scrollbar md:justify-center">
         {(Object.keys(THEME_CONFIG) as MetricKey[]).map((key) => {
           const config = THEME_CONFIG[key];
           const isActive = activeTab === key;

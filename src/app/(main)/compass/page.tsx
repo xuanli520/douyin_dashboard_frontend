@@ -305,7 +305,7 @@ export default function CompassPage() {
       </header>
 
       {/* Grid Canvas */}
-      <main className="px-6 pb-6 relative z-10 min-h-[calc(100vh-100px)] overflow-y-auto overflow-x-hidden scrollbar-none">
+      <main className="px-6 pb-6 relative z-10 min-h-[calc(100vh-100px)] overflow-y-auto overflow-x-hidden sidebar-scrollbar">
          <ResponsiveGridLayout
            className="layout"
            layouts={layouts}

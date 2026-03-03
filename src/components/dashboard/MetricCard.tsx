@@ -78,7 +78,7 @@ export default function MetricCard({
       </div>
 
       {/* 列表区域 */}
-      <div className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <div className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar">
         {items.map((item, index) => {
           const isWarning = item.score < 60 || item.isWarning;
           

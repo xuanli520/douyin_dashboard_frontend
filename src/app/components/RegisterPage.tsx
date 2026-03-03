@@ -104,7 +104,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
             <div className="space-y-5">
               {/* 用户名 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Identity / Username</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">账号标识 / 用户名</label>
                 <input
                   type="text"
                   value={username}
@@ -119,13 +119,13 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
 
               {/* 邮箱 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Email / Contact</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">邮箱 / 联系方式</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light"
-                  placeholder="your@email.com"
+                  placeholder="请输入常用邮箱"
                   disabled={loading}
                   required
                 />
@@ -134,7 +134,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
 
               {/* 密码 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Security / Password</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">安全凭证 / 密码</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -199,7 +199,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
 
               {/* 确认密码 */}
               <div className="group relative">
-                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">Confirm / Password</label>
+                <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">确认信息 / 密码</label>
                 <div className="relative">
                   <input
                     type={showPasswordConfirm ? 'text' : 'password'}
@@ -260,7 +260,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Reg
 
           <div className="mt-8 flex items-center gap-4 text-xs text-slate-500 justify-center font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            SYSTEM OPERATIONAL 99.9%
+            系统运行状态 99.9%
           </div>
         </div>
       </motion.div>
