@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
 import { Button } from '@/app/components/ui/button';
-import { MoreHorizontal, Pencil, Trash, Play, Pause, Eye } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash, Play, Pause, Eye, Gauge } from 'lucide-react';
 import { RuleTypeTag } from '../common/RuleTypeTag';
 import { RuleStatusTag } from '../common/RuleStatusTag';
 import { ScheduleDisplay } from '../common/ScheduleDisplay';
@@ -25,9 +25,21 @@ interface RuleTableProps {
   onSizeChange: (size: number) => void;
   onDelete: (id: number) => void;
   onToggleActive: (id: number, active: boolean) => void;
+  onTrigger: (id: number) => void;
+  triggeringRuleId: number | null;
 }
 
-export function RuleTable({ data, loading, pagination, onPageChange, onSizeChange, onDelete, onToggleActive }: RuleTableProps) {
+export function RuleTable({
+  data,
+  loading,
+  pagination,
+  onPageChange,
+  onSizeChange,
+  onDelete,
+  onToggleActive,
+  onTrigger,
+  triggeringRuleId,
+}: RuleTableProps) {
   const router = useRouter();
 
   const columns: DataTableColumn<ScrapingRule>[] = [
@@ -85,6 +97,10 @@ export function RuleTable({ data, loading, pagination, onPageChange, onSizeChang
             <DropdownMenuItem onClick={() => router.push(`/scraping-rule/${rule.id}/edit`)}>
               <Pencil className="mr-2 h-4 w-4" />
               编辑
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTrigger(rule.id)} disabled={triggeringRuleId === rule.id}>
+              <Gauge className="mr-2 h-4 w-4" />
+              {triggeringRuleId === rule.id ? '触发中...' : '立即采集'}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onToggleActive(rule.id, !rule.is_active)}>
               {rule.is_active ? (

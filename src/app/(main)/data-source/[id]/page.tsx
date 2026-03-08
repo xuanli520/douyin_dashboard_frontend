@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -11,11 +11,11 @@ export default function DataSourceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params.id);
-  const { dataSource, loading, error } = useDataSource(id);
+  const { dataSource, loading, error, refresh } = useDataSource(id);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (error) return <div className="p-6 text-red-500">Error: {error.message}</div>;
-  if (!dataSource) return <div className="p-6">Data source not found.</div>;
+  if (loading) return <div className="p-6">加载中...</div>;
+  if (error) return <div className="p-6 text-red-500">错误: {error.message}</div>;
+  if (!dataSource) return <div className="p-6">未找到数据源。</div>;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -27,7 +27,7 @@ export default function DataSourceDetailPage() {
         <h1 className="text-2xl font-bold tracking-tight">数据源详情</h1>
       </div>
 
-      <DataSourceDetail dataSource={dataSource} />
+      <DataSourceDetail dataSource={dataSource} onRefresh={refresh} />
     </div>
   );
 }

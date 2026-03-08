@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { Plus, Filter } from 'lucide-react';
+import { toast } from 'sonner';
 import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
 import { useActivateScrapingRule } from '../../hooks/useActivateScrapingRule';
+import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
 import { Input } from '@/app/components/ui/input';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
@@ -27,6 +29,7 @@ export function ScrapingRuleList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [triggeringRuleId, setTriggeringRuleId] = useState<number | null>(null);
 
   const handleDelete = (id: number) => {
     setRuleToDelete(id);
@@ -45,6 +48,18 @@ export function ScrapingRuleList() {
   const handleToggleActive = async (id: number, active: boolean) => {
     await activate(id, active);
     refresh();
+  };
+
+  const handleTrigger = async (id: number) => {
+    setTriggeringRuleId(id);
+    try {
+      const result = await shopDashboardApi.batchTrigger({ rule_ids: [id] });
+      toast.success(`触发成功，任务ID: ${result.task_id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '触发采集失败');
+    } finally {
+      setTriggeringRuleId(null);
+    }
   };
 
   const handleCreateSuccess = () => {
@@ -116,6 +131,8 @@ export function ScrapingRuleList() {
           onSizeChange={handleSizeChange}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
+          onTrigger={handleTrigger}
+          triggeringRuleId={triggeringRuleId}
         />
       )}
 

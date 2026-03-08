@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Edit, Copy, X, Terminal, Activity, CheckCircle, XCircle, Search, Plus, ClipboardList } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { Plus, Search, Terminal, RefreshCw } from 'lucide-react';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
   Table,
@@ -12,215 +12,406 @@ import {
   TableRow,
   TableCell,
 } from '@/app/components/ui/table';
-import { EndpointStatusWrapper } from '@/app/components/ui/endpoint-status-wrapper';
-import { API_ENDPOINTS } from '@/config/api';
-import { schedulesApi } from '@/features/schedules/services/schedulesApi';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import {
+  ShopDashboardTaskStatus,
+  ShopDashboardStatusResponse,
+  BatchTriggerRequest,
+} from '@/features/shop-dashboard/services/types';
+import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
 
-const tasks = [
-  {
-    id: 1,
-    name: '数据同步任务',
-    lastStatus: '成功',
-    lastRun: '2023-17-03 18:00:38',
-    duration: '04ms',
-  },
-  {
-    id: 2,
-    name: '库存校准',
-    lastStatus: '成功',
-    lastRun: '2023-17-03 14:03:39',
-    duration: '96ms',
-  },
-  {
-    id: 3,
-    name: '报表生成',
-    lastStatus: '失败',
-    lastRun: '2023-17-03 14:50:37',
-    duration: '03ms',
-  },
-  {
-    id: 4,
-    name: '用户行为分析',
-    lastStatus: '成功',
-    lastRun: '2023-17-03 14:50:30',
-    duration: '03ms',
-  },
-  {
-    id: 5,
-    name: '日志清理',
-    lastStatus: '失败',
-    lastRun: '2023-17-08 14:50:39',
-    duration: '03ms',
-  },
-  {
-    id: 6,
-    name: '系统备份',
-    lastStatus: '成功',
-    lastRun: '2023-17-03 14:50:37',
-    duration: '03ms',
-  },
-];
+interface TaskQueueItem {
+  task_id: string;
+  shop_id?: string;
+  rule_ids?: number[];
+  status: ShopDashboardTaskStatus;
+  progress?: number;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  error_message?: string;
+}
 
-const logContent = `> [SYSTEM] Initializing process 2770...
-> [SYSTEM] Connecting to database shard-01... OK
-> [WARN] Latency spike detected (120ms)
-> [INFO] Syncing batch #44920...
-> [ERROR] Connection timeout at 12:38:35:03
-> [RETRY] Attempting retry 1/3...
-> [INFO] Connection re-established
-> [SUCCESS] Batch #44920 completed
-> [SYSTEM] Process terminated with exit code 0`;
+const LOCAL_QUEUE_KEY = 'shop-dashboard-task-queue';
+const FINAL_STATUS: ReadonlySet<ShopDashboardTaskStatus> = new Set(['SUCCESS', 'FAILURE', 'REVOKED']);
+
+function normalizeTaskStatus(status?: string): ShopDashboardTaskStatus {
+  if (!status) {
+    return 'PENDING';
+  }
+  const value = status.toUpperCase();
+  if (['PENDING', 'QUEUED', 'STARTED', 'SUCCESS', 'FAILURE', 'RETRY', 'REVOKED'].includes(value)) {
+    return value as ShopDashboardTaskStatus;
+  }
+  return 'UNKNOWN';
+}
+
+function parseRuleIds(rawRuleIds: string): number[] {
+  const set = new Set<number>();
+  for (const part of rawRuleIds.split(',')) {
+    const numeric = Number(part.trim());
+    if (Number.isInteger(numeric) && numeric > 0) {
+      set.add(numeric);
+    }
+  }
+  return Array.from(set);
+}
+
+function getStatusVariant(status: ShopDashboardTaskStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'SUCCESS') {
+    return 'secondary';
+  }
+  if (status === 'FAILURE' || status === 'REVOKED') {
+    return 'destructive';
+  }
+  if (status === 'STARTED' || status === 'RETRY') {
+    return 'default';
+  }
+  return 'outline';
+}
+
+function getDefaultDateRange(): { start: string; end: string } {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+
+  const format = (date: Date) => date.toISOString().slice(0, 10);
+  return { start: format(start), end: format(end) };
+}
 
 export default function TaskSchedulePage() {
-  const [showLog, setShowLog] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const defaultRange = getDefaultDateRange();
 
-  const query = useQuery({
-    queryKey: ['schedules', 'list'],
-    queryFn: () => schedulesApi.getList(),
-  });
+  const [shopId, setShopId] = useState('');
+  const [ruleIdsText, setRuleIdsText] = useState('');
+  const [startDate, setStartDate] = useState(defaultRange.start);
+  const [endDate, setEndDate] = useState(defaultRange.end);
+  const [keyword, setKeyword] = useState('');
 
-  const handleViewLog = (task: any) => {
-    setSelectedTask(task);
-    setShowLog(true);
+  const [tasks, setTasks] = useState<TaskQueueItem[]>([]);
+  const [triggering, setTriggering] = useState(false);
+
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<ShopDashboardStatusResponse | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_QUEUE_KEY);
+      if (!cached) {
+        return;
+      }
+      const parsed = JSON.parse(cached) as TaskQueueItem[];
+      if (Array.isArray(parsed)) {
+        setTasks(parsed);
+      }
+    } catch {
+      localStorage.removeItem(LOCAL_QUEUE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_QUEUE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
+
+  const activeTaskIds = useMemo(
+    () => tasks.filter(task => !FINAL_STATUS.has(task.status)).map(task => task.task_id),
+    [tasks]
+  );
+
+  useEffect(() => {
+    if (activeTaskIds.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const poll = async () => {
+      const results = await Promise.all(
+        activeTaskIds.map(async taskId => {
+          try {
+            return await shopDashboardApi.getTaskStatus(taskId);
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      const statusMap = new Map(results.filter(Boolean).map(item => [item!.task_id, item!]));
+      setTasks(prev =>
+        prev.map(task => {
+          const latest = statusMap.get(task.task_id);
+          if (!latest) {
+            return task;
+          }
+          return {
+            ...task,
+            status: latest.status,
+            progress: latest.progress,
+            started_at: latest.started_at,
+            finished_at: latest.finished_at,
+            error_message: latest.error_message,
+          };
+        })
+      );
+    };
+
+    const timer = window.setInterval(() => {
+      void poll();
+    }, 5000);
+
+    void poll();
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [activeTaskIds]);
+
+  const loadTaskDetail = async (taskId: string) => {
+    setLoadingDetail(true);
+    try {
+      const detail = await shopDashboardApi.getShopDashboardStatus(taskId);
+      setDetailData(detail);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '任务详情获取失败');
+      setDetailData(null);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
+  useEffect(() => {
+    if (!detailTaskId) {
+      setDetailData(null);
+      return;
+    }
+    void loadTaskDetail(detailTaskId);
+  }, [detailTaskId]);
+
+  const handleTrigger = async () => {
+    const ruleIds = parseRuleIds(ruleIdsText);
+    const payload: BatchTriggerRequest = {};
+
+    if (shopId.trim()) {
+      payload.shop_id = shopId.trim();
+    }
+    if (ruleIds.length > 0) {
+      payload.rule_ids = ruleIds;
+    }
+    if (startDate) {
+      payload.start_date = startDate;
+    }
+    if (endDate) {
+      payload.end_date = endDate;
+    }
+
+    if (!payload.shop_id && !payload.rule_ids?.length) {
+      toast.error('请至少填写店铺 ID 或规则 ID');
+      return;
+    }
+
+    setTriggering(true);
+    try {
+      const result = await shopDashboardApi.batchTrigger(payload);
+      const newTask: TaskQueueItem = {
+        task_id: result.task_id,
+        shop_id: payload.shop_id,
+        rule_ids: payload.rule_ids,
+        status: normalizeTaskStatus(result.status),
+        created_at: result.accepted_at || new Date().toISOString(),
+      };
+      setTasks(prev => [newTask, ...prev.filter(task => task.task_id !== newTask.task_id)]);
+      toast.success(`触发成功，任务 ID: ${result.task_id}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '触发任务失败');
+    } finally {
+      setTriggering(false);
+    }
+  };
+
+  const filteredTasks = useMemo(() => {
+    const text = keyword.trim().toLowerCase();
+    if (!text) {
+      return tasks;
+    }
+
+    return tasks.filter(task => {
+      const hitTaskId = task.task_id.toLowerCase().includes(text);
+      const hitShopId = task.shop_id?.toLowerCase().includes(text);
+      const hitRuleIds = (task.rule_ids || []).join(',').includes(text);
+      return hitTaskId || hitShopId || hitRuleIds;
+    });
+  }, [keyword, tasks]);
+
   return (
-    <EndpointStatusWrapper
-      path={API_ENDPOINTS.SCHEDULES_LIST}
-      responseData={query.data}
-      placeholderProps={{ icon: <ClipboardList size={48} className="text-indigo-500" /> }}
-    >
-      <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">任务调度中心</h2>
-          <CyberButton className="shadow-lg shadow-cyan-500/20 group">
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
-            新建任务
-          </CyberButton>
-        </div>
+    <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">采集任务中心</h2>
+        <CyberButton className="shadow-lg shadow-cyan-500/20 group" onClick={handleTrigger} disabled={triggering}>
+          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+          {triggering ? '触发中...' : '触发采集'}
+        </CyberButton>
+      </div>
 
-        <div className="filter-bar-container flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input
-              type="text"
-              placeholder="搜索任务..."
-              className="filter-input h-9 w-[220px] pl-9 pr-4 text-sm focus-visible:ring-0"
-            />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
+        <Input
+          placeholder="店铺 ID（可选）"
+          value={shopId}
+          onChange={event => setShopId(event.target.value)}
+        />
+        <Input
+          placeholder="规则 ID，逗号分隔"
+          value={ruleIdsText}
+          onChange={event => setRuleIdsText(event.target.value)}
+        />
+        <Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} />
+        <Input type="date" value={endDate} onChange={event => setEndDate(event.target.value)} />
+        <Button variant="outline" onClick={handleTrigger} disabled={triggering}>
+          立即触发
+        </Button>
+      </div>
 
-        <div className="flex-1 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {['任务名称', '运行状态', '上次运行', '耗时', '操作'].map((h) => (
-                  <TableHead key={h}>
-                    {h}
-                  </TableHead>
-                ))}
+      <div className="filter-bar-container flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+          <input
+            type="text"
+            placeholder="搜索任务 ID / 店铺 / 规则"
+            value={keyword}
+            onChange={event => setKeyword(event.target.value)}
+            className="filter-input h-9 w-[280px] pl-9 pr-4 text-sm focus-visible:ring-0"
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>任务 ID</TableHead>
+              <TableHead>状态</TableHead>
+              <TableHead>店铺 ID</TableHead>
+              <TableHead>规则 ID</TableHead>
+              <TableHead>进度</TableHead>
+              <TableHead>创建时间</TableHead>
+              <TableHead>操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredTasks.map(task => (
+              <TableRow key={task.task_id}>
+                <TableCell className="font-mono text-xs">{task.task_id}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusVariant(task.status)}>{task.status}</Badge>
+                </TableCell>
+                <TableCell className="font-mono">{task.shop_id || '-'}</TableCell>
+                <TableCell className="font-mono">{task.rule_ids?.join(', ') || '-'}</TableCell>
+                <TableCell>{typeof task.progress === 'number' ? `${Math.round(task.progress)}%` : '-'}</TableCell>
+                <TableCell>{new Date(task.created_at).toLocaleString()}</TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDetailTaskId(task.task_id)}
+                    className="h-8 px-2"
+                  >
+                    <Terminal className="h-4 w-4 mr-1" />
+                    详情
+                  </Button>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Activity size={16} className="text-slate-600 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors" />
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white font-mono">{task.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono border ${
-                        task.lastStatus === '成功'
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
-                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
-                      }`}
-                    >
-                      {task.lastStatus === '成功' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                      {task.lastStatus === '成功' ? '成功' : '失败'}
-                    </span>
-                  </TableCell>
-                  <TableCell>{task.lastRun}</TableCell>
-                  <TableCell>{task.duration}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleViewLog(task)}
-                        className="p-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 rounded transition-colors"
-                        title="查看日志"
-                      >
-                        <Terminal size={14} />
-                      </button>
-                      <button
-                        className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors"
-                        title="编辑"
-                      >
-                        <Edit size={14} />
-                      </button>
-                      <button
-                        className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 rounded transition-colors"
-                        title="复制"
-                      >
-                        <Copy size={14} />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+            {filteredTasks.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  暂无任务
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-        {showLog && (
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4"
-            onClick={() => setShowLog(false)}
-          >
-            <div
-              className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="px-4 py-2 bg-[#1a1a1a] border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-                  </div>
-                  <span className="ml-3 text-xs text-slate-400 font-mono">root@system:~/logs/{selectedTask?.id}.log</span>
+      <Dialog open={Boolean(detailTaskId)} onOpenChange={open => !open && setDetailTaskId(null)}>
+        <DialogContent className="sm:max-w-[760px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>任务详情</span>
+              {detailTaskId && (
+                <Button variant="outline" size="sm" onClick={() => loadTaskDetail(detailTaskId)} disabled={loadingDetail}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingDetail ? 'animate-spin' : ''}`} />
+                  刷新
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingDetail && <div className="py-8 text-center text-sm text-muted-foreground">加载中...</div>}
+
+          {!loadingDetail && detailData && (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-muted-foreground">任务 ID</div>
+                  <div className="font-mono break-all">{detailData.task_id}</div>
                 </div>
-                <button
-                  onClick={() => setShowLog(false)}
-                  className="text-slate-500 hover:text-white transition-colors"
-                >
-                  <X size={16} />
-                </button>
+                <div>
+                  <div className="text-muted-foreground">状态</div>
+                  <Badge variant={getStatusVariant(detailData.status)}>{detailData.status}</Badge>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">步骤</div>
+                  <div>{detailData.step || '-'}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">进度</div>
+                  <div>{typeof detailData.progress === 'number' ? `${Math.round(detailData.progress)}%` : '-'}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">开始时间</div>
+                  <div>{detailData.started_at ? new Date(detailData.started_at).toLocaleString() : '-'}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">结束时间</div>
+                  <div>{detailData.finished_at ? new Date(detailData.finished_at).toLocaleString() : '-'}</div>
+                </div>
               </div>
 
-              <div className="flex-1 p-6 overflow-auto font-mono text-xs leading-relaxed selection:bg-green-500/30">
-                {logContent.split('\n').map((line, i) => (
-                  <div
-                    key={i}
-                    className={`${
-                      line.includes('[ERROR]')
-                        ? 'text-red-400'
-                        : line.includes('[WARN]')
-                        ? 'text-yellow-400'
-                        : 'text-emerald-500'
-                    }`}
-                  >
-                    {line}
+              {detailData.error_message && (
+                <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-red-600">
+                  {detailData.error_message}
+                </div>
+              )}
+
+              {detailData.logs && detailData.logs.length > 0 && (
+                <div>
+                  <div className="mb-2 text-muted-foreground">日志</div>
+                  <div className="max-h-48 overflow-auto rounded bg-slate-950 p-3 font-mono text-xs text-slate-100">
+                    {detailData.logs.map((line, index) => (
+                      <div key={`${line}-${index}`}>{line}</div>
+                    ))}
                   </div>
-                ))}
-                <div className="text-emerald-500 animate-pulse mt-2">_</div>
+                </div>
+              )}
+
+              <div>
+                <div className="mb-2 text-muted-foreground">原始响应</div>
+                <div className="max-h-64 overflow-auto rounded bg-slate-950 p-3 font-mono text-xs text-slate-100">
+                  <pre>{JSON.stringify(detailData.raw, null, 2)}</pre>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </EndpointStatusWrapper>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

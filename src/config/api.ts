@@ -1,4 +1,4 @@
-export const API_BASE_PATH = '/api/v1';
+﻿export const API_BASE_PATH = '/api/v1';
 
 export const API_ENDPOINTS = {
   JWT_LOGIN: `${API_BASE_PATH}/auth/jwt/login`,
@@ -48,9 +48,13 @@ export const API_ENDPOINTS = {
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,
   SCRAPING_RULE_DETAIL: (rule_id: number) => `${API_BASE_PATH}/scraping-rules/${rule_id}`,
-
+  SHOP_DASHBOARD_BATCH_TRIGGER: `${API_BASE_PATH}/shop-dashboard/batch-trigger`,
+  SHOP_DASHBOARD_STATUS: (task_id: string) => `${API_BASE_PATH}/shop-dashboard/status/${task_id}`,
+  TASK_STATUS: (task_id: string) => `${API_BASE_PATH}/task-status/${task_id}`,
+  SHOP_DASHBOARD_QUERY: `${API_BASE_PATH}/shop-dashboard/query`,
   AUDIT_LOGS: `${API_BASE_PATH}/audit/logs`,
 } as const;
 
 export const SUCCESS_CODES = [200, 201, 202, 203, 204, 205, 206, 207, 208, 209] as const;
 export const DEFAULT_TIMEOUT = 30000;
+
