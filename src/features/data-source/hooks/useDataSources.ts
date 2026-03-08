@@ -1,15 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { dataSourceApi } from '../services/dataSourceApi';
+import { dataSourceApi, DataSourceFilter } from '../services/dataSourceApi';
 import { DataSourceResponse, PageMeta } from '@/types';
-
-interface DataSourceFilter {
-  name?: string;
-  status?: string;
-  source_type?: string;
-  page?: number;
-  size?: number;
-}
 
 interface PaginatedDataSourceResponse {
   items: DataSourceResponse[];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { DataSource } from '../../services/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/card';
 import { StatusTag } from '../common/StatusTag';
@@ -25,13 +25,13 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
       await activate(dataSource.id, !isActive);
       setDataSource(prev => ({ ...prev, status: isActive ? 'INACTIVE' : 'ACTIVE' }));
       toast.success(isActive ? '数据源已停用' : '数据源已启用');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : '操作失败');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '操作失败');
     }
   };
 
   const handleValidate = async () => {
-    await validate(dataSource.id, dataSource.config);
+    await validate(dataSource.id);
   };
 
   return (
@@ -48,43 +48,28 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-           <div className="space-y-4">
-             <div>
-               <h4 className="text-sm font-medium mb-1 text-muted-foreground">创建时间</h4>
-               <p className="font-mono">{new Date(dataSource.created_at).toLocaleString()}</p>
-             </div>
-           </div>
-           
-           <div className="space-y-4">
-             <div>
-               <h4 className="text-sm font-medium mb-2 text-muted-foreground">配置</h4>
-               <div className="bg-slate-950 rounded-lg p-3 overflow-x-auto">
-                 <pre className="text-xs text-slate-50 font-mono">
-                   {JSON.stringify(dataSource.config, null, 2)}
-                 </pre>
-               </div>
-             </div>
-           </div>
+          <div>
+            <h4 className="text-sm font-medium mb-1 text-muted-foreground">创建时间</h4>
+            <p className="font-mono">{new Date(dataSource.created_at).toLocaleString()}</p>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium mb-1 text-muted-foreground">更新时间</h4>
+            <p className="font-mono">{new Date(dataSource.updated_at).toLocaleString()}</p>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 mt-6 border-t pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleValidate}
-            disabled={validating}
-          >
+          <Button variant="outline" size="sm" onClick={handleValidate} disabled={validating}>
             <Activity className={`w-4 h-4 mr-2 ${validating ? 'animate-spin' : ''}`} />
             {validating ? '验证中...' : '测试连接'}
           </Button>
-          
-          <Button 
-            variant={dataSource.status === 'ACTIVE' ? 'destructive' : 'default'}
+          <Button
+            variant={isActive ? 'destructive' : 'default'}
             size="sm"
             onClick={handleToggleActive}
             disabled={activating}
           >
-            {dataSource.status === 'ACTIVE' ? (
+            {isActive ? (
               <>
                 <PowerOff className="w-4 h-4 mr-2" />
                 停用
@@ -99,8 +84,8 @@ export function InfoCard({ dataSource: initialDataSource }: InfoCardProps) {
         </div>
 
         {validationResult && (
-          <div className={`mt-4 p-3 rounded text-sm ${validationResult.success ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-             {validationResult.success ? '连接成功' : `连接失败: ${validationResult.message}`}
+          <div className={`mt-4 rounded p-3 text-sm ${validationResult.success ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+            {validationResult.success ? '连接成功' : `连接失败: ${validationResult.message}`}
           </div>
         )}
       </CardContent>

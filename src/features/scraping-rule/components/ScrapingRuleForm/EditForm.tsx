@@ -1,21 +1,15 @@
-'use client';
+﻿'use client';
 
-import React, { useEffect, useState } from 'react';
-import { z } from 'zod';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { BaseForm } from './BaseForm';
+import { useRouter } from 'next/navigation';
 import { useUpdateScrapingRule } from '../../hooks/useUpdateScrapingRule';
 import { useScrapingRule } from '../../hooks/useScrapingRule';
-import { useDataSources } from '@/features/data-source/hooks/useDataSources';
-import { useRouter } from 'next/navigation';
-import { ScrapingRule } from '../../services/types';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -29,28 +23,18 @@ import {
   SelectValue,
 } from '@/app/components/ui/select';
 import { RuleConfigFields } from './RuleConfigFields';
+import {
+  RuleConfigFormValues,
+  buildRuleConfigFromForm,
+  buildRuleConfigFormDefaults,
+} from './BaseForm';
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "名称至少需要2个字符。",
-  }),
-  description: z.string().optional(),
-  target_type: z.enum([
-    'SHOP_OVERVIEW', 'TRAFFIC', 'PRODUCT', 'LIVE', 'CONTENT_VIDEO',
-    'ORDER_FULFILLMENT', 'AFTERSALE_REFUND', 'CUSTOMER', 'ADS'
-  ]).optional(),
-  data_source_id: z.coerce.number(),
-  schedule_type: z.enum(['cron', 'interval', 'once']),
-  schedule_value: z.string().min(1, "调度值为必填项"),
-  is_active: z.boolean().default(true),
-  config: z.object({
-    target_url: z.string().url("必须是有效的URL").optional(),
-    timeout: z.number().default(30000),
-    retry_count: z.number().default(3),
-    max_pages: z.number().optional(),
-    selectors: z.record(z.string(), z.string()).optional(),
-  }).passthrough(),
-});
+interface EditRuleFormValues extends RuleConfigFormValues {
+  name: string;
+  description: string;
+  schedule: string;
+  is_active: boolean;
+}
 
 interface EditFormProps {
   id: number;
@@ -60,74 +44,92 @@ export function EditForm({ id }: EditFormProps) {
   const router = useRouter();
   const { rule, loading: loadingRule } = useScrapingRule(id);
   const { update, loading: saving } = useUpdateScrapingRule();
-  const { data: dataSources } = useDataSources({ size: 100 });
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const form = useForm<EditRuleFormValues>({
     defaultValues: {
-      name: "",
-      description: "",
-      target_type: "SHOP_OVERVIEW",
-      schedule_type: "once",
-      schedule_value: "0",
+      name: '',
+      description: '',
+      schedule: '',
       is_active: true,
-      config: {
-        target_url: "",
-        timeout: 30000,
-        retry_count: 3,
-        selectors: {},
-      },
+      ...buildRuleConfigFormDefaults(),
     },
   });
 
   useEffect(() => {
-    if (rule) {
-      form.reset({
-        name: rule.name,
-        description: rule.description,
-        target_type: rule.target_type,
-        data_source_id: rule.data_source_id.toString() as any,
-        schedule_type: rule.schedule_type,
-        schedule_value: rule.schedule_value,
-        is_active: rule.is_active,
-        config: rule.config,
-      });
+    if (!rule) {
+      return;
     }
-  }, [rule]);
 
-  const targetType = form.watch("target_type") || "SHOP_OVERVIEW";
+    form.reset({
+      name: rule.name,
+      description: rule.description || '',
+      schedule: rule.schedule || '',
+      is_active: rule.is_active,
+      ...buildRuleConfigFormDefaults(rule.config),
+    });
+  }, [form, rule]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const setConfigError = (message: string) => {
+    if (message.startsWith('time_range')) {
+      form.setError('time_range_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('filters')) {
+      form.setError('filters_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('rate_limit')) {
+      form.setError('rate_limit_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('backfill_last_n_days')) {
+      form.setError('backfill_last_n_days', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('top_n')) {
+      form.setError('top_n', { type: 'validate', message });
+      return;
+    }
+    form.setError('schedule', { type: 'validate', message });
+  };
+
+  async function onSubmit(values: EditRuleFormValues) {
+    if (!values.schedule.trim()) {
+      form.setError('schedule', { type: 'required', message: '调度表达式必填' });
+      return;
+    }
+
     try {
-      const apiData = {
+      const config = buildRuleConfigFromForm(values);
+      await update(id, {
         name: values.name,
-        description: values.description,
-        target_type: values.target_type,
-        data_source_id: values.data_source_id,
-        schedule: values.schedule_type === 'cron'
-          ? values.schedule_value
-          : values.schedule_type === 'interval'
-            ? values.schedule_value
-            : undefined,
+        description: values.description || undefined,
+        schedule: values.schedule,
         is_active: values.is_active,
-        config: values.config,
-      };
-      await update(id, apiData);
+        config,
+      });
       router.push('/scraping-rule');
     } catch (error) {
-      console.error(error);
+      const message = error instanceof Error ? error.message : '保存失败';
+      setConfigError(message);
     }
   }
 
-  if (loadingRule) return <div>加载中...</div>;
-  if (!rule) return <div>未找到规则</div>;
+  if (loadingRule) {
+    return <div>加载中...</div>;
+  }
+
+  if (!rule) {
+    return <div>未找到规则</div>;
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-8">
         <FormField
           control={form.control}
           name="name"
+          rules={{ required: '名称必填' }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>名称</FormLabel>
@@ -138,7 +140,7 @@ export function EditForm({ id }: EditFormProps) {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -146,115 +148,75 @@ export function EditForm({ id }: EditFormProps) {
             <FormItem>
               <FormLabel>描述</FormLabel>
               <FormControl>
-                <Input placeholder="描述" {...field} />
+                <Input placeholder="可选描述" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="target_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>目标类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择目标类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
-                    <SelectItem value="TRAFFIC">流量</SelectItem>
-                    <SelectItem value="PRODUCT">商品</SelectItem>
-                    <SelectItem value="LIVE">直播</SelectItem>
-                    <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
-                    <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
-                    <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
-                    <SelectItem value="CUSTOMER">客户</SelectItem>
-                    <SelectItem value="ADS">广告</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormItem>
+            <FormLabel>数据源 ID</FormLabel>
+            <FormControl>
+              <Input value={String(rule.data_source_id)} disabled />
+            </FormControl>
+          </FormItem>
 
-          <FormField
-            control={form.control}
-            name="data_source_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>数据源</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择数据源" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {dataSources?.items?.map((ds) => (
-                      <SelectItem key={ds.id} value={ds.id.toString()}>
-                        {ds.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormItem>
+            <FormLabel>目标类型</FormLabel>
+            <FormControl>
+              <Input value={rule.target_type} disabled />
+            </FormControl>
+          </FormItem>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name="schedule_type"
+            name="schedule"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>调度类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择调度类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="once">一次</SelectItem>
-                    <SelectItem value="interval">间隔</SelectItem>
-                    <SelectItem value="cron">Cron表达式</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="schedule_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度值</FormLabel>
+                <FormLabel>调度表达式</FormLabel>
                 <FormControl>
-                  <Input placeholder="例如: 3600 或 0 * * * *" {...field} />
+                  <Input placeholder="0 */2 * * *" {...field} />
                 </FormControl>
-                <FormDescription>间隔为秒数，Cron为Cron表达式。</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="is_active"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>状态</FormLabel>
+                <Select onValueChange={value => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="true">启用</SelectItem>
+                    <SelectItem value="false">停用</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <RuleConfigFields form={form} type={targetType} />
+        <RuleConfigFields form={form} />
 
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.back()}>取消</Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            取消
+          </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? "保存中..." : "保存更改"}
+            {saving ? '保存中...' : '保存更改'}
           </Button>
         </div>
       </form>

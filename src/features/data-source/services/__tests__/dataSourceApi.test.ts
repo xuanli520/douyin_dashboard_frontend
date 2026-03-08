@@ -19,9 +19,9 @@ vi.mock('@/config/api', () => ({
     DATA_SOURCE_DETAIL: (id: number) => `/api/data-sources/${id}`,
     DATA_SOURCE_ACTIVATE: (id: number) => `/api/data-sources/${id}/activate`,
     DATA_SOURCE_DEACTIVATE: (id: number) => `/api/data-sources/${id}/deactivate`,
-    DATA_SOURCE_RULES: (id: number) => `/api/data-sources/${id}/rules`,
     DATA_SOURCE_VALIDATE: (id: number) => `/api/data-sources/${id}/validate`,
     DATA_SOURCE_SCRAPING_RULES: (id: number) => `/api/data-sources/${id}/scraping-rules`,
+    DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE: (id: number) => `/api/data-sources/${id}/shop-dashboard/login-state`,
   },
 }));
 
@@ -62,14 +62,18 @@ describe('dataSourceApi', () => {
       vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
       const result = await dataSourceApi.getAll({
-        name: 'Test',
-        page: 1,
-        size: 10,
+        source_type: 'DOUYIN_SHOP',
+        status: 'ACTIVE',
+        page: 2,
+        size: 20,
       });
 
-      expect(httpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('name=Test')
-      );
+      const calledUrl = vi.mocked(httpClient.get).mock.calls[0][0] as string;
+      expect(calledUrl).toContain('source_type=DOUYIN_SHOP');
+      expect(calledUrl).toContain('status=ACTIVE');
+      expect(calledUrl).toContain('page=2');
+      expect(calledUrl).toContain('size=20');
+      expect(calledUrl).not.toContain('name=');
       expect(result.items).toHaveLength(1);
     });
   });
@@ -90,13 +94,19 @@ describe('dataSourceApi', () => {
 
   describe('create', () => {
     it('should create data source', async () => {
+      const config = {
+        endpoint: 'https://example.com',
+        shop_dashboard_login_state: {
+          session: 'cookie-string',
+        },
+      };
       const mockData = {
         name: 'New Source',
-        type: 'DOUYIN_API' as const,
-        config: { apiKey: 'test' },
+        type: 'DOUYIN_SHOP' as const,
+        config,
       };
       const mockResponse = {
-        data: { id: 1, name: 'New Source', type: 'DOUYIN_API', status: 'ACTIVE' },
+        data: { id: 1, name: 'New Source', type: 'DOUYIN_SHOP', status: 'ACTIVE', config },
       };
       vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
@@ -106,18 +116,25 @@ describe('dataSourceApi', () => {
         expect.any(String),
         expect.objectContaining({
           name: 'New Source',
+          config,
         })
       );
       expect(result.id).toBe(1);
       expect(result.name).toBe('New Source');
+      expect(result.config).toEqual(config);
     });
   });
 
   describe('update', () => {
     it('should update data source', async () => {
-      const mockData = { name: 'Updated Source' };
+      const config = {
+        shop_dashboard_login_state: {
+          account_id: 'abc',
+        },
+      };
+      const mockData = { name: 'Updated Source', config };
       const mockResponse = {
-        data: { id: 1, name: 'Updated Source', type: 'DOUYIN_API', status: 'ACTIVE' },
+        data: { id: 1, name: 'Updated Source', type: 'DOUYIN_API', status: 'ACTIVE', config },
       };
       vi.mocked(httpClient.put).mockResolvedValue(mockResponse);
 
@@ -125,6 +142,7 @@ describe('dataSourceApi', () => {
 
       expect(httpClient.put).toHaveBeenCalledWith(expect.any(String), mockData);
       expect(result.name).toBe('Updated Source');
+      expect(result.config).toEqual(config);
     });
   });
 
@@ -187,6 +205,26 @@ describe('dataSourceApi', () => {
 
       expect(result.valid).toBe(true);
       expect(result.message).toBe('Connection successful');
+    });
+  });
+
+  describe('shop dashboard login state', () => {
+    it('should clear login state with dedicated endpoint', async () => {
+      vi.mocked(httpClient.delete).mockResolvedValue({ data: undefined });
+
+      await dataSourceApi.clearShopDashboardLoginState(99);
+
+      expect(httpClient.delete).toHaveBeenCalledWith('/api/data-sources/99/shop-dashboard/login-state');
+    });
+  });
+
+  describe('contract alignment', () => {
+    it('should expose shop dashboard login state endpoint constant', async () => {
+      const actualApi = await vi.importActual<typeof import('@/config/api')>('@/config/api');
+
+      expect(
+        actualApi.API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(7)
+      ).toBe('/api/v1/data-sources/7/shop-dashboard/login-state');
     });
   });
 });

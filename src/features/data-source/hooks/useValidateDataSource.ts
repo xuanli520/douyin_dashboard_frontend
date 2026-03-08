@@ -11,7 +11,7 @@ export function useValidateDataSource() {
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  const validate = async (id: number, config: Record<string, unknown>): Promise<ValidationResult> => {
+  const validate = async (id: number): Promise<ValidationResult> => {
     setValidating(true);
     setValidationResult(null);
     setError(null);

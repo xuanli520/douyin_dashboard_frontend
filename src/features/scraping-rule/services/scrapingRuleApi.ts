@@ -3,11 +3,17 @@ import { ApiResponse } from '@/lib/http/types';
 import { API_ENDPOINTS } from '@/config/api';
 import {
   ScrapingRuleResponse,
-  ScrapingRuleListItem,
   ScrapingRuleCreate,
   ScrapingRuleUpdate,
   PaginatedScrapingRuleListItem,
 } from '@/types';
+
+const normalizeScheduleContract = <T extends object>(rule: T): T => {
+  const normalized = { ...(rule as Record<string, unknown>) };
+  delete normalized.schedule_type;
+  delete normalized.schedule_value;
+  return normalized as T;
+};
 
 export interface ScrapingRuleFilter {
   name?: string;
@@ -36,14 +42,17 @@ export const scrapingRuleApi = {
       : API_ENDPOINTS.SCRAPING_RULES;
 
     const response = await httpClient.get<ApiResponse<PaginatedScrapingRuleListItem>>(url);
-    return response.data;
+    return {
+      ...response.data,
+      items: response.data.items.map(item => normalizeScheduleContract(item)),
+    };
   },
 
   getById: async (id: number): Promise<ScrapingRuleResponse> => {
     const response = await httpClient.get<ApiResponse<ScrapingRuleResponse>>(
       API_ENDPOINTS.SCRAPING_RULE_DETAIL(id)
     );
-    return response.data;
+    return normalizeScheduleContract(response.data);
   },
 
   create: async (data: ScrapingRuleCreate): Promise<ScrapingRuleResponse> => {
@@ -51,7 +60,7 @@ export const scrapingRuleApi = {
       API_ENDPOINTS.SCRAPING_RULES,
       data
     );
-    return response.data;
+    return normalizeScheduleContract(response.data);
   },
 
   update: async (id: number, data: ScrapingRuleUpdate): Promise<ScrapingRuleResponse> => {
@@ -59,7 +68,7 @@ export const scrapingRuleApi = {
       API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
       data
     );
-    return response.data;
+    return normalizeScheduleContract(response.data);
   },
 
   delete: async (id: number): Promise<void> => {
@@ -73,7 +82,7 @@ export const scrapingRuleApi = {
       API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
       { is_active: true }
     );
-    return response.data;
+    return normalizeScheduleContract(response.data);
   },
 
   deactivate: async (id: number): Promise<ScrapingRuleResponse> => {
@@ -81,6 +90,6 @@ export const scrapingRuleApi = {
       API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
       { is_active: false }
     );
-    return response.data;
+    return normalizeScheduleContract(response.data);
   },
 };

@@ -1,15 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { scrapingRuleApi } from '../services/scrapingRuleApi';
-import { ScrapingRuleListItem, PaginatedData, PageMeta } from '@/types';
-
-interface ScrapingRuleFilter {
-  name?: string;
-  target_type?: string;
-  status?: string;
-  data_source_id?: number;
-  page?: number;
-  size?: number;
-}
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { scrapingRuleApi, ScrapingRuleFilter } from '../services/scrapingRuleApi';
+import { ScrapingRuleListItem, PageMeta } from '@/types';
 
 interface PaginatedScrapingRuleResponse {
   items: ScrapingRuleListItem[];
@@ -35,31 +26,39 @@ export function useScrapingRules(initialFilters?: ScrapingRuleFilter) {
     size: 10,
   });
 
-  const fetchData = useCallback(async () => {
+  const requestIdRef = useRef(0);
+
+  const fetchData = useCallback(async (currentFilters: ScrapingRuleFilter) => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     try {
-      const response = await scrapingRuleApi.getAll(filters);
-      setData(response);
+      const response = await scrapingRuleApi.getAll(currentFilters);
+      if (requestId === requestIdRef.current) {
+        setData(response);
+      }
     } catch (err) {
-      console.error('Failed to fetch scraping rules:', err);
-      setError(err as Error);
+      if (requestId === requestIdRef.current) {
+        setError(err as Error);
+      }
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(filters);
+  }, [fetchData, filters]);
 
-  const updateFilters = (newFilters: Partial<ScrapingRuleFilter>) => {
+  const updateFilters = useCallback((newFilters: Partial<ScrapingRuleFilter>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
-  };
+  }, []);
 
-  const refresh = () => {
-    fetchData();
-  };
+  const refresh = useCallback(() => {
+    fetchData(filters);
+  }, [fetchData, filters]);
 
   return {
     data,
@@ -67,6 +66,6 @@ export function useScrapingRules(initialFilters?: ScrapingRuleFilter) {
     error,
     filters,
     updateFilters,
-    refresh
+    refresh,
   };
 }

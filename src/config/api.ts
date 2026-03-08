@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
   DATA_SOURCE_ACTIVATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/activate`,
   DATA_SOURCE_DEACTIVATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/deactivate`,
   DATA_SOURCE_VALIDATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/validate`,
+  DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/shop-dashboard/login-state`,
   DATA_SOURCE_SCRAPING_RULES: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/scraping-rules`,
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,

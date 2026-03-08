@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
+import { Plus, Filter } from 'lucide-react';
 import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
 import { useActivateScrapingRule } from '../../hooks/useActivateScrapingRule';
-import { Plus, Filter } from 'lucide-react';
 import { Input } from '@/app/components/ui/input';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
-
 
 export function ScrapingRuleList() {
   const { data, loading, error, refresh, filters, updateFilters } = useScrapingRules();
@@ -35,7 +34,9 @@ export function ScrapingRuleList() {
   };
 
   const confirmDelete = async () => {
-    if (ruleToDelete === null) return;
+    if (ruleToDelete === null) {
+      return;
+    }
     await remove(ruleToDelete);
     refresh();
     setDeleteDialogOpen(false);
@@ -56,7 +57,7 @@ export function ScrapingRuleList() {
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ size: size, page: 1 });
+    updateFilters({ size, page: 1 });
   };
 
   return (
@@ -78,13 +79,13 @@ export function ScrapingRuleList() {
           <Input
             placeholder="搜索规则..."
             value={filters.name || ''}
-            onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
+            onChange={event => updateFilters({ name: event.target.value, page: 1 })}
             className="filter-input w-[220px] pl-9"
           />
         </div>
         <Select
           value={filters.target_type || 'all'}
-          onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
+          onValueChange={value => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
         >
           <SelectTrigger className="filter-input w-[150px]">
             <SelectValue placeholder="全部类型" />
@@ -104,7 +105,7 @@ export function ScrapingRuleList() {
         </Select>
       </div>
 
-      {error && <div className="text-left text-red-500 py-8">错误: {error.message}</div>}
+      {error && <div className="py-8 text-left text-red-500">错误: {error.message}</div>}
 
       {!error && (
         <RuleTable
@@ -122,11 +123,11 @@ export function ScrapingRuleList() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
-        description="确定要删除此规则吗？此操作无法撤销。"
+        description="确定要删除此规则吗？此操作不可撤销。"
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[720px]">
           <DialogHeader>
             <DialogTitle>创建采集规则</DialogTitle>
           </DialogHeader>

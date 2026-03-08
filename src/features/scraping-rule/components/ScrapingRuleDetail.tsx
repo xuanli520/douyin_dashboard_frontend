@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ScrapingRule } from '../services/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -40,11 +40,11 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
           <RuleStatusTag isActive={rule.is_active} />
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
             <div className="space-y-4">
-               <div>
+              <div>
                 <h4 className="text-sm font-medium mb-1 text-muted-foreground">调度</h4>
-                 <ScheduleDisplay type={rule.schedule_type || 'once'} value={rule.schedule_value || ''} />
+                <ScheduleDisplay schedule={rule.schedule} />
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1 text-muted-foreground">数据源</h4>
@@ -55,15 +55,11 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
                 <p className="font-mono">{rule.last_run_at ? new Date(rule.last_run_at).toLocaleString() : '从未运行'}</p>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2 text-muted-foreground">配置</h4>
-                <div className="bg-slate-950 rounded-lg p-3 overflow-x-auto">
-                  <pre className="text-xs text-slate-50 font-mono">
-                    {JSON.stringify(rule.config, null, 2)}
-                  </pre>
-                </div>
+
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-muted-foreground">配置</h4>
+              <div className="rounded-lg bg-slate-950 p-3 overflow-x-auto">
+                <pre className="text-xs font-mono text-slate-50">{JSON.stringify(rule.config, null, 2)}</pre>
               </div>
             </div>
           </div>

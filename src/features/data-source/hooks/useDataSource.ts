@@ -8,7 +8,10 @@ export function useDataSource(id: number) {
   const [error, setError] = useState<Error | null>(null);
 
   const fetchDataSource = useCallback(async () => {
-    if (!id) return;
+    if (!id || Number.isNaN(id)) {
+      setDataSource(null);
+      return;
+    }
 
     setLoading(true);
     setError(null);
