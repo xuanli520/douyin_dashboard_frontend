@@ -209,6 +209,30 @@ describe('dataSourceApi', () => {
   });
 
   describe('shop dashboard login state', () => {
+    it('should upload login state with dedicated multipart endpoint', async () => {
+      const mockResponse = {
+        data: { id: 99, name: 'Shop Source', type: 'DOUYIN_SHOP', status: 'ACTIVE', config: {} },
+      };
+      vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
+
+      const result = await dataSourceApi.uploadShopDashboardLoginState(99, {
+        accountId: 'shop-1001',
+        storageState: {
+          cookies: [{ name: 'sid', value: 'token' }],
+          origins: [],
+        },
+      });
+
+      const calledUrl = vi.mocked(httpClient.post).mock.calls[0][0];
+      const calledBody = vi.mocked(httpClient.post).mock.calls[0][1];
+
+      expect(calledUrl).toBe('/api/data-sources/99/shop-dashboard/login-state');
+      expect(calledBody).toBeInstanceOf(FormData);
+      expect((calledBody as FormData).get('account_id')).toBe('shop-1001');
+      expect((calledBody as FormData).get('file')).toBeTruthy();
+      expect(result.id).toBe(99);
+    });
+
     it('should clear login state with dedicated endpoint', async () => {
       vi.mocked(httpClient.delete).mockResolvedValue({ data: undefined });
 

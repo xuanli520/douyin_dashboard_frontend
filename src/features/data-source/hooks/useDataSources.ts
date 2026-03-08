@@ -8,6 +8,26 @@ interface PaginatedDataSourceResponse {
   meta: PageMeta;
 }
 
+function normalizeFilters(filters?: DataSourceFilter): DataSourceFilter {
+  return {
+    page: filters?.page ?? 1,
+    size: filters?.size ?? 10,
+    name: filters?.name,
+    status: filters?.status,
+    source_type: filters?.source_type,
+  };
+}
+
+function isSameFilter(a: DataSourceFilter, b: DataSourceFilter): boolean {
+  return (
+    a.page === b.page
+    && a.size === b.size
+    && a.name === b.name
+    && a.status === b.status
+    && a.source_type === b.source_type
+  );
+}
+
 export function useDataSources(initialFilters?: DataSourceFilter) {
   const pathname = usePathname();
   const [data, setData] = useState<PaginatedDataSourceResponse>({
@@ -23,12 +43,23 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [filters, setFilters] = useState<DataSourceFilter>(() => initialFilters || {
-    page: 1,
-    size: 10,
-  });
+  const [filters, setFilters] = useState<DataSourceFilter>(() => normalizeFilters(initialFilters));
 
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    if (!initialFilters) {
+      return;
+    }
+    const next = normalizeFilters(initialFilters);
+    setFilters(prev => (isSameFilter(prev, next) ? prev : next));
+  }, [
+    initialFilters?.name,
+    initialFilters?.status,
+    initialFilters?.source_type,
+    initialFilters?.page,
+    initialFilters?.size,
+  ]);
 
   const fetchData = useCallback(async (currentFilters: DataSourceFilter) => {
     const requestId = ++requestIdRef.current;

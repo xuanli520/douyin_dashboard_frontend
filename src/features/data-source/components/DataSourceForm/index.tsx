@@ -98,22 +98,25 @@ export function DataSourceForm({ initialData, onSubmit, loading, onCancel }: Dat
   };
 
   const handleSubmit = async (values: DataSourceFormValues) => {
+    let config: Record<string, unknown>;
     try {
-      const config = parseConfig(values.configJson);
-      form.clearErrors('configJson');
-      await onSubmit({
-        name: values.name,
-        type: values.type,
-        description: values.description || undefined,
-        status: values.status,
-        config,
-      });
+      config = parseConfig(values.configJson);
     } catch {
       form.setError('configJson', {
         type: 'validate',
         message: 'JSON 格式错误',
       });
+      return;
     }
+
+    form.clearErrors('configJson');
+    await onSubmit({
+      name: values.name,
+      type: values.type,
+      description: values.description || undefined,
+      status: values.status,
+      config,
+    });
   };
 
   return (

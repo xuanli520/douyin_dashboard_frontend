@@ -95,7 +95,8 @@ export function DataSourceList() {
       setIsCreateOpen(false);
       await refetch();
     } catch (error) {
-      toast.error('创建数据源失败');
+      const message = error instanceof Error ? error.message : '创建数据源失败';
+      toast.error(message);
       console.error(error);
     }
   };
@@ -111,7 +112,8 @@ export function DataSourceList() {
       setEditingSource(undefined);
       await refetch();
     } catch (error) {
-      toast.error('更新数据源失败');
+      const message = error instanceof Error ? error.message : '更新数据源失败';
+      toast.error(message);
       console.error(error);
     }
   };

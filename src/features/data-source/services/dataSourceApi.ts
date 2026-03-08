@@ -18,6 +18,11 @@ export interface DataSourceFilter {
   size?: number;
 }
 
+export interface ShopDashboardLoginStateUploadPayload {
+  accountId: string;
+  storageState: Record<string, unknown>;
+}
+
 export const dataSourceApi = {
   getAll: async (params?: DataSourceFilter): Promise<PaginatedData<DataSourceResponse>> => {
     const query = new URLSearchParams();
@@ -84,6 +89,25 @@ export const dataSourceApi = {
   validate: async (id: number): Promise<Record<string, unknown>> => {
     const response = await httpClient.post<ApiResponse<Record<string, unknown>>>(
       API_ENDPOINTS.DATA_SOURCE_VALIDATE(id)
+    );
+    return response.data;
+  },
+
+  uploadShopDashboardLoginState: async (
+    id: number,
+    payload: ShopDashboardLoginStateUploadPayload
+  ): Promise<DataSourceResponse> => {
+    const formData = new FormData();
+    formData.append('account_id', payload.accountId);
+    formData.append(
+      'file',
+      new Blob([JSON.stringify(payload.storageState)], { type: 'application/json' }),
+      'storage_state.json'
+    );
+
+    const response = await httpClient.post<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(id),
+      formData
     );
     return response.data;
   },
