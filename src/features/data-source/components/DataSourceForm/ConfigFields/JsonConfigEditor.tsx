@@ -24,7 +24,8 @@ export function JsonConfigEditor({ value, onChange, onFormat, onReset, error }: 
       <Textarea
         value={value}
         onChange={event => onChange(event.target.value)}
-        className="min-h-[260px] font-mono text-xs"
+        className="h-[260px] max-h-[260px] overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-all [field-sizing:fixed] font-mono text-xs"
+        wrap="soft"
         placeholder='{"shop_dashboard_login_state": {}}'
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
