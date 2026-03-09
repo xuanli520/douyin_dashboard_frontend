@@ -21,6 +21,7 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from '@/app/components/ui/pagination';
+import { Skeleton } from '@/app/components/ui/skeleton';
 import { useLoginAuditLogs, LoginAuditFilters } from '@/features/audit-login/hooks';
 
 export default function LoginAuditPage() {
@@ -193,18 +194,6 @@ export default function LoginAuditPage() {
     return pages;
   }, [currentPage, totalPages]);
 
-  // ─── Loading ────────────────────────────────────────────────────────────────
-  if (loading && safeItems.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-white dark:bg-slate-900">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-[13px] text-slate-400">加载中...</p>
-        </div>
-      </div>
-    );
-  }
-
   // ─── Error ──────────────────────────────────────────────────────────────────
   if (error) {
     return (
@@ -353,7 +342,17 @@ export default function LoginAuditPage() {
             </thead>
 
             <tbody>
-              {safeItems.length === 0 ? (
+              {loading ? (
+                Array.from({ length: Math.min(filters.size || 20, 5) }).map((_, index) => (
+                  <tr key={`loading-${index}`} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-transparent">
+                    {Array.from({ length: 6 }).map((_, cellIndex) => (
+                      <td key={`loading-cell-${cellIndex}`} className="px-4 py-3">
+                        <Skeleton className="h-4 w-[80%] bg-slate-200 dark:bg-slate-800" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : safeItems.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-16 text-center">
                     <div className="flex flex-col items-center gap-2">

@@ -21,8 +21,11 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
   const handleTrigger = async () => {
     setTriggering(true);
     try {
-      const result = await shopDashboardApi.batchTrigger({ rule_ids: [rule.id] });
-      toast.success(`触发成功，任务ID: ${result.task_id}`);
+      const result = await shopDashboardApi.triggerShopDashboardCollection({
+        data_source_id: rule.data_source_id,
+        rule_id: rule.id,
+      });
+      toast.success(`触发成功，执行ID: ${result.execution.id}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '触发采集失败');
     } finally {

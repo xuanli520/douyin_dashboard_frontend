@@ -54,15 +54,20 @@ export const ENDPOINT_META: Record<string, EndpointMeta> = {
     expectedRelease: '2026-03-10',
     description: '任务执行能力开发中',
   },
+  '/api/v1/tasks/:task_id': {
+    status: 'development',
+    expectedRelease: '2026-03-10',
+    description: '任务详情能力开发中',
+  },
   '/api/v1/tasks/:task_id/executions': {
     status: 'development',
     expectedRelease: '2026-03-10',
     description: '任务执行记录能力开发中',
   },
-  '/api/v1/tasks/:task_id/stop': {
+  '/api/v1/tasks/:task_id/cancel': {
     status: 'development',
     expectedRelease: '2026-03-10',
-    description: '任务停止能力开发中',
+    description: '任务取消能力开发中',
   },
 };
 

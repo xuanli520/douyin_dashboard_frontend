@@ -25,7 +25,7 @@ interface RuleTableProps {
   onSizeChange: (size: number) => void;
   onDelete: (id: number) => void;
   onToggleActive: (id: number, active: boolean) => void;
-  onTrigger: (id: number) => void;
+  onTrigger: (rule: ScrapingRule) => void;
   triggeringRuleId: number | null;
 }
 
@@ -98,7 +98,7 @@ export function RuleTable({
               <Pencil className="mr-2 h-4 w-4" />
               编辑
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTrigger(rule.id)} disabled={triggeringRuleId === rule.id}>
+            <DropdownMenuItem onClick={() => onTrigger(rule)} disabled={triggeringRuleId === rule.id}>
               <Gauge className="mr-2 h-4 w-4" />
               {triggeringRuleId === rule.id ? '触发中...' : '立即采集'}
             </DropdownMenuItem>

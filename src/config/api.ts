@@ -34,9 +34,10 @@ export const API_ENDPOINTS = {
   SHOP_SCORE: (shop_id: number) => `${API_BASE_PATH}/shops/${shop_id}/score`,
   METRIC_DETAIL: (metric_type: string) => `${API_BASE_PATH}/metrics/${metric_type}`,
   TASKS_LIST: `${API_BASE_PATH}/tasks`,
+  TASK_DETAIL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}`,
   TASK_RUN: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/run`,
   TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
-  TASK_STOP: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/stop`,
+  TASK_CANCEL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/cancel`,
 
   DATA_SOURCES: `${API_BASE_PATH}/data-sources`,
   DATA_SOURCE_DETAIL: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}`,
@@ -48,9 +49,6 @@ export const API_ENDPOINTS = {
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,
   SCRAPING_RULE_DETAIL: (rule_id: number) => `${API_BASE_PATH}/scraping-rules/${rule_id}`,
-  SHOP_DASHBOARD_BATCH_TRIGGER: `${API_BASE_PATH}/shop-dashboard/batch-trigger`,
-  SHOP_DASHBOARD_STATUS: (task_id: string) => `${API_BASE_PATH}/shop-dashboard/status/${task_id}`,
-  TASK_STATUS: (task_id: string) => `${API_BASE_PATH}/task-status/${task_id}`,
   SHOP_DASHBOARD_QUERY: `${API_BASE_PATH}/shop-dashboard/query`,
   AUDIT_LOGS: `${API_BASE_PATH}/audit/logs`,
 } as const;

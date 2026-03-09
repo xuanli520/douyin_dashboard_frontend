@@ -1,45 +1,82 @@
-﻿export type ShopDashboardTaskStatus =
-  | 'PENDING'
-  | 'QUEUED'
-  | 'STARTED'
-  | 'SUCCESS'
-  | 'FAILURE'
-  | 'RETRY'
-  | 'REVOKED'
-  | 'UNKNOWN';
+﻿export type TaskType = 'ETL_ORDERS' | 'ETL_PRODUCTS' | 'SHOP_DASHBOARD_COLLECTION';
+export type TaskDefinitionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+export type TaskExecutionStatus = 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
+export type TaskTriggerMode = 'MANUAL' | 'SCHEDULED' | 'SYSTEM';
 
-export interface BatchTriggerRequest {
-  shop_id?: string;
-  rule_ids?: number[];
-  start_date?: string;
-  end_date?: string;
-  force?: boolean;
+export interface TaskListParams {
+  page?: number;
+  size?: number;
+  status?: TaskDefinitionStatus;
+  task_type?: TaskType;
 }
 
-export interface BatchTriggerResponse {
-  task_id: string;
-  status?: string;
-  message?: string;
-  accepted_at?: string;
-  raw: Record<string, unknown>;
+export interface TaskDefinitionCreateRequest {
+  name: string;
+  task_type: TaskType;
+  config?: Record<string, unknown>;
+  schedule?: Record<string, unknown> | null;
+  status?: TaskDefinitionStatus;
 }
 
-export interface TaskStatusResponse {
-  task_id: string;
-  status: ShopDashboardTaskStatus;
-  progress?: number;
-  created_at?: string;
-  started_at?: string;
-  finished_at?: string;
-  error_message?: string;
-  result?: Record<string, unknown> | null;
-  raw: Record<string, unknown>;
+export interface TaskRunRequest {
+  payload?: Record<string, unknown>;
 }
 
-export interface ShopDashboardStatusResponse extends TaskStatusResponse {
-  step?: string;
-  traceback?: string;
-  logs?: string[];
+export interface TaskDefinition {
+  id: number;
+  name: string;
+  task_type: TaskType;
+  status: TaskDefinitionStatus;
+  config: Record<string, unknown> | null;
+  schedule: Record<string, unknown> | null;
+  created_by_id: number | null;
+  updated_by_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskExecution {
+  id: number;
+  task_id: number;
+  queue_task_id: string | null;
+  status: TaskExecutionStatus;
+  trigger_mode: TaskTriggerMode;
+  payload: Record<string, unknown> | null;
+  started_at: string | null;
+  completed_at: string | null;
+  processed_rows: number;
+  error_message: string | null;
+  triggered_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskListResponse {
+  items: TaskDefinition[];
+  meta: {
+    page: number;
+    size: number;
+    total: number;
+    pages: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+}
+
+export interface TaskExecutionListResponse {
+  task_id: number;
+  items: TaskExecution[];
+}
+
+export interface ShopDashboardCollectionTriggerRequest {
+  data_source_id: number;
+  rule_id: number;
+  execution_id?: string;
+}
+
+export interface ShopDashboardCollectionTriggerResult {
+  task: TaskDefinition;
+  execution: TaskExecution;
 }
 
 export interface ShopDashboardQueryRequest {
@@ -95,16 +132,6 @@ export interface ShopDashboardQueryResponse {
   raw: Record<string, unknown>;
 }
 
-const TASK_STATUS_SET: ReadonlySet<string> = new Set([
-  'PENDING',
-  'QUEUED',
-  'STARTED',
-  'SUCCESS',
-  'FAILURE',
-  'RETRY',
-  'REVOKED',
-]);
-
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
@@ -133,32 +160,6 @@ function asNumber(value: unknown): number | undefined {
     return Number.isFinite(numeric) ? numeric : undefined;
   }
   return undefined;
-}
-
-function asStringArray(value: unknown): string[] {
-  return asArray(value)
-    .map(item => (typeof item === 'string' ? item : ''))
-    .filter(Boolean);
-}
-
-function pickTaskId(payload: Record<string, unknown>, fallbackTaskId?: string): string {
-  const candidate = asString(payload.task_id) || asString(payload.id) || fallbackTaskId;
-  if (candidate) {
-    return candidate;
-  }
-  return 'unknown-task';
-}
-
-function pickTaskStatus(payload: Record<string, unknown>): ShopDashboardTaskStatus {
-  const rawStatus = asString(payload.status) || asString(payload.task_status) || asString(payload.state);
-  if (!rawStatus) {
-    return 'UNKNOWN';
-  }
-  const upperStatus = rawStatus.toUpperCase();
-  if (TASK_STATUS_SET.has(upperStatus)) {
-    return upperStatus as ShopDashboardTaskStatus;
-  }
-  return 'UNKNOWN';
 }
 
 function buildScores(payload: Record<string, unknown>): ShopDashboardScores {
@@ -261,49 +262,6 @@ function buildMetrics(payload: Record<string, unknown>, scores: ShopDashboardSco
     { key: 'service', label: '服务体验', value: scores.service },
     { key: 'risk', label: '违规风险', value: scores.risk },
   ];
-}
-
-export function normalizeBatchTriggerResponse(payload: unknown): BatchTriggerResponse {
-  const data = asRecord(payload);
-  return {
-    task_id: pickTaskId(data),
-    status: asString(data.status),
-    message: asString(data.message) || asString(data.detail),
-    accepted_at: asString(data.accepted_at) || asString(data.created_at),
-    raw: data,
-  };
-}
-
-export function normalizeTaskStatusResponse(payload: unknown, fallbackTaskId?: string): TaskStatusResponse {
-  const data = asRecord(payload);
-  const result = asRecord(data.result);
-
-  return {
-    task_id: pickTaskId(data, fallbackTaskId),
-    status: pickTaskStatus(data),
-    progress: asNumber(data.progress),
-    created_at: asString(data.created_at),
-    started_at: asString(data.started_at),
-    finished_at: asString(data.finished_at) || asString(data.completed_at),
-    error_message: asString(data.error_message) || asString(data.error),
-    result: Object.keys(result).length > 0 ? result : null,
-    raw: data,
-  };
-}
-
-export function normalizeShopDashboardStatusResponse(
-  payload: unknown,
-  fallbackTaskId?: string
-): ShopDashboardStatusResponse {
-  const base = normalizeTaskStatusResponse(payload, fallbackTaskId);
-  const data = asRecord(payload);
-
-  return {
-    ...base,
-    step: asString(data.step),
-    traceback: asString(data.traceback),
-    logs: asStringArray(data.logs),
-  };
 }
 
 export function normalizeShopDashboardQueryResponse(

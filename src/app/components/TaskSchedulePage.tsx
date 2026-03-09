@@ -1,417 +1,694 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, Terminal, RefreshCw } from 'lucide-react';
-import { CyberButton } from '@/components/ui/cyber/CyberButton';
+import { DataTable, DataTableColumn } from '@/app/(main)/admin/_components/common/DataTable';
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from '@/app/components/ui/table';
-import { Input } from '@/app/components/ui/input';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
 import {
-  ShopDashboardTaskStatus,
-  ShopDashboardStatusResponse,
-  BatchTriggerRequest,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/app/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/app/components/ui/table';
+import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search } from 'lucide-react';
+import {
+  TaskDefinition,
+  TaskDefinitionStatus,
+  TaskExecution,
+  TaskExecutionStatus,
+  TaskType,
 } from '@/features/shop-dashboard/services/types';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
 
-interface TaskQueueItem {
-  task_id: string;
-  shop_id?: string;
-  rule_ids?: number[];
-  status: ShopDashboardTaskStatus;
-  progress?: number;
-  created_at: string;
-  started_at?: string;
-  finished_at?: string;
-  error_message?: string;
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface TaskQueryState {
+  page: number;
+  size: number;
+  status?: TaskDefinitionStatus;
+  task_type?: TaskType;
 }
 
-const LOCAL_QUEUE_KEY = 'shop-dashboard-task-queue';
-const FINAL_STATUS: ReadonlySet<ShopDashboardTaskStatus> = new Set(['SUCCESS', 'FAILURE', 'REVOKED']);
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
 
-function normalizeTaskStatus(status?: string): ShopDashboardTaskStatus {
-  if (!status) {
-    return 'PENDING';
+const DEFAULT_QUERY: TaskQueryState = {
+  page: 1,
+  size: 20,
+};
+
+// ─────────────────────────────────────────────
+// Pure helpers
+// ─────────────────────────────────────────────
+
+function parsePositiveInt(value: string): number | null {
+  const normalized = Number(value.trim());
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    return null;
   }
-  const value = status.toUpperCase();
-  if (['PENDING', 'QUEUED', 'STARTED', 'SUCCESS', 'FAILURE', 'RETRY', 'REVOKED'].includes(value)) {
-    return value as ShopDashboardTaskStatus;
-  }
-  return 'UNKNOWN';
+  return normalized;
 }
 
-function parseRuleIds(rawRuleIds: string): number[] {
-  const set = new Set<number>();
-  for (const part of rawRuleIds.split(',')) {
-    const numeric = Number(part.trim());
-    if (Number.isInteger(numeric) && numeric > 0) {
-      set.add(numeric);
-    }
+function toPositiveInt(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
   }
-  return Array.from(set);
+  if (typeof value === 'string') {
+    return parsePositiveInt(value);
+  }
+  return null;
 }
 
-function getStatusVariant(status: ShopDashboardTaskStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'SUCCESS') {
-    return 'secondary';
+function extractCollectionPayload(source: unknown): { data_source_id: number; rule_id: number } | null {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return null;
   }
-  if (status === 'FAILURE' || status === 'REVOKED') {
-    return 'destructive';
+
+  const record = source as Record<string, unknown>;
+  const dataSourceId = toPositiveInt(record.data_source_id);
+  const ruleId = toPositiveInt(record.rule_id);
+
+  if (!dataSourceId || !ruleId) {
+    return null;
   }
-  if (status === 'STARTED' || status === 'RETRY') {
-    return 'default';
+
+  return {
+    data_source_id: dataSourceId,
+    rule_id: ruleId,
+  };
+}
+
+function toLocalTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
+  return date.toLocaleString();
+}
+
+function taskStatusVariant(status: TaskDefinitionStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'ACTIVE') return 'secondary';
+  if (status === 'PAUSED') return 'outline';
+  return 'destructive';
+}
+
+function executionStatusVariant(status: TaskExecutionStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'SUCCESS') return 'secondary';
+  if (status === 'FAILED' || status === 'CANCELLED') return 'destructive';
+  if (status === 'RUNNING') return 'default';
   return 'outline';
 }
 
-function getDefaultDateRange(): { start: string; end: string } {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 6);
-
-  const format = (date: Date) => date.toISOString().slice(0, 10);
-  return { start: format(start), end: format(end) };
+/** 按创建时间降序排列执行记录 */
+function sortExecutionsDesc(items: TaskExecution[]): TaskExecution[] {
+  return [...items].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 }
 
-export default function TaskSchedulePage() {
-  const defaultRange = getDefaultDateRange();
+// ─────────────────────────────────────────────
+// Custom hooks
+// ─────────────────────────────────────────────
 
-  const [shopId, setShopId] = useState('');
-  const [ruleIdsText, setRuleIdsText] = useState('');
-  const [startDate, setStartDate] = useState(defaultRange.start);
-  const [endDate, setEndDate] = useState(defaultRange.end);
-  const [keyword, setKeyword] = useState('');
+/** 管理任务列表的加载与分页 */
+function useTasks(query: TaskQueryState) {
+  const [tasks, setTasks] = useState<TaskDefinition[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [tasks, setTasks] = useState<TaskQueueItem[]>([]);
-  const [triggering, setTriggering] = useState(false);
-
-  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
-  const [detailData, setDetailData] = useState<ShopDashboardStatusResponse | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const fetchTasks = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await shopDashboardApi.listTasks({
+        page: query.page,
+        size: query.size,
+        status: query.status,
+        task_type: query.task_type,
+      });
+      setTasks(response.items);
+      setTotal(response.meta.total);
+    } catch (error) {
+      setTasks([]);
+      setTotal(0);
+      toast.error(error instanceof Error ? error.message : '任务列表加载失败');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query.page, query.size, query.status, query.task_type]);
 
   useEffect(() => {
+    void fetchTasks();
+  }, [fetchTasks]);
+
+  return { tasks, total, isLoading, fetchTasks };
+}
+
+/**
+ * 管理某个任务的执行记录加载。
+ * 使用 abortRef 防止旧请求覆盖新结果（竞态保护）。
+ */
+function useTaskExecutions() {
+  const [executions, setExecutions] = useState<TaskExecution[]>([]);
+  const [isExecutionsLoading, setIsExecutionsLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchExecutions = useCallback(async (taskId: number) => {
+    // 取消上一个尚未完成的请求
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setIsExecutionsLoading(true);
     try {
-      const cached = localStorage.getItem(LOCAL_QUEUE_KEY);
-      if (!cached) {
-        return;
+      const response = await shopDashboardApi.listTaskExecutions(taskId);
+      if (controller.signal.aborted) return;
+      setExecutions(sortExecutionsDesc(response.items));
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setExecutions([]);
+      toast.error(error instanceof Error ? error.message : '执行记录加载失败');
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsExecutionsLoading(false);
       }
-      const parsed = JSON.parse(cached) as TaskQueueItem[];
-      if (Array.isArray(parsed)) {
-        setTasks(parsed);
-      }
-    } catch {
-      localStorage.removeItem(LOCAL_QUEUE_KEY);
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(LOCAL_QUEUE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+  const clearExecutions = useCallback(() => {
+    abortRef.current?.abort();
+    setExecutions([]);
+  }, []);
 
-  const activeTaskIds = useMemo(
-    () => tasks.filter(task => !FINAL_STATUS.has(task.status)).map(task => task.task_id),
-    [tasks]
-  );
+  return { executions, isExecutionsLoading, fetchExecutions, clearExecutions };
+}
 
-  useEffect(() => {
-    if (activeTaskIds.length === 0) {
-      return;
-    }
+/**
+ * 管理任务操作（执行 / 取消）的 loading 状态。
+ * 以 taskId 为 key，支持多行并发操作。
+ */
+function useTaskActionLoading() {
+  const [loadingMap, setLoadingMap] = useState<Record<number, 'running' | 'cancelling'>>({});
 
-    let cancelled = false;
+  const set = useCallback((taskId: number, action: 'running' | 'cancelling') => {
+    setLoadingMap(prev => ({ ...prev, [taskId]: action }));
+  }, []);
 
-    const poll = async () => {
-      const results = await Promise.all(
-        activeTaskIds.map(async taskId => {
-          try {
-            return await shopDashboardApi.getTaskStatus(taskId);
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      const statusMap = new Map(results.filter(Boolean).map(item => [item!.task_id, item!]));
-      setTasks(prev =>
-        prev.map(task => {
-          const latest = statusMap.get(task.task_id);
-          if (!latest) {
-            return task;
-          }
-          return {
-            ...task,
-            status: latest.status,
-            progress: latest.progress,
-            started_at: latest.started_at,
-            finished_at: latest.finished_at,
-            error_message: latest.error_message,
-          };
-        })
-      );
-    };
-
-    const timer = window.setInterval(() => {
-      void poll();
-    }, 5000);
-
-    void poll();
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [activeTaskIds]);
-
-  const loadTaskDetail = async (taskId: string) => {
-    setLoadingDetail(true);
-    try {
-      const detail = await shopDashboardApi.getShopDashboardStatus(taskId);
-      setDetailData(detail);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '任务详情获取失败');
-      setDetailData(null);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!detailTaskId) {
-      setDetailData(null);
-      return;
-    }
-    void loadTaskDetail(detailTaskId);
-  }, [detailTaskId]);
-
-  const handleTrigger = async () => {
-    const ruleIds = parseRuleIds(ruleIdsText);
-    const payload: BatchTriggerRequest = {};
-
-    if (shopId.trim()) {
-      payload.shop_id = shopId.trim();
-    }
-    if (ruleIds.length > 0) {
-      payload.rule_ids = ruleIds;
-    }
-    if (startDate) {
-      payload.start_date = startDate;
-    }
-    if (endDate) {
-      payload.end_date = endDate;
-    }
-
-    if (!payload.shop_id && !payload.rule_ids?.length) {
-      toast.error('请至少填写店铺 ID 或规则 ID');
-      return;
-    }
-
-    setTriggering(true);
-    try {
-      const result = await shopDashboardApi.batchTrigger(payload);
-      const newTask: TaskQueueItem = {
-        task_id: result.task_id,
-        shop_id: payload.shop_id,
-        rule_ids: payload.rule_ids,
-        status: normalizeTaskStatus(result.status),
-        created_at: result.accepted_at || new Date().toISOString(),
-      };
-      setTasks(prev => [newTask, ...prev.filter(task => task.task_id !== newTask.task_id)]);
-      toast.success(`触发成功，任务 ID: ${result.task_id}`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '触发任务失败');
-    } finally {
-      setTriggering(false);
-    }
-  };
-
-  const filteredTasks = useMemo(() => {
-    const text = keyword.trim().toLowerCase();
-    if (!text) {
-      return tasks;
-    }
-
-    return tasks.filter(task => {
-      const hitTaskId = task.task_id.toLowerCase().includes(text);
-      const hitShopId = task.shop_id?.toLowerCase().includes(text);
-      const hitRuleIds = (task.rule_ids || []).join(',').includes(text);
-      return hitTaskId || hitShopId || hitRuleIds;
+  const clear = useCallback((taskId: number) => {
+    setLoadingMap(prev => {
+      const next = { ...prev };
+      delete next[taskId];
+      return next;
     });
-  }, [keyword, tasks]);
+  }, []);
 
+  const isRunning = useCallback((taskId: number) => loadingMap[taskId] === 'running', [loadingMap]);
+  const isCancelling = useCallback((taskId: number) => loadingMap[taskId] === 'cancelling', [loadingMap]);
+
+  return { set, clear, isRunning, isCancelling };
+}
+
+// ─────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────
+
+interface FilterBarProps {
+  keyword: string;
+  onKeywordChange: (value: string) => void;
+  status: TaskDefinitionStatus | undefined;
+  onStatusChange: (value: TaskDefinitionStatus | undefined) => void;
+  taskType: TaskType | undefined;
+  onTaskTypeChange: (value: TaskType | undefined) => void;
+  isLoading: boolean;
+  onRefresh: () => void;
+}
+
+function FilterBar({
+  keyword,
+  onKeywordChange,
+  status,
+  onStatusChange,
+  taskType,
+  onTaskTypeChange,
+  isLoading,
+  onRefresh,
+}: FilterBarProps) {
   return (
-    <div className="min-h-screen bg-transparent text-foreground p-6 relative flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">采集任务中心</h2>
-        <CyberButton className="shadow-lg shadow-cyan-500/20 group" onClick={handleTrigger} disabled={triggering}>
-          <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
-          {triggering ? '触发中...' : '触发采集'}
-        </CyberButton>
+    <div className="filter-bar-container flex flex-wrap items-center gap-3">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Input
+          placeholder="搜索任务ID/名称/类型"
+          value={keyword}
+          onChange={event => onKeywordChange(event.target.value)}
+          className="filter-input h-9 w-[280px] pl-10 pr-4 text-sm focus-visible:ring-0"
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
-        <Input
-          placeholder="店铺 ID（可选）"
-          value={shopId}
-          onChange={event => setShopId(event.target.value)}
-        />
-        <Input
-          placeholder="规则 ID，逗号分隔"
-          value={ruleIdsText}
-          onChange={event => setRuleIdsText(event.target.value)}
-        />
-        <Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} />
-        <Input type="date" value={endDate} onChange={event => setEndDate(event.target.value)} />
-        <Button variant="outline" onClick={handleTrigger} disabled={triggering}>
-          立即触发
+      <Select
+        value={status ?? 'all'}
+        onValueChange={value => onStatusChange(value === 'all' ? undefined : (value as TaskDefinitionStatus))}
+      >
+        <SelectTrigger className="filter-input h-9 w-[170px]">
+          <SelectValue placeholder="全部状态" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">全部状态</SelectItem>
+          <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+          <SelectItem value="PAUSED">PAUSED</SelectItem>
+          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={taskType ?? 'all'}
+        onValueChange={value => onTaskTypeChange(value === 'all' ? undefined : (value as TaskType))}
+      >
+        <SelectTrigger className="filter-input h-9 w-[280px]">
+          <SelectValue placeholder="全部任务类型" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">全部任务类型</SelectItem>
+          <SelectItem value="ETL_ORDERS">ETL_ORDERS</SelectItem>
+          <SelectItem value="ETL_PRODUCTS">ETL_PRODUCTS</SelectItem>
+          <SelectItem value="SHOP_DASHBOARD_COLLECTION">SHOP_DASHBOARD_COLLECTION</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Button
+        variant="outline"
+        className="h-9 shrink-0 px-4"
+        onClick={onRefresh}
+        disabled={isLoading}
+      >
+        <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        刷新
+      </Button>
+    </div>
+  );
+}
+
+interface TaskActionsMenuProps {
+  task: TaskDefinition;
+  isRunning: boolean;
+  isCancelling: boolean;
+  onRun: (task: TaskDefinition) => void;
+  onViewExecutions: (task: TaskDefinition) => void;
+  onCancel: (task: TaskDefinition) => void;
+}
+
+function TaskActionsMenu({
+  task,
+  isRunning,
+  isCancelling,
+  onRun,
+  onViewExecutions,
+  onCancel,
+}: TaskActionsMenuProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">打开操作菜单</span>
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
-      </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>任务操作</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => onRun(task)} disabled={isRunning}>
+          <Play className="mr-2 h-4 w-4" />
+          {isRunning ? '执行中...' : '立即执行'}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onViewExecutions(task)}>
+          <ListChecks className="mr-2 h-4 w-4" />
+          执行记录
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => onCancel(task)}
+          disabled={task.status === 'CANCELLED' || isCancelling}
+          className="text-red-600 focus:text-red-600"
+        >
+          <XCircle className="mr-2 h-4 w-4" />
+          {isCancelling ? '取消中...' : '取消任务'}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
-      <div className="filter-bar-container flex flex-wrap items-center gap-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-          <input
-            type="text"
-            placeholder="搜索任务 ID / 店铺 / 规则"
-            value={keyword}
-            onChange={event => setKeyword(event.target.value)}
-            className="filter-input h-9 w-[280px] pl-9 pr-4 text-sm focus-visible:ring-0"
-          />
-        </div>
-      </div>
+interface ExecutionsDialogProps {
+  task: TaskDefinition | null;
+  executions: TaskExecution[];
+  isLoading: boolean;
+  onRefresh: (taskId: number) => void;
+  onClose: () => void;
+}
 
-      <div className="flex-1 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>任务 ID</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead>店铺 ID</TableHead>
-              <TableHead>规则 ID</TableHead>
-              <TableHead>进度</TableHead>
-              <TableHead>创建时间</TableHead>
-              <TableHead>操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTasks.map(task => (
-              <TableRow key={task.task_id}>
-                <TableCell className="font-mono text-xs">{task.task_id}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(task.status)}>{task.status}</Badge>
-                </TableCell>
-                <TableCell className="font-mono">{task.shop_id || '-'}</TableCell>
-                <TableCell className="font-mono">{task.rule_ids?.join(', ') || '-'}</TableCell>
-                <TableCell>{typeof task.progress === 'number' ? `${Math.round(task.progress)}%` : '-'}</TableCell>
-                <TableCell>{new Date(task.created_at).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDetailTaskId(task.task_id)}
-                    className="h-8 px-2"
-                  >
-                    <Terminal className="h-4 w-4 mr-1" />
-                    详情
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredTasks.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                  暂无任务
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <Dialog open={Boolean(detailTaskId)} onOpenChange={open => !open && setDetailTaskId(null)}>
-        <DialogContent className="sm:max-w-[760px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>任务详情</span>
-              {detailTaskId && (
-                <Button variant="outline" size="sm" onClick={() => loadTaskDetail(detailTaskId)} disabled={loadingDetail}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingDetail ? 'animate-spin' : ''}`} />
-                  刷新
-                </Button>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-
-          {loadingDetail && <div className="py-8 text-center text-sm text-muted-foreground">加载中...</div>}
-
-          {!loadingDetail && detailData && (
-            <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-muted-foreground">任务 ID</div>
-                  <div className="font-mono break-all">{detailData.task_id}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">状态</div>
-                  <Badge variant={getStatusVariant(detailData.status)}>{detailData.status}</Badge>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">步骤</div>
-                  <div>{detailData.step || '-'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">进度</div>
-                  <div>{typeof detailData.progress === 'number' ? `${Math.round(detailData.progress)}%` : '-'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">开始时间</div>
-                  <div>{detailData.started_at ? new Date(detailData.started_at).toLocaleString() : '-'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">结束时间</div>
-                  <div>{detailData.finished_at ? new Date(detailData.finished_at).toLocaleString() : '-'}</div>
-                </div>
-              </div>
-
-              {detailData.error_message && (
-                <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-red-600">
-                  {detailData.error_message}
-                </div>
-              )}
-
-              {detailData.logs && detailData.logs.length > 0 && (
-                <div>
-                  <div className="mb-2 text-muted-foreground">日志</div>
-                  <div className="max-h-48 overflow-auto rounded bg-slate-950 p-3 font-mono text-xs text-slate-100">
-                    {detailData.logs.map((line, index) => (
-                      <div key={`${line}-${index}`}>{line}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="mb-2 text-muted-foreground">原始响应</div>
-                <div className="max-h-64 overflow-auto rounded bg-slate-950 p-3 font-mono text-xs text-slate-100">
-                  <pre>{JSON.stringify(detailData.raw, null, 2)}</pre>
-                </div>
-              </div>
+function ExecutionsDialog({ task, executions, isLoading, onRefresh, onClose }: ExecutionsDialogProps) {
+  return (
+    <Dialog
+      open={Boolean(task)}
+      onOpenChange={open => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="z-[110] flex max-h-[86vh] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[1360px]">
+        <DialogHeader className="shrink-0 gap-4 border-b px-6 py-5 pr-20">
+          <DialogTitle className="text-xl">任务执行记录</DialogTitle>
+          {task && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <DialogDescription className="min-w-0 flex-1 break-all text-base leading-6">
+                任务ID: {task.id} | 类型: {task.task_type} | 状态: {task.status}
+              </DialogDescription>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 shrink-0 self-start px-4"
+                onClick={() => onRefresh(task.id)}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                刷新
+              </Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 px-6 py-5">
+          <div className="h-full overflow-auto">
+            <Table className="min-w-[1320px]">
+              <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur dark:bg-slate-950/95">
+                <TableRow>
+                  <TableHead className="min-w-[120px] px-4 py-3">执行ID</TableHead>
+                  <TableHead className="min-w-[140px] px-4 py-3">状态</TableHead>
+                  <TableHead className="min-w-[150px] px-4 py-3">触发模式</TableHead>
+                  <TableHead className="min-w-[140px] px-4 py-3">处理行数</TableHead>
+                  <TableHead className="min-w-[220px] px-4 py-3">开始时间</TableHead>
+                  <TableHead className="min-w-[220px] px-4 py-3">结束时间</TableHead>
+                  <TableHead className="min-w-[390px] px-4 py-3">错误信息</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                      加载中...
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {!isLoading && executions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                      暂无执行记录
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {!isLoading && executions.map(execution => (
+                  <TableRow key={execution.id}>
+                    <TableCell className="min-w-[120px] px-4 py-3 font-mono text-xs">{execution.id}</TableCell>
+                    <TableCell className="min-w-[140px] px-4 py-3">
+                      <Badge variant={executionStatusVariant(execution.status)}>{execution.status}</Badge>
+                    </TableCell>
+                    <TableCell className="min-w-[150px] px-4 py-3">{execution.trigger_mode}</TableCell>
+                    <TableCell className="min-w-[140px] px-4 py-3">{execution.processed_rows}</TableCell>
+                    <TableCell className="min-w-[220px] px-4 py-3">
+                      {execution.started_at ? toLocalTime(execution.started_at) : '-'}
+                    </TableCell>
+                    <TableCell className="min-w-[220px] px-4 py-3">
+                      {execution.completed_at ? toLocalTime(execution.completed_at) : '-'}
+                    </TableCell>
+                    <TableCell className="min-w-[390px] px-4 py-3 whitespace-normal break-words text-xs text-red-500">
+                      {execution.error_message || '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Page component
+// ─────────────────────────────────────────────
+
+export default function TaskSchedulePage() {
+  const [query, setQuery] = useState<TaskQueryState>(DEFAULT_QUERY);
+  const [keyword, setKeyword] = useState('');
+  const [detailTask, setDetailTask] = useState<TaskDefinition | null>(null);
+
+  const { tasks, total, isLoading, fetchTasks } = useTasks(query);
+  const { executions, isExecutionsLoading, fetchExecutions, clearExecutions } = useTaskExecutions();
+  const actionLoading = useTaskActionLoading();
+
+  // ── 关键字过滤（纯前端，不触发请求）──
+  const filteredTasks = useMemo(() => {
+    const text = keyword.trim().toLowerCase();
+    if (!text) return tasks;
+    return tasks.filter(task =>
+      [String(task.id), task.name, task.task_type, task.status].some(field =>
+        field.toLowerCase().includes(text),
+      ),
+    );
+  }, [tasks, keyword]);
+
+  // ── 从任务 config 或历史执行记录中提取采集任务 payload ──
+  const resolveCollectionPayload = useCallback(
+    async (task: TaskDefinition) => {
+      const fromConfig = extractCollectionPayload(task.config);
+      if (fromConfig) return fromConfig;
+
+      try {
+        const response = await shopDashboardApi.listTaskExecutions(task.id);
+        for (const execution of sortExecutionsDesc(response.items)) {
+          const fromPayload = extractCollectionPayload(execution.payload);
+          if (fromPayload) return fromPayload;
+        }
+      } catch {
+        // 静默失败，返回 null 后由调用方提示用户
+      }
+
+      return null;
+    },
+    [],
+  );
+
+  // ── 执行普通任务 ──
+  const executeRunTask = useCallback(
+    async (task: TaskDefinition, payload: Record<string, unknown> = {}) => {
+      actionLoading.set(task.id, 'running');
+      try {
+        const execution = await shopDashboardApi.runTask(task.id, { payload });
+        toast.success(`任务 ${task.id} 已触发，执行ID: ${execution.id}`);
+        await fetchTasks();
+        if (detailTask?.id === task.id) {
+          await fetchExecutions(task.id);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '任务触发失败');
+      } finally {
+        actionLoading.clear(task.id);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [detailTask?.id, fetchExecutions, fetchTasks],
+  );
+
+  // ── 执行采集任务（需要额外 payload 解析）──
+  const executeCollectionTask = useCallback(
+    async (task: TaskDefinition) => {
+      actionLoading.set(task.id, 'running');
+      try {
+        const payload = await resolveCollectionPayload(task);
+        if (!payload) {
+          toast.error('任务缺少 data_source_id/rule_id，请先在采集规则页面触发一次');
+          return;
+        }
+        const result = await shopDashboardApi.triggerShopDashboardCollection(payload);
+        toast.success(`任务 ${task.id} 已触发，执行ID: ${result.execution.id}`);
+        await fetchTasks();
+        if (detailTask?.id === task.id) {
+          await fetchExecutions(task.id);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '任务触发失败');
+      } finally {
+        actionLoading.clear(task.id);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [detailTask?.id, fetchExecutions, fetchTasks, resolveCollectionPayload],
+  );
+
+  const handleRunTask = useCallback(
+    (task: TaskDefinition) => {
+      if (task.task_type === 'SHOP_DASHBOARD_COLLECTION') {
+        void executeCollectionTask(task);
+      } else {
+        void executeRunTask(task);
+      }
+    },
+    [executeCollectionTask, executeRunTask],
+  );
+
+  const handleCancelTask = useCallback(
+    async (task: TaskDefinition) => {
+      actionLoading.set(task.id, 'cancelling');
+      try {
+        await shopDashboardApi.cancelTask(task.id);
+        toast.success(`任务 ${task.id} 已取消`);
+        await fetchTasks();
+        if (detailTask?.id === task.id) {
+          await fetchExecutions(task.id);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '取消任务失败');
+      } finally {
+        actionLoading.clear(task.id);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [detailTask?.id, fetchExecutions, fetchTasks],
+  );
+
+  const openTaskExecutions = useCallback(
+    (task: TaskDefinition) => {
+      setDetailTask(task);
+      void fetchExecutions(task.id);
+    },
+    [fetchExecutions],
+  );
+
+  const handleCloseExecutions = useCallback(() => {
+    setDetailTask(null);
+    clearExecutions();
+  }, [clearExecutions]);
+
+  // ── 列定义 ──
+  const columns: DataTableColumn<TaskDefinition>[] = useMemo(
+    () => [
+      {
+        key: 'id',
+        header: '任务ID',
+        render: task => <span className="font-mono text-xs">{task.id}</span>,
+        width: 90,
+      },
+      {
+        key: 'name',
+        header: '任务名称',
+        render: task => (
+          <span className="font-medium text-cyan-700 dark:text-cyan-300">{task.name}</span>
+        ),
+      },
+      {
+        key: 'task_type',
+        header: '任务类型',
+        render: task => <span className="font-mono text-xs">{task.task_type}</span>,
+      },
+      {
+        key: 'status',
+        header: '状态',
+        render: task => (
+          <Badge variant={taskStatusVariant(task.status)}>{task.status}</Badge>
+        ),
+        width: 120,
+      },
+      {
+        key: 'updated_at',
+        header: '更新时间',
+        render: task => (
+          <span className="text-xs text-slate-500">{toLocalTime(task.updated_at)}</span>
+        ),
+        width: 170,
+      },
+      {
+        key: 'actions',
+        header: '操作',
+        width: 70,
+        render: task => (
+          <TaskActionsMenu
+            task={task}
+            isRunning={actionLoading.isRunning(task.id)}
+            isCancelling={actionLoading.isCancelling(task.id)}
+            onRun={handleRunTask}
+            onViewExecutions={openTaskExecutions}
+            onCancel={task => void handleCancelTask(task)}
+          />
+        ),
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [actionLoading.isRunning, actionLoading.isCancelling, handleRunTask, openTaskExecutions, handleCancelTask],
+  );
+
+  return (
+    <div className="space-y-4">
+      <FilterBar
+        keyword={keyword}
+        onKeywordChange={setKeyword}
+        status={query.status}
+        onStatusChange={status =>
+          setQuery(prev => ({ ...prev, page: 1, status }))
+        }
+        taskType={query.task_type}
+        onTaskTypeChange={task_type =>
+          setQuery(prev => ({ ...prev, page: 1, task_type }))
+        }
+        isLoading={isLoading}
+        onRefresh={() => void fetchTasks()}
+      />
+
+      <DataTable
+        data={filteredTasks}
+        columns={columns}
+        isLoading={isLoading}
+        pagination={{ page: query.page, size: query.size, total }}
+        onPageChange={page => setQuery(prev => ({ ...prev, page }))}
+        onSizeChange={size => setQuery(prev => ({ ...prev, page: 1, size }))}
+        rowKey={task => task.id}
+      />
+
+      <ExecutionsDialog
+        task={detailTask}
+        executions={executions}
+        isLoading={isExecutionsLoading}
+        onRefresh={fetchExecutions}
+        onClose={handleCloseExecutions}
+      />
     </div>
   );
 }
