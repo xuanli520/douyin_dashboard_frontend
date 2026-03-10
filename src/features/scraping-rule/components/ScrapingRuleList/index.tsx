@@ -148,7 +148,7 @@ export function ScrapingRuleList() {
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[720px]">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[720px]">
           <DialogHeader>
             <DialogTitle>创建采集规则</DialogTitle>
           </DialogHeader>
