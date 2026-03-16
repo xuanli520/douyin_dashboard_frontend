@@ -36,7 +36,6 @@ interface CreateRuleFormValues extends RuleConfigFormValues {
   description: string;
   target_type: TargetType;
   data_source_id: string;
-  schedule: string;
   is_active: boolean;
 }
 
@@ -51,7 +50,6 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
       description: '',
       target_type: 'SHOP_OVERVIEW',
       data_source_id: '',
-      schedule: '',
       is_active: true,
       ...buildRuleConfigFormDefaults(),
     },
@@ -78,16 +76,12 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
       form.setError('top_n', { type: 'validate', message });
       return;
     }
-    form.setError('schedule', { type: 'validate', message });
+    form.setError('name', { type: 'validate', message });
   };
 
   async function onSubmit(values: CreateRuleFormValues) {
     if (!values.data_source_id) {
       form.setError('data_source_id', { type: 'required', message: '请选择数据源' });
-      return;
-    }
-    if (!values.schedule.trim()) {
-      form.setError('schedule', { type: 'required', message: '调度表达式必填' });
       return;
     }
 
@@ -98,7 +92,6 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         description: values.description || undefined,
         target_type: values.target_type,
         data_source_id: Number(values.data_source_id),
-        schedule: values.schedule,
         is_active: values.is_active,
         config,
       });
@@ -199,20 +192,6 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="schedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度表达式</FormLabel>
-                <FormControl>
-                  <Input placeholder="0 */2 * * *" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="is_active"

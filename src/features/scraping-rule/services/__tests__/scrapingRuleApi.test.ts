@@ -122,8 +122,15 @@ describe('scrapingRuleApi', () => {
 
       expect(httpClient.post).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining(mockData)
+        expect.objectContaining({
+          name: mockData.name,
+          data_source_id: mockData.data_source_id,
+          target_type: mockData.target_type,
+          config: mockData.config,
+        })
       );
+      const calledPayload = vi.mocked(httpClient.post).mock.calls[0][1] as Record<string, unknown>;
+      expect(calledPayload).not.toHaveProperty('schedule');
       expect(result.id).toBe(1);
       expect(result.name).toBe('New Rule');
       expect(result).not.toHaveProperty('schedule_type');

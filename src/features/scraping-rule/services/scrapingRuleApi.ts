@@ -15,6 +15,14 @@ const normalizeScheduleContract = <T extends object>(rule: T): T => {
   return normalized as T;
 };
 
+const stripDeprecatedScheduleFields = <T extends object>(payload: T): T => {
+  const normalized = { ...(payload as Record<string, unknown>) };
+  delete normalized.schedule;
+  delete normalized.schedule_type;
+  delete normalized.schedule_value;
+  return normalized as T;
+};
+
 export interface ScrapingRuleFilter {
   name?: string;
   target_type?: string;
@@ -56,17 +64,19 @@ export const scrapingRuleApi = {
   },
 
   create: async (data: ScrapingRuleCreate): Promise<ScrapingRuleResponse> => {
+    const payload = stripDeprecatedScheduleFields(data);
     const response = await httpClient.post<ApiResponse<ScrapingRuleResponse>>(
       API_ENDPOINTS.SCRAPING_RULES,
-      data
+      payload
     );
     return normalizeScheduleContract(response.data);
   },
 
   update: async (id: number, data: ScrapingRuleUpdate): Promise<ScrapingRuleResponse> => {
+    const payload = stripDeprecatedScheduleFields(data);
     const response = await httpClient.put<ApiResponse<ScrapingRuleResponse>>(
       API_ENDPOINTS.SCRAPING_RULE_DETAIL(id),
-      data
+      payload
     );
     return normalizeScheduleContract(response.data);
   },

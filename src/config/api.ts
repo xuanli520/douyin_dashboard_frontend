@@ -31,7 +31,6 @@ export const API_ENDPOINTS = {
   REPORTS_OVERVIEW: `${API_BASE_PATH}/reports`,
   SCHEDULES_LIST: `${API_BASE_PATH}/schedules`,
   SHOPS_LIST: `${API_BASE_PATH}/shops`,
-  SHOP_SCORE: (shop_id: number) => `${API_BASE_PATH}/shops/${shop_id}/score`,
   METRIC_DETAIL: (metric_type: string) => `${API_BASE_PATH}/metrics/${metric_type}`,
   TASKS_LIST: `${API_BASE_PATH}/tasks`,
   TASK_DETAIL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}`,
@@ -49,7 +48,7 @@ export const API_ENDPOINTS = {
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,
   SCRAPING_RULE_DETAIL: (rule_id: number) => `${API_BASE_PATH}/scraping-rules/${rule_id}`,
-  SHOP_DASHBOARD_QUERY: `${API_BASE_PATH}/shop-dashboard/query`,
+  SHOP_DASHBOARD_QUERY: `${API_BASE_PATH}/shops`,
   AUDIT_LOGS: `${API_BASE_PATH}/audit/logs`,
 } as const;
 

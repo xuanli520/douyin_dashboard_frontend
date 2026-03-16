@@ -142,7 +142,6 @@ export interface ScrapingRuleCreate {
   name: string;
   target_type: TargetType;
   config: ScrapingRuleConfig;
-  schedule?: string;
   is_active?: boolean;
   description?: string;
 }
@@ -150,7 +149,6 @@ export interface ScrapingRuleCreate {
 export interface ScrapingRuleUpdate {
   name?: string;
   config?: ScrapingRuleConfig;
-  schedule?: string;
   is_active?: boolean;
   description?: string;
 }

@@ -32,7 +32,6 @@ import {
 interface EditRuleFormValues extends RuleConfigFormValues {
   name: string;
   description: string;
-  schedule: string;
   is_active: boolean;
 }
 
@@ -49,7 +48,6 @@ export function EditForm({ id }: EditFormProps) {
     defaultValues: {
       name: '',
       description: '',
-      schedule: '',
       is_active: true,
       ...buildRuleConfigFormDefaults(),
     },
@@ -63,7 +61,6 @@ export function EditForm({ id }: EditFormProps) {
     form.reset({
       name: rule.name,
       description: rule.description || '',
-      schedule: rule.schedule || '',
       is_active: rule.is_active,
       ...buildRuleConfigFormDefaults(rule.config),
     });
@@ -90,21 +87,16 @@ export function EditForm({ id }: EditFormProps) {
       form.setError('top_n', { type: 'validate', message });
       return;
     }
-    form.setError('schedule', { type: 'validate', message });
+    form.setError('name', { type: 'validate', message });
   };
 
   async function onSubmit(values: EditRuleFormValues) {
-    if (!values.schedule.trim()) {
-      form.setError('schedule', { type: 'required', message: '调度表达式必填' });
-      return;
-    }
 
     try {
       const config = buildRuleConfigFromForm(values);
       await update(id, {
         name: values.name,
         description: values.description || undefined,
-        schedule: values.schedule,
         is_active: values.is_active,
         config,
       });
@@ -172,20 +164,6 @@ export function EditForm({ id }: EditFormProps) {
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="schedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度表达式</FormLabel>
-                <FormControl>
-                  <Input placeholder="0 */2 * * *" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="is_active"
