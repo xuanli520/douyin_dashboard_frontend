@@ -27,6 +27,12 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
     forbiddenRedirect: '/403',
   },
   {
+    route: ROUTES.TASK_SCHEDULE_COLLECTION_JOBS,
+    requiredPermissions: ['view:task_schedule'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
     route: ROUTES.REPORTS,
     requiredPermissions: ['view:reports'],
     unauthRedirect: '/login',

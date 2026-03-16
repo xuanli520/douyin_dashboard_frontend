@@ -4,6 +4,7 @@ export const ROUTES = {
   METRIC_DETAIL: '/metric-detail',
   DATA_ANALYSIS: '/data-analysis',
   TASK_SCHEDULE: '/task-schedule',
+  TASK_SCHEDULE_COLLECTION_JOBS: '/task-schedule/collection-jobs',
   REPORTS: '/reports',
   RISK_ALERT: '/risk-alert',
   DATA_SOURCE: '/data-source',

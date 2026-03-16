@@ -10,6 +10,35 @@ export type DataSourceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';
 export type TargetType = 'SHOP_OVERVIEW' | 'TRAFFIC' | 'PRODUCT' | 'LIVE' | 'CONTENT_VIDEO' | 'ORDER_FULFILLMENT' | 'AFTERSALE_REFUND' | 'CUSTOMER' | 'ADS';
 export type ScrapingRuleStatus = 'ACTIVE' | 'INACTIVE';
 export type ImportStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PARTIAL' | 'CANCELLED' | 'VALIDATION_FAILED';
+export type CollectionJobTaskType = 'ETL_ORDERS' | 'ETL_PRODUCTS' | 'SHOP_DASHBOARD_COLLECTION';
+export type CollectionJobStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface CollectionJobSchedule {
+  cron: string;
+  timezone: string;
+  kwargs: Record<string, unknown>;
+}
+
+export interface CollectionJobCreate {
+  name: string;
+  task_type: CollectionJobTaskType;
+  data_source_id: number;
+  rule_id: number;
+  schedule: CollectionJobSchedule;
+  status?: CollectionJobStatus;
+}
+
+export interface CollectionJobResponse {
+  id: number;
+  name: string;
+  task_type: CollectionJobTaskType;
+  data_source_id: number;
+  rule_id: number;
+  schedule: CollectionJobSchedule;
+  status: CollectionJobStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface ShopDashboardLoginStateMeta {
   cookie_count?: number;

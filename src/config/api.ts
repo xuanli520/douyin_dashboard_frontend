@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   TASK_RUN: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/run`,
   TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
   TASK_CANCEL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/cancel`,
+  COLLECTION_JOBS: `${API_BASE_PATH}/collection-jobs`,
 
   DATA_SOURCES: `${API_BASE_PATH}/data-sources`,
   DATA_SOURCE_DETAIL: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}`,

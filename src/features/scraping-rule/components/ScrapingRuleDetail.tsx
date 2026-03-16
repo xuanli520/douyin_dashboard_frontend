@@ -5,10 +5,11 @@ import { Button } from '@/app/components/ui/button';
 import { RuleTypeTag } from './common/RuleTypeTag';
 import { RuleStatusTag } from './common/RuleStatusTag';
 import { ScheduleDisplay } from './common/ScheduleDisplay';
-import { Pencil, ArrowLeft, Gauge } from 'lucide-react';
+import { Pencil, ArrowLeft, Gauge, Clock3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
+import { ROUTES } from '@/config/routes';
 
 interface ScrapingRuleDetailProps {
   rule: ScrapingRule;
@@ -33,6 +34,15 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
     }
   };
 
+  const handleConfigureSchedule = () => {
+    const params = new URLSearchParams({
+      task_type: 'SHOP_DASHBOARD_COLLECTION',
+      data_source_id: String(rule.data_source_id),
+      rule_id: String(rule.id),
+    });
+    router.push(`${ROUTES.TASK_SCHEDULE_COLLECTION_JOBS}?${params.toString()}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -41,6 +51,10 @@ export function ScrapingRuleDetail({ rule }: ScrapingRuleDetailProps) {
           返回
         </Button>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleConfigureSchedule}>
+            <Clock3 className="w-4 h-4 mr-2" />
+            配置定时任务
+          </Button>
           <Button variant="outline" onClick={handleTrigger} disabled={triggering}>
             <Gauge className="w-4 h-4 mr-2" />
             {triggering ? '触发中...' : '立即采集'}

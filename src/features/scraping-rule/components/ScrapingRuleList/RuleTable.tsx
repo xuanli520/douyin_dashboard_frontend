@@ -11,11 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
 import { Button } from '@/app/components/ui/button';
-import { MoreHorizontal, Pencil, Trash, Play, Pause, Eye, Gauge } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash, Play, Pause, Eye, Gauge, Clock3 } from 'lucide-react';
 import { RuleTypeTag } from '../common/RuleTypeTag';
 import { RuleStatusTag } from '../common/RuleStatusTag';
 import { ScheduleDisplay } from '../common/ScheduleDisplay';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/config/routes';
 
 interface RuleTableProps {
   data: ScrapingRule[];
@@ -41,6 +42,15 @@ export function RuleTable({
   triggeringRuleId,
 }: RuleTableProps) {
   const router = useRouter();
+
+  const openScheduleConfig = (rule: ScrapingRule) => {
+    const params = new URLSearchParams({
+      task_type: 'SHOP_DASHBOARD_COLLECTION',
+      data_source_id: String(rule.data_source_id),
+      rule_id: String(rule.id),
+    });
+    router.push(`${ROUTES.TASK_SCHEDULE_COLLECTION_JOBS}?${params.toString()}`);
+  };
 
   const columns: DataTableColumn<ScrapingRule>[] = [
     {
@@ -101,6 +111,10 @@ export function RuleTable({
             <DropdownMenuItem onClick={() => onTrigger(rule)} disabled={triggeringRuleId === rule.id}>
               <Gauge className="mr-2 h-4 w-4" />
               {triggeringRuleId === rule.id ? '触发中...' : '立即采集'}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openScheduleConfig(rule)}>
+              <Clock3 className="mr-2 h-4 w-4" />
+              配置定时任务
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onToggleActive(rule.id, !rule.is_active)}>
               {rule.is_active ? (

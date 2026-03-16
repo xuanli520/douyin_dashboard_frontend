@@ -3,6 +3,12 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import TaskSchedulePage from '@/app/components/TaskSchedulePage';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 vi.mock('@/features/shop-dashboard/services/shopDashboardApi', () => ({
   shopDashboardApi: {
     listTasks: vi.fn(),

@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { DataTable, DataTableColumn } from '@/app/(main)/admin/_components/common/DataTable';
 import {
@@ -36,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
-import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search } from 'lucide-react';
+import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search, Clock3 } from 'lucide-react';
 import {
   TaskDefinition,
   TaskDefinitionStatus,
@@ -46,6 +47,7 @@ import {
   TaskType,
 } from '@/features/shop-dashboard/services/types';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
+import { ROUTES } from '@/config/routes';
 
 // ─────────────────────────────────────────────
 // Types
@@ -513,6 +515,7 @@ export default function TaskSchedulePage() {
   const [query, setQuery] = useState<TaskQueryState>(DEFAULT_QUERY);
   const [keyword, setKeyword] = useState('');
   const [detailTask, setDetailTask] = useState<TaskDefinition | null>(null);
+  const router = useRouter();
 
   const { tasks, total, isLoading, fetchTasks } = useTasks(query);
   const { executions, isExecutionsLoading, fetchExecutions, clearExecutions } = useTaskExecutions();
@@ -731,6 +734,13 @@ export default function TaskSchedulePage() {
         onSizeChange={size => setQuery(prev => ({ ...prev, page: 1, size }))}
         rowKey={task => task.id}
       />
+      <Button
+        className="fixed bottom-6 right-6 z-40 shadow-lg"
+        onClick={() => router.push(ROUTES.TASK_SCHEDULE_COLLECTION_JOBS)}
+      >
+        <Clock3 className="mr-2 h-4 w-4" />
+        定时任务配置
+      </Button>
 
       <ExecutionsDialog
         task={detailTask}
