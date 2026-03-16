@@ -517,7 +517,7 @@ function MetricDetailContent() {
 
 export default function MetricDetailPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="p-10 text-center">加载中...</div>}>
       <MetricDetailContent />
     </Suspense>
   );

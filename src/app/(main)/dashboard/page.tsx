@@ -772,7 +772,7 @@ function DashboardPageContent() {
                      ? "bg-primary text-white shadow-[0_0_12px_theme(colors.primary)] hover:bg-primary/90" 
                      : "text-text-secondary hover:text-primary hover:bg-primary/10"
                   }`}
-                  title={isEditMode ? "Finish Editing" : "Edit Layout"}
+                  title={isEditMode ? "完成编辑" : "调整布局"}
                 >
                   <LayoutDashboard size={16} />
                 </Button>

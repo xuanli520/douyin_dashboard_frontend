@@ -42,6 +42,7 @@ import {
   TaskDefinitionStatus,
   TaskExecution,
   TaskExecutionStatus,
+  TaskTriggerMode,
   TaskType,
 } from '@/features/shop-dashboard/services/types';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
@@ -64,6 +65,32 @@ interface TaskQueryState {
 const DEFAULT_QUERY: TaskQueryState = {
   page: 1,
   size: 20,
+};
+
+const TASK_STATUS_LABELS: Record<TaskDefinitionStatus, string> = {
+  ACTIVE: '启用',
+  PAUSED: '暂停',
+  CANCELLED: '已取消',
+};
+
+const EXECUTION_STATUS_LABELS: Record<TaskExecutionStatus, string> = {
+  QUEUED: '排队中',
+  RUNNING: '运行中',
+  SUCCESS: '成功',
+  FAILED: '失败',
+  CANCELLED: '已取消',
+};
+
+const TASK_TYPE_LABELS: Record<TaskType, string> = {
+  ETL_ORDERS: '订单 ETL',
+  ETL_PRODUCTS: '商品 ETL',
+  SHOP_DASHBOARD_COLLECTION: '店铺看板采集',
+};
+
+const TASK_TRIGGER_MODE_LABELS: Record<TaskTriggerMode, string> = {
+  MANUAL: '手动触发',
+  SCHEDULED: '定时触发',
+  SYSTEM: '系统触发',
 };
 
 // ─────────────────────────────────────────────
@@ -126,6 +153,22 @@ function executionStatusVariant(status: TaskExecutionStatus): 'default' | 'secon
   if (status === 'FAILED' || status === 'CANCELLED') return 'destructive';
   if (status === 'RUNNING') return 'default';
   return 'outline';
+}
+
+function taskStatusLabel(status: TaskDefinitionStatus): string {
+  return TASK_STATUS_LABELS[status];
+}
+
+function executionStatusLabel(status: TaskExecutionStatus): string {
+  return EXECUTION_STATUS_LABELS[status];
+}
+
+function taskTypeLabel(type: TaskType): string {
+  return TASK_TYPE_LABELS[type];
+}
+
+function triggerModeLabel(mode: TaskTriggerMode): string {
+  return TASK_TRIGGER_MODE_LABELS[mode];
 }
 
 /** 按创建时间降序排列执行记录 */
@@ -282,9 +325,9 @@ function FilterBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部状态</SelectItem>
-          <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-          <SelectItem value="PAUSED">PAUSED</SelectItem>
-          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+          <SelectItem value="ACTIVE">{taskStatusLabel('ACTIVE')}</SelectItem>
+          <SelectItem value="PAUSED">{taskStatusLabel('PAUSED')}</SelectItem>
+          <SelectItem value="CANCELLED">{taskStatusLabel('CANCELLED')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -297,9 +340,9 @@ function FilterBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部任务类型</SelectItem>
-          <SelectItem value="ETL_ORDERS">ETL_ORDERS</SelectItem>
-          <SelectItem value="ETL_PRODUCTS">ETL_PRODUCTS</SelectItem>
-          <SelectItem value="SHOP_DASHBOARD_COLLECTION">SHOP_DASHBOARD_COLLECTION</SelectItem>
+          <SelectItem value="ETL_ORDERS">{taskTypeLabel('ETL_ORDERS')}</SelectItem>
+          <SelectItem value="ETL_PRODUCTS">{taskTypeLabel('ETL_PRODUCTS')}</SelectItem>
+          <SelectItem value="SHOP_DASHBOARD_COLLECTION">{taskTypeLabel('SHOP_DASHBOARD_COLLECTION')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -387,7 +430,7 @@ function ExecutionsDialog({ task, executions, isLoading, onRefresh, onClose }: E
           {task && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <DialogDescription className="min-w-0 flex-1 break-all text-base leading-6">
-                任务ID: {task.id} | 类型: {task.task_type} | 状态: {task.status}
+                任务ID: {task.id} | 类型: {taskTypeLabel(task.task_type)} | 状态: {taskStatusLabel(task.status)}
               </DialogDescription>
               <Button
                 size="sm"
@@ -438,9 +481,9 @@ function ExecutionsDialog({ task, executions, isLoading, onRefresh, onClose }: E
                   <TableRow key={execution.id}>
                     <TableCell className="min-w-[120px] px-4 py-3 font-mono text-xs">{execution.id}</TableCell>
                     <TableCell className="min-w-[140px] px-4 py-3">
-                      <Badge variant={executionStatusVariant(execution.status)}>{execution.status}</Badge>
+                      <Badge variant={executionStatusVariant(execution.status)}>{executionStatusLabel(execution.status)}</Badge>
                     </TableCell>
-                    <TableCell className="min-w-[150px] px-4 py-3">{execution.trigger_mode}</TableCell>
+                    <TableCell className="min-w-[150px] px-4 py-3">{triggerModeLabel(execution.trigger_mode)}</TableCell>
                     <TableCell className="min-w-[140px] px-4 py-3">{execution.processed_rows}</TableCell>
                     <TableCell className="min-w-[220px] px-4 py-3">
                       {execution.started_at ? toLocalTime(execution.started_at) : '-'}
@@ -480,7 +523,14 @@ export default function TaskSchedulePage() {
     const text = keyword.trim().toLowerCase();
     if (!text) return tasks;
     return tasks.filter(task =>
-      [String(task.id), task.name, task.task_type, task.status].some(field =>
+      [
+        String(task.id),
+        task.name,
+        task.task_type,
+        task.status,
+        taskTypeLabel(task.task_type),
+        taskStatusLabel(task.status),
+      ].some(field =>
         field.toLowerCase().includes(text),
       ),
     );
@@ -617,13 +667,13 @@ export default function TaskSchedulePage() {
       {
         key: 'task_type',
         header: '任务类型',
-        render: task => <span className="font-mono text-xs">{task.task_type}</span>,
+        render: task => <span className="text-xs">{taskTypeLabel(task.task_type)}</span>,
       },
       {
         key: 'status',
         header: '状态',
         render: task => (
-          <Badge variant={taskStatusVariant(task.status)}>{task.status}</Badge>
+          <Badge variant={taskStatusVariant(task.status)}>{taskStatusLabel(task.status)}</Badge>
         ),
         width: 120,
       },

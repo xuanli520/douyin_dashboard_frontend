@@ -86,7 +86,7 @@ describe('TaskSchedulePage', () => {
     render(<TaskSchedulePage />);
 
     expect(await screen.findByText('orders-daily')).toBeTruthy();
-    expect(await screen.findByText('ETL_ORDERS')).toBeTruthy();
+    expect(await screen.findByText('订单 ETL')).toBeTruthy();
 
     await waitFor(() => {
       expect(mockedApi.listTasks).toHaveBeenCalledWith({

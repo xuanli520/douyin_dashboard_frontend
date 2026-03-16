@@ -632,9 +632,10 @@ function buildViolations(
 
 function mapMetricRow(key: string, value: unknown): ShopDashboardMetricItem {
   const metric = asRecord(value);
+  const rawLabel = asString(metric.label);
   return {
     key,
-    label: asString(metric.label) || key,
+    label: localizeMetricText(rawLabel) || localizeMetricFieldName(key) || key,
     value: asNumber(metric.value) ?? asNumber(metric.score) ?? 0,
     trend: asArray(metric.trend)
       .map(point => asNumber(point))
@@ -743,7 +744,7 @@ export function normalizeShopListResponse(payload: unknown): ShopListResponse {
     return {
       ...row,
       id: asNumber(row.id) ?? index + 1,
-      name: asString(row.name) || `shop-${index + 1}`,
+      name: asString(row.name) || `店铺${index + 1}`,
       category: asString(row.category),
       status: asString(row.status),
       gmv: asNumber(row.gmv),
@@ -801,6 +802,176 @@ export function normalizeShopScoreResponse(
   };
 }
 
+const METRIC_FIELD_LABELS: Record<string, string> = {
+  product_quality_score: '商品品质得分',
+  product_return_rate: '商品退货率得分',
+  product_negative_review_rate: '商品负向评价率得分',
+  product_score: '商品体验得分',
+  quality_score: '品质得分',
+  return_rate: '退货率得分',
+  negative_review_rate: '负向评价率得分',
+  pickup_sla: '揽收时效达成率得分',
+  delivery_sla: '配送时效达成率得分',
+  logistics_return_rate: '物流退货率得分',
+  logistics_score: '物流体验得分',
+  im_response_time: '飞鸽平均响应时长得分',
+  im_response_rate: '飞鸽响应率得分',
+  im_response_sla: '飞鸽响应达成率得分',
+  aftersales_duration: '售后处理时长达成率得分',
+  aftersales_sla: '售后处理时长达成率得分',
+  service_score: '服务体验得分',
+  fake_transaction_deduct: '虚假交易扣分',
+  fake_transaction_score: '虚假交易扣分',
+  consumer_experience_deduct: '影响消费者体验扣分',
+  consumer_experience_score: '影响消费者体验扣分',
+  customer_complaint_penalty: '消费者投诉扣分',
+  bad_behavior_score: '差行为扣分',
+  risk_score: '风险扣分',
+};
+
+const METRIC_FIELD_TOKEN_LABELS: Record<string, string> = {
+  product: '商品',
+  logistics: '物流',
+  service: '服务',
+  risk: '风险',
+  bad: '差',
+  behavior: '行为',
+  quality: '品质',
+  return: '退货',
+  negative: '负向',
+  review: '评价',
+  rate: '率',
+  score: '得分',
+  pickup: '揽收',
+  delivery: '配送',
+  sla: '时效达成率',
+  im: '飞鸽',
+  response: '响应',
+  avg: '平均',
+  average: '平均',
+  excellent: '优秀',
+  good: '良好',
+  normal: '正常',
+  poor: '较差',
+  time: '时长',
+  aftersale: '售后',
+  aftersales: '售后',
+  after: '售后',
+  sale: '售后',
+  sales: '售后',
+  duration: '处理时长',
+  process: '处理',
+  processing: '处理',
+  fake: '虚假',
+  transaction: '交易',
+  consumer: '消费者',
+  experience: '体验',
+  deduct: '扣分',
+  deduction: '扣分',
+  point: '扣分',
+  points: '扣分',
+  violation: '违规',
+  violations: '违规',
+  complaint: '投诉',
+  refund: '退款',
+  order: '订单',
+  message: '消息',
+  reply: '回复',
+};
+
+const METRIC_STATUS_LABELS: Record<string, string> = {
+  active: '正常',
+  inactive: '停用',
+  enabled: '正常',
+  disabled: '停用',
+  running: '执行中',
+  pending: '待处理',
+  queued: '排队中',
+  success: '成功',
+  failed: '失败',
+  error: '异常',
+  warning: '预警',
+  critical: '严重',
+  resolved: '已处理',
+};
+
+function toSnakeMetricKey(value: string): string {
+  return value
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s-]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+}
+
+function localizeMetricFieldName(value?: string): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (/[^\x00-\x7F]/.test(value)) {
+    return undefined;
+  }
+
+  const normalized = toSnakeMetricKey(value);
+  if (!normalized) {
+    return undefined;
+  }
+
+  const direct = METRIC_FIELD_LABELS[normalized];
+  if (direct) {
+    return direct;
+  }
+
+  const tokens = normalized.split('_').filter(Boolean);
+  if (tokens.length === 0) {
+    return undefined;
+  }
+
+  const translated = tokens
+    .map(token => METRIC_FIELD_TOKEN_LABELS[token])
+    .filter((token): token is string => Boolean(token));
+
+  if (translated.length === 0) {
+    return undefined;
+  }
+  if (tokens.length > 1 && translated.length < Math.ceil(tokens.length / 2)) {
+    return undefined;
+  }
+
+  const merged = translated.reduce<string[]>((acc, token) => {
+    if (acc[acc.length - 1] !== token) {
+      acc.push(token);
+    }
+    return acc;
+  }, []);
+
+  return merged.join('');
+}
+
+function localizeMetricText(value?: string): string | undefined {
+  if (!value) {
+    return value;
+  }
+
+  const direct = localizeMetricFieldName(value);
+  if (direct) {
+    return direct;
+  }
+
+  return value.replace(/[A-Za-z][A-Za-z0-9_-]*/g, (segment) => {
+    return localizeMetricFieldName(segment) || segment;
+  });
+}
+
+function localizeMetricStatus(value?: string): string | undefined {
+  if (!value) {
+    return value;
+  }
+  const normalized = value.trim().toLowerCase();
+  return METRIC_STATUS_LABELS[normalized] || value;
+}
+
 export function normalizeMetricDetailResponse(
   payload: unknown,
   metricType: MetricType,
@@ -810,16 +981,17 @@ export function normalizeMetricDetailResponse(
 
   const subMetrics = asArray(data.sub_metrics).map((item, index) => {
     const row = asRecord(item);
+    const rawTitle = asString(row.title) || asString(row.name);
     return {
       id: asString(row.id) || `${metricType}-${index + 1}`,
-      title: asString(row.title) || asString(row.name) || `指标${index + 1}`,
+      title: localizeMetricFieldName(rawTitle) || localizeMetricText(rawTitle) || `指标${index + 1}`,
       score: asNumber(row.score) ?? 0,
       weight: asString(row.weight) || '0%',
-      value: asString(row.value) || '-',
-      desc: asString(row.desc) || '',
+      value: localizeMetricText(asString(row.value)) || '-',
+      desc: localizeMetricText(asString(row.desc)) || '',
       deduct_points: asNumber(row.deduct_points),
       impact_score: asNumber(row.impact_score),
-      status: asString(row.status),
+      status: localizeMetricStatus(asString(row.status)),
       owner: asString(row.owner),
       deadline_at: asString(row.deadline_at),
     };
@@ -835,7 +1007,7 @@ export function normalizeMetricDetailResponse(
       }
       const text = asString(value);
       if (text !== undefined) {
-        acc[key] = text;
+        acc[key] = localizeMetricText(text) || text;
       }
       return acc;
     }, {});
@@ -857,7 +1029,7 @@ export function normalizeMetricDetailResponse(
     category_score: asNumber(data.category_score) ?? 0,
     sub_metrics: subMetrics,
     score_ranges: scoreRanges,
-    formula: asString(data.formula) || '',
+    formula: localizeMetricText(asString(data.formula)) || '',
     trend,
   };
 }
