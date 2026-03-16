@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { DataTable, DataTableColumn } from '@/app/(main)/admin/_components/common/DataTable';
@@ -26,9 +26,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/app/components/ui/dialog';
+import { Textarea } from '@/app/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -37,7 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
-import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search, Clock3 } from 'lucide-react';
+import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search, Clock3, Pencil, Trash2 } from 'lucide-react';
 import {
   TaskDefinition,
   TaskDefinitionStatus,
@@ -58,6 +60,13 @@ interface TaskQueryState {
   size: number;
   status?: TaskDefinitionStatus;
   task_type?: TaskType;
+}
+
+interface TaskEditFormState {
+  name: string;
+  status: TaskDefinitionStatus;
+  config: string;
+  schedule: string;
 }
 
 // ─────────────────────────────────────────────
@@ -171,6 +180,45 @@ function taskTypeLabel(type: TaskType): string {
 
 function triggerModeLabel(mode: TaskTriggerMode): string {
   return TASK_TRIGGER_MODE_LABELS[mode];
+}
+
+function formatTaskJson(value: Record<string, unknown> | null): string {
+  if (!value || Object.keys(value).length === 0) {
+    return '{}';
+  }
+  return JSON.stringify(value, null, 2);
+}
+
+function buildTaskEditForm(task: TaskDefinition): TaskEditFormState {
+  return {
+    name: task.name,
+    status: task.status,
+    config: formatTaskJson(task.config),
+    schedule: formatTaskJson(task.schedule),
+  };
+}
+
+function parseTaskJson(value: string, fieldLabel: string): Record<string, unknown> | null {
+  const text = value.trim();
+  if (!text || text === 'null') {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed === null) {
+      return null;
+    }
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(`${fieldLabel}必须为 JSON 对象`);
+    }
+    return parsed as Record<string, unknown>;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('必须为 JSON 对象')) {
+      throw error;
+    }
+    throw new Error(`${fieldLabel}格式不正确`);
+  }
 }
 
 /** 按创建时间降序排列执行记录 */
@@ -365,18 +413,24 @@ interface TaskActionsMenuProps {
   task: TaskDefinition;
   isRunning: boolean;
   isCancelling: boolean;
+  isDeleting: boolean;
   onRun: (task: TaskDefinition) => void;
   onViewExecutions: (task: TaskDefinition) => void;
+  onEdit: (task: TaskDefinition) => void;
   onCancel: (task: TaskDefinition) => void;
+  onDelete: (task: TaskDefinition) => void;
 }
 
 function TaskActionsMenu({
   task,
   isRunning,
   isCancelling,
+  isDeleting,
   onRun,
   onViewExecutions,
+  onEdit,
   onCancel,
+  onDelete,
 }: TaskActionsMenuProps) {
   return (
     <DropdownMenu>
@@ -396,6 +450,10 @@ function TaskActionsMenu({
           <ListChecks className="mr-2 h-4 w-4" />
           执行记录
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(task)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          编辑任务
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => onCancel(task)}
@@ -405,8 +463,124 @@ function TaskActionsMenu({
           <XCircle className="mr-2 h-4 w-4" />
           {isCancelling ? '取消中...' : '取消任务'}
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onDelete(task)}
+          disabled={isDeleting}
+          className="text-red-600 focus:text-red-600"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          {isDeleting ? '删除中...' : '删除任务'}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+interface EditTaskDialogProps {
+  task: TaskDefinition | null;
+  form: TaskEditFormState;
+  isSubmitting: boolean;
+  onChange: Dispatch<SetStateAction<TaskEditFormState>>;
+  onSubmit: () => void;
+  onClose: () => void;
+}
+
+function EditTaskDialog({
+  task,
+  form,
+  isSubmitting,
+  onChange,
+  onSubmit,
+  onClose,
+}: EditTaskDialogProps) {
+  return (
+    <Dialog
+      open={Boolean(task)}
+      onOpenChange={open => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-[680px]">
+        <DialogHeader>
+          <DialogTitle>编辑任务</DialogTitle>
+          {task && (
+            <DialogDescription>
+              任务ID: {task.id} | 任务类型: {taskTypeLabel(task.task_type)}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        <form
+          className="grid gap-4 py-2"
+          onSubmit={event => {
+            event.preventDefault();
+            onSubmit();
+          }}
+        >
+          <div className="grid gap-2">
+            <span className="text-sm font-medium">任务名称</span>
+            <Input
+              value={form.name}
+              onChange={event => onChange(prev => ({ ...prev, name: event.target.value }))}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <span className="text-sm font-medium">状态</span>
+            <Select
+              value={form.status}
+              onValueChange={value =>
+                onChange(prev => ({ ...prev, status: value as TaskDefinitionStatus }))
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">{taskStatusLabel('ACTIVE')}</SelectItem>
+                <SelectItem value="PAUSED">{taskStatusLabel('PAUSED')}</SelectItem>
+                <SelectItem value="CANCELLED">{taskStatusLabel('CANCELLED')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <span className="text-sm font-medium">Config (JSON)</span>
+            <Textarea
+              value={form.config}
+              onChange={event => onChange(prev => ({ ...prev, config: event.target.value }))}
+              rows={6}
+              className="font-mono text-xs"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <span className="text-sm font-medium">Schedule (JSON)</span>
+            <Textarea
+              value={form.schedule}
+              onChange={event => onChange(prev => ({ ...prev, schedule: event.target.value }))}
+              rows={6}
+              className="font-mono text-xs"
+              disabled={isSubmitting}
+            />
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            取消
+          </Button>
+          <Button type="button" onClick={onSubmit} disabled={isSubmitting}>
+            {isSubmitting ? '保存中...' : '保存修改'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -515,11 +689,24 @@ export default function TaskSchedulePage() {
   const [query, setQuery] = useState<TaskQueryState>(DEFAULT_QUERY);
   const [keyword, setKeyword] = useState('');
   const [detailTask, setDetailTask] = useState<TaskDefinition | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
+  const [editForm, setEditForm] = useState<TaskEditFormState>({
+    name: '',
+    status: 'ACTIVE',
+    config: '{}',
+    schedule: '{}',
+  });
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [deletingTaskIds, setDeletingTaskIds] = useState<number[]>([]);
   const router = useRouter();
 
   const { tasks, total, isLoading, fetchTasks } = useTasks(query);
   const { executions, isExecutionsLoading, fetchExecutions, clearExecutions } = useTaskExecutions();
   const actionLoading = useTaskActionLoading();
+  const isDeletingTask = useCallback(
+    (taskId: number) => deletingTaskIds.includes(taskId),
+    [deletingTaskIds],
+  );
 
   // ── 关键字过滤（纯前端，不触发请求）──
   const filteredTasks = useMemo(() => {
@@ -638,6 +825,89 @@ export default function TaskSchedulePage() {
     [detailTask?.id, fetchExecutions, fetchTasks],
   );
 
+  const handleOpenEditTask = useCallback((task: TaskDefinition) => {
+    setEditingTask(task);
+    setEditForm(buildTaskEditForm(task));
+  }, []);
+
+  const handleCloseEditTask = useCallback(() => {
+    if (isEditSubmitting) {
+      return;
+    }
+    setEditingTask(null);
+  }, [isEditSubmitting]);
+
+  const handleSubmitEditTask = useCallback(async () => {
+    if (!editingTask) {
+      return;
+    }
+
+    const name = editForm.name.trim();
+    if (!name) {
+      toast.error('任务名称不能为空');
+      return;
+    }
+
+    let config: Record<string, unknown> | null = null;
+    let schedule: Record<string, unknown> | null = null;
+
+    try {
+      config = parseTaskJson(editForm.config, 'Config');
+      schedule = parseTaskJson(editForm.schedule, 'Schedule');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '任务配置格式不正确');
+      return;
+    }
+
+    setIsEditSubmitting(true);
+    try {
+      const updatedTask = await shopDashboardApi.updateTask(editingTask.id, {
+        name,
+        status: editForm.status,
+        config,
+        schedule,
+      });
+      toast.success(`任务 ${editingTask.id} 已更新`);
+      setEditingTask(null);
+      await fetchTasks();
+      if (detailTask?.id === editingTask.id) {
+        setDetailTask(updatedTask);
+        await fetchExecutions(editingTask.id);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '更新任务失败');
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  }, [detailTask?.id, editForm, editingTask, fetchExecutions, fetchTasks]);
+
+  const handleDeleteTask = useCallback(
+    async (task: TaskDefinition) => {
+      if (!window.confirm(`确认删除任务 ${task.id} 吗？`)) {
+        return;
+      }
+
+      setDeletingTaskIds(prev => (prev.includes(task.id) ? prev : [...prev, task.id]));
+      try {
+        await shopDashboardApi.deleteTask(task.id);
+        toast.success(`任务 ${task.id} 已删除`);
+        if (detailTask?.id === task.id) {
+          setDetailTask(null);
+          clearExecutions();
+        }
+        if (editingTask?.id === task.id) {
+          setEditingTask(null);
+        }
+        await fetchTasks();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '删除任务失败');
+      } finally {
+        setDeletingTaskIds(prev => prev.filter(id => id !== task.id));
+      }
+    },
+    [clearExecutions, detailTask?.id, editingTask?.id, fetchTasks],
+  );
+
   const openTaskExecutions = useCallback(
     (task: TaskDefinition) => {
       setDetailTask(task);
@@ -697,15 +967,27 @@ export default function TaskSchedulePage() {
             task={task}
             isRunning={actionLoading.isRunning(task.id)}
             isCancelling={actionLoading.isCancelling(task.id)}
+            isDeleting={isDeletingTask(task.id)}
             onRun={handleRunTask}
             onViewExecutions={openTaskExecutions}
+            onEdit={handleOpenEditTask}
             onCancel={task => void handleCancelTask(task)}
+            onDelete={task => void handleDeleteTask(task)}
           />
         ),
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [actionLoading.isRunning, actionLoading.isCancelling, handleRunTask, openTaskExecutions, handleCancelTask],
+    [
+      actionLoading.isRunning,
+      actionLoading.isCancelling,
+      handleCancelTask,
+      handleDeleteTask,
+      handleOpenEditTask,
+      handleRunTask,
+      isDeletingTask,
+      openTaskExecutions,
+    ],
   );
 
   return (
@@ -743,6 +1025,15 @@ export default function TaskSchedulePage() {
         <Clock3 className="mr-2 h-4 w-4" />
         定时任务配置
       </Button>
+
+      <EditTaskDialog
+        task={editingTask}
+        form={editForm}
+        isSubmitting={isEditSubmitting}
+        onChange={setEditForm}
+        onSubmit={() => void handleSubmitEditTask()}
+        onClose={handleCloseEditTask}
+      />
 
       <ExecutionsDialog
         task={detailTask}

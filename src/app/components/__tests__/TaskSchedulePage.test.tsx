@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TaskSchedulePage from '@/app/components/TaskSchedulePage';
 import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
+import { TaskDefinition } from '@/features/shop-dashboard/services/types';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -14,6 +15,8 @@ vi.mock('@/features/shop-dashboard/services/shopDashboardApi', () => ({
     listTasks: vi.fn(),
     createTask: vi.fn(),
     getTask: vi.fn(),
+    updateTask: vi.fn(),
+    deleteTask: vi.fn(),
     runTask: vi.fn(),
     cancelTask: vi.fn(),
     listTaskExecutions: vi.fn(),
@@ -24,52 +27,25 @@ vi.mock('@/features/shop-dashboard/services/shopDashboardApi', () => ({
 
 const mockedApi = vi.mocked(shopDashboardApi);
 
-function mockTaskList() {
-  mockedApi.listTasks.mockResolvedValue({
-    items: [
-      {
-        id: 101,
-        name: 'orders-daily',
-        task_type: 'ETL_ORDERS',
-        status: 'ACTIVE',
-        config: {},
-        schedule: null,
-        created_by_id: 1,
-        updated_by_id: 1,
-        created_at: '2026-03-09T01:00:00Z',
-        updated_at: '2026-03-09T01:00:00Z',
-      },
-    ],
-    meta: {
-      page: 1,
-      size: 20,
-      total: 1,
-      pages: 1,
-      has_next: false,
-      has_prev: false,
-    },
-  });
+function buildTask(id: number, overrides: Partial<TaskDefinition> = {}): TaskDefinition {
+  return {
+    id,
+    name: 'orders-daily',
+    task_type: 'ETL_ORDERS',
+    status: 'ACTIVE',
+    config: {},
+    schedule: null,
+    created_by_id: 1,
+    updated_by_id: 1,
+    created_at: '2026-03-09T01:00:00Z',
+    updated_at: '2026-03-09T01:00:00Z',
+    ...overrides,
+  };
 }
 
-function mockTaskListWithShopCollection() {
+function mockTaskList(taskOverrides: Partial<TaskDefinition> = {}) {
   mockedApi.listTasks.mockResolvedValue({
-    items: [
-      {
-        id: 202,
-        name: 'shop-dashboard-collection',
-        task_type: 'SHOP_DASHBOARD_COLLECTION',
-        status: 'ACTIVE',
-        config: {
-          data_source_id: 66,
-          rule_id: 77,
-        },
-        schedule: null,
-        created_by_id: 1,
-        updated_by_id: 1,
-        created_at: '2026-03-09T01:00:00Z',
-        updated_at: '2026-03-09T01:00:00Z',
-      },
-    ],
+    items: [buildTask(101, taskOverrides)],
     meta: {
       page: 1,
       size: 20,
@@ -86,6 +62,10 @@ describe('TaskSchedulePage', () => {
     vi.useRealTimers();
     vi.clearAllMocks();
     mockTaskList();
+    mockedApi.listTaskExecutions.mockResolvedValue({
+      task_id: 101,
+      items: [],
+    });
   });
 
   it('加载后展示后端任务列表', async () => {
@@ -104,19 +84,8 @@ describe('TaskSchedulePage', () => {
     });
   });
 
-  it('通过操作栏触发取消任务', async () => {
-    mockedApi.cancelTask.mockResolvedValue({
-      id: 101,
-      name: 'orders-daily',
-      task_type: 'ETL_ORDERS',
-      status: 'CANCELLED',
-      config: {},
-      schedule: null,
-      created_by_id: 1,
-      updated_by_id: 1,
-      created_at: '2026-03-09T01:00:00Z',
-      updated_at: '2026-03-09T01:05:00Z',
-    });
+  it('通过操作菜单触发取消任务', async () => {
+    mockedApi.cancelTask.mockResolvedValue(buildTask(101, { status: 'CANCELLED' }));
 
     render(<TaskSchedulePage />);
 
@@ -130,20 +99,21 @@ describe('TaskSchedulePage', () => {
   });
 
   it('采集任务立即执行会自动使用任务配置参数触发', async () => {
-    mockTaskListWithShopCollection();
+    mockTaskList({
+      id: 202,
+      name: 'shop-dashboard-collection',
+      task_type: 'SHOP_DASHBOARD_COLLECTION',
+      config: {
+        data_source_id: 66,
+        rule_id: 77,
+      },
+    });
+
     mockedApi.triggerShopDashboardCollection.mockResolvedValue({
-      task: {
-        id: 202,
+      task: buildTask(202, {
         name: 'shop-dashboard-collection',
         task_type: 'SHOP_DASHBOARD_COLLECTION',
-        status: 'ACTIVE',
-        config: {},
-        schedule: null,
-        created_by_id: 1,
-        updated_by_id: 1,
-        created_at: '2026-03-09T01:00:00Z',
-        updated_at: '2026-03-09T01:00:00Z',
-      },
+      }),
       execution: {
         id: 9001,
         task_id: 202,
@@ -176,5 +146,51 @@ describe('TaskSchedulePage', () => {
         rule_id: 77,
       });
     });
+  });
+
+  it('编辑提交会调用 updateTask', async () => {
+    mockedApi.updateTask.mockResolvedValue(
+      buildTask(101, {
+        name: 'orders-updated',
+        updated_at: '2026-03-09T01:10:00Z',
+      }),
+    );
+
+    render(<TaskSchedulePage />);
+
+    await screen.findByText('orders-daily');
+    fireEvent.pointerDown(screen.getByRole('button', { name: '打开操作菜单' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '编辑任务' }));
+
+    const nameInput = await screen.findByDisplayValue('orders-daily');
+    fireEvent.change(nameInput, { target: { value: 'orders-updated' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
+
+    await waitFor(() => {
+      expect(mockedApi.updateTask).toHaveBeenCalledWith(
+        101,
+        expect.objectContaining({
+          name: 'orders-updated',
+          status: 'ACTIVE',
+        }),
+      );
+    });
+  });
+
+  it('删除确认会调用 deleteTask', async () => {
+    mockedApi.deleteTask.mockResolvedValue(undefined);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(<TaskSchedulePage />);
+
+    await screen.findByText('orders-daily');
+    fireEvent.pointerDown(screen.getByRole('button', { name: '打开操作菜单' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '删除任务' }));
+
+    await waitFor(() => {
+      expect(mockedApi.deleteTask).toHaveBeenCalledWith(101);
+    });
+
+    confirmSpy.mockRestore();
   });
 });
