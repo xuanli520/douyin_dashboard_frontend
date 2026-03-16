@@ -710,6 +710,8 @@ export default function TaskSchedulePage() {
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">任务调度管理</h2>
+
       <FilterBar
         keyword={keyword}
         onKeywordChange={setKeyword}

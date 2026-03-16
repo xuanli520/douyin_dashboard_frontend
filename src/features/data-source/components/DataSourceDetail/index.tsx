@@ -11,10 +11,10 @@ interface DataSourceDetailProps {
 
 export function DataSourceDetail({ dataSource, onRefresh }: DataSourceDetailProps) {
   return (
-    <div className="space-y-6">
+    <>
       <InfoCard dataSource={dataSource} onRefresh={onRefresh} />
       <LoginStateMetaCard meta={dataSource.config.shop_dashboard_login_state_meta} />
       <AssociatedRules dataSourceId={dataSource.id} />
-    </div>
+    </>
   );
 }

@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
+import { Skeleton } from '@/app/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -43,7 +45,7 @@ import {
   DataSourceResponse,
   ScrapingRuleListItem,
 } from '@/types';
-import { ROUTES } from '@/config/routes';
+import { SecondaryPageLayout } from '@/app/components/layout/SecondaryPageLayout';
 
 interface CollectionJobFormState {
   name: string;
@@ -169,10 +171,10 @@ function formatRuleOption(rule: ScrapingRuleListItem): string {
 }
 
 export default function CollectionJobConfigPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [collectionJobs, setCollectionJobs] = useState<CollectionJobResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<CollectionJobFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,16 +198,21 @@ export default function CollectionJobConfigPage() {
   const fetchCollectionJobs = useCallback(async () => {
     if (!canViewCollectionJobs) {
       setCollectionJobs([]);
+      setLoadError(null);
       return;
     }
 
     setIsLoading(true);
+    setLoadError(null);
     try {
       const jobs = await collectionJobApi.list();
       setCollectionJobs(jobs);
+      setLoadError(null);
     } catch (error) {
+      const message = error instanceof Error ? error.message : '定时任务列表加载失败';
       setCollectionJobs([]);
-      toast.error(error instanceof Error ? error.message : '定时任务列表加载失败');
+      setLoadError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -213,6 +220,10 @@ export default function CollectionJobConfigPage() {
 
   useEffect(() => {
     void fetchCollectionJobs();
+  }, [fetchCollectionJobs]);
+
+  const handleRefresh = useCallback(async () => {
+    await fetchCollectionJobs();
   }, [fetchCollectionJobs]);
 
   useEffect(() => {
@@ -414,100 +425,117 @@ export default function CollectionJobConfigPage() {
     }
   }, [canCreateCollectionJobs, fetchCollectionJobs, form]);
 
+  const isInitialLoading = canViewCollectionJobs && isLoading && collectionJobs.length === 0;
+  const hasLoadError = canViewCollectionJobs && !isLoading && Boolean(loadError);
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => router.push(ROUTES.TASK_SCHEDULE)}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
-          </Button>
-          <h2 className="text-xl font-semibold">定时任务配置</h2>
-        </div>
+    <SecondaryPageLayout
+      breadcrumbs={[
+        { label: '定时任务', href: '/task-schedule' },
+        { label: '定时任务配置' },
+      ]}
+      title={isInitialLoading ? '加载中...' : hasLoadError ? '加载失败' : '定时任务配置'}
+    >
+      {isInitialLoading ? (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-3 p-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+        </Card>
+      ) : hasLoadError ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
+            <p className="text-sm text-muted-foreground">加载数据失败，请稍后重试</p>
+            <Button variant="outline" onClick={() => void handleRefresh()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              重试
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>任务列表</CardTitle>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleRefresh()}
+                disabled={!canViewCollectionJobs || isLoading}
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                刷新
+              </Button>
+              <Button size="sm" onClick={handleOpenCreateDialog} disabled={!canCreateCollectionJobs}>
+                创建定时任务
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="border-b px-4 py-3 text-sm text-muted-foreground">
+              仅展示 ACTIVE 任务，创建或修改后需重启 beat 才会生效。
+            </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void fetchCollectionJobs()}
-            disabled={!canViewCollectionJobs || isLoading}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
-          <Button size="sm" onClick={handleOpenCreateDialog} disabled={!canCreateCollectionJobs}>
-            <Plus className="mr-2 h-4 w-4" />
-            创建定时任务
-          </Button>
-        </div>
-      </div>
+            <div className="overflow-auto">
+              <Table className="min-w-[980px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>名称</TableHead>
+                    <TableHead>任务类型</TableHead>
+                    <TableHead>data_source_id</TableHead>
+                    <TableHead>rule_id</TableHead>
+                    <TableHead>Cron</TableHead>
+                    <TableHead>Timezone</TableHead>
+                    <TableHead>Kwargs</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>更新时间</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {!canViewCollectionJobs && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                        缺少 data_source:view 权限，无法查看定时任务。
+                      </TableCell>
+                    </TableRow>
+                  )}
 
-      <div className="overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/30">
-        <div className="border-b border-slate-200 px-4 py-3 text-sm text-muted-foreground dark:border-slate-800">
-          仅展示 ACTIVE 任务，创建或修改后需重启 beat 才会生效。
-        </div>
+                  {canViewCollectionJobs && collectionJobs.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                        暂无定时任务
+                      </TableCell>
+                    </TableRow>
+                  )}
 
-        <div className="overflow-auto">
-          <Table className="min-w-[980px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>名称</TableHead>
-                <TableHead>任务类型</TableHead>
-                <TableHead>data_source_id</TableHead>
-                <TableHead>rule_id</TableHead>
-                <TableHead>Cron</TableHead>
-                <TableHead>Timezone</TableHead>
-                <TableHead>Kwargs</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>更新时间</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!canViewCollectionJobs && (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
-                    缺少 data_source:view 权限，无法查看定时任务。
-                  </TableCell>
-                </TableRow>
-              )}
-
-              {canViewCollectionJobs && isLoading && (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
-                    加载中...
-                  </TableCell>
-                </TableRow>
-              )}
-
-              {canViewCollectionJobs && !isLoading && collectionJobs.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
-                    暂无定时任务
-                  </TableCell>
-                </TableRow>
-              )}
-
-              {canViewCollectionJobs && !isLoading && collectionJobs.map(job => (
-                <TableRow key={job.id}>
-                  <TableCell className="font-medium">{job.name}</TableCell>
-                  <TableCell>{TASK_TYPE_LABELS[job.task_type]}</TableCell>
-                  <TableCell className="font-mono text-xs">{job.data_source_id}</TableCell>
-                  <TableCell className="font-mono text-xs">{job.rule_id}</TableCell>
-                  <TableCell className="font-mono text-xs">{job.schedule.cron || '-'}</TableCell>
-                  <TableCell className="font-mono text-xs">{job.schedule.timezone || '-'}</TableCell>
-                  <TableCell className="font-mono text-xs">{formatJsonCompact(job.schedule.kwargs)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant(job.status)}>
-                      {STATUS_LABELS[job.status]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-slate-500">{toLocalTime(job.updated_at)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                  {canViewCollectionJobs && collectionJobs.map(job => (
+                    <TableRow key={job.id}>
+                      <TableCell className="font-medium">{job.name}</TableCell>
+                      <TableCell>{TASK_TYPE_LABELS[job.task_type]}</TableCell>
+                      <TableCell className="font-mono text-xs">{job.data_source_id}</TableCell>
+                      <TableCell className="font-mono text-xs">{job.rule_id}</TableCell>
+                      <TableCell className="font-mono text-xs">{job.schedule.cron || '-'}</TableCell>
+                      <TableCell className="font-mono text-xs">{job.schedule.timezone || '-'}</TableCell>
+                      <TableCell className="font-mono text-xs">{formatJsonCompact(job.schedule.kwargs)}</TableCell>
+                      <TableCell>
+                        <Badge variant={statusVariant(job.status)}>
+                          {STATUS_LABELS[job.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">{toLocalTime(job.updated_at)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent className="sm:max-w-[640px]">
@@ -696,6 +724,6 @@ export default function CollectionJobConfigPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SecondaryPageLayout>
   );
 }

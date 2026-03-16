@@ -1,33 +1,96 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useDataSource } from '@/features/data-source/hooks/useDataSource';
-import { DataSourceDetail } from '@/features/data-source/components/DataSourceDetail';
+import { RefreshCw } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { SecondaryPageLayout } from '@/app/components/layout/SecondaryPageLayout';
 import { Button } from '@/app/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/app/components/ui/card';
+import { Skeleton } from '@/app/components/ui/skeleton';
+import { DataSourceDetail } from '@/features/data-source/components/DataSourceDetail';
+import { useDataSource } from '@/features/data-source/hooks/useDataSource';
 
 export default function DataSourceDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = Number(params.id);
   const { dataSource, loading, error, refresh } = useDataSource(id);
 
-  if (loading) return <div className="p-6">加载中...</div>;
-  if (error) return <div className="p-6 text-red-500">错误: {error.message}</div>;
-  if (!dataSource) return <div className="p-6">未找到数据源。</div>;
+  if (loading) {
+    return (
+      <SecondaryPageLayout
+        breadcrumbs={[
+          { label: '数据源管理', href: '/data-source' },
+          { label: '详情' },
+        ]}
+        title="加载中..."
+      >
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+            <Skeleton className="h-4 w-1/2" />
+          </CardContent>
+        </Card>
+      </SecondaryPageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <SecondaryPageLayout
+        breadcrumbs={[
+          { label: '数据源管理', href: '/data-source' },
+          { label: '详情' },
+        ]}
+        title="加载失败"
+      >
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
+            <p className="text-sm text-muted-foreground">加载数据失败，请稍后重试</p>
+            <Button variant="outline" onClick={() => void refresh()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              重试
+            </Button>
+          </CardContent>
+        </Card>
+      </SecondaryPageLayout>
+    );
+  }
+
+  if (!dataSource) {
+    return (
+      <SecondaryPageLayout
+        breadcrumbs={[
+          { label: '数据源管理', href: '/data-source' },
+          { label: '详情' },
+        ]}
+        title="数据源详情"
+      >
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            未找到数据源。
+          </CardContent>
+        </Card>
+      </SecondaryPageLayout>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          返回
-        </Button>
-        <h1 className="text-2xl font-bold tracking-tight">数据源详情</h1>
+    <SecondaryPageLayout
+      breadcrumbs={[
+        { label: '数据源管理', href: '/data-source' },
+        { label: dataSource.name || '详情' },
+      ]}
+      title={dataSource.name || '数据源详情'}
+    >
+      <div className="space-y-6">
+        <DataSourceDetail dataSource={dataSource} onRefresh={refresh} />
       </div>
-
-      <DataSourceDetail dataSource={dataSource} onRefresh={refresh} />
-    </div>
+    </SecondaryPageLayout>
   );
 }
