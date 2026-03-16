@@ -142,6 +142,26 @@ function formatJsonCompact(value: Record<string, unknown>): string {
   return JSON.stringify(value);
 }
 
+function formatJsonForEditor(value: Record<string, unknown>): string {
+  if (Object.keys(value).length === 0) {
+    return '{}';
+  }
+  return JSON.stringify(value, null, 2);
+}
+
+function buildEditForm(job: CollectionJobResponse): CollectionJobFormState {
+  return {
+    name: job.name,
+    task_type: job.task_type,
+    data_source_id: String(job.data_source_id),
+    rule_id: String(job.rule_id),
+    cron: job.schedule.cron || '',
+    timezone: job.schedule.timezone || 'Asia/Shanghai',
+    kwargs: formatJsonForEditor(job.schedule.kwargs),
+    status: job.status,
+  };
+}
+
 function parsePrefill(searchParams: URLSearchParams): Partial<CollectionJobFormState> | null {
   const dataSourceId = searchParams.get('data_source_id');
   const ruleId = searchParams.get('rule_id');
@@ -176,8 +196,10 @@ export default function CollectionJobConfigPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<CollectionJobResponse | null>(null);
   const [form, setForm] = useState<CollectionJobFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingJobIds, setDeletingJobIds] = useState<number[]>([]);
   const [dataSources, setDataSources] = useState<DataSourceResponse[]>([]);
   const [isDataSourcesLoading, setIsDataSourcesLoading] = useState(false);
   const [rules, setRules] = useState<ScrapingRuleListItem[]>([]);
@@ -190,10 +212,16 @@ export default function CollectionJobConfigPage() {
   const canViewCollectionJobs = isAuthenticated && (isSuperuser || checkPermission('data_source:view'));
   const canCreateCollectionJobs = isAuthenticated && (isSuperuser || checkPermission('data_source:create'));
   const selectedDataSourceId = useMemo(() => parsePositiveInt(form.data_source_id), [form.data_source_id]);
+  const isEditing = Boolean(editingJob);
 
   useEffect(() => {
     formRef.current = form;
   }, [form]);
+
+  const isDeletingJob = useCallback(
+    (jobId: number) => deletingJobIds.includes(jobId),
+    [deletingJobIds],
+  );
 
   const fetchCollectionJobs = useCallback(async () => {
     if (!canViewCollectionJobs) {
@@ -236,6 +264,7 @@ export default function CollectionJobConfigPage() {
       return;
     }
 
+    setEditingJob(null);
     setForm(prev => ({ ...prev, ...prefill }));
     setDialogOpen(true);
   }, [canCreateCollectionJobs, searchParams]);
@@ -328,6 +357,7 @@ export default function CollectionJobConfigPage() {
   const handleDialogChange = useCallback((open: boolean) => {
     setDialogOpen(open);
     if (!open) {
+      setEditingJob(null);
       setForm(DEFAULT_FORM);
       setDataSources([]);
       setRules([]);
@@ -336,8 +366,16 @@ export default function CollectionJobConfigPage() {
   }, []);
 
   const handleOpenCreateDialog = useCallback(() => {
+    setEditingJob(null);
     setForm(DEFAULT_FORM);
     setRules([]);
+    setRulesLoadFailed(false);
+    setDialogOpen(true);
+  }, []);
+
+  const handleOpenEditDialog = useCallback((job: CollectionJobResponse) => {
+    setEditingJob(job);
+    setForm(buildEditForm(job));
     setRulesLoadFailed(false);
     setDialogOpen(true);
   }, []);
@@ -357,7 +395,7 @@ export default function CollectionJobConfigPage() {
     }));
   }, []);
 
-  const handleCreateCollectionJob = useCallback(async () => {
+  const handleSubmitCollectionJob = useCallback(async () => {
     if (!canCreateCollectionJobs) {
       toast.error('缺少 data_source:create 权限');
       return;
@@ -366,18 +404,6 @@ export default function CollectionJobConfigPage() {
     const name = form.name.trim();
     if (!name) {
       toast.error('请输入任务名称');
-      return;
-    }
-
-    const dataSourceId = parsePositiveInt(form.data_source_id);
-    if (!dataSourceId) {
-      toast.error('请选择数据源');
-      return;
-    }
-
-    const ruleId = parsePositiveInt(form.rule_id);
-    if (!ruleId) {
-      toast.error('请选择采集规则');
       return;
     }
 
@@ -398,32 +424,90 @@ export default function CollectionJobConfigPage() {
       return;
     }
 
-    const payload: CollectionJobCreate = {
-      name,
-      task_type: form.task_type,
-      data_source_id: dataSourceId,
-      rule_id: ruleId,
-      schedule: {
-        cron,
-        timezone,
-        kwargs,
-      },
-      status: form.status,
-    };
-
     setIsSubmitting(true);
     try {
-      await collectionJobApi.create(payload);
-      toast.success('定时任务创建成功');
+      if (editingJob) {
+        await collectionJobApi.update(editingJob.id, {
+          name,
+          status: form.status,
+          schedule: {
+            cron,
+            timezone,
+            kwargs,
+          },
+        });
+        toast.success('定时任务更新成功');
+      } else {
+        const dataSourceId = parsePositiveInt(form.data_source_id);
+        if (!dataSourceId) {
+          toast.error('请选择数据源');
+          return;
+        }
+
+        const ruleId = parsePositiveInt(form.rule_id);
+        if (!ruleId) {
+          toast.error('请选择采集规则');
+          return;
+        }
+
+        const payload: CollectionJobCreate = {
+          name,
+          task_type: form.task_type,
+          data_source_id: dataSourceId,
+          rule_id: ruleId,
+          schedule: {
+            cron,
+            timezone,
+            kwargs,
+          },
+          status: form.status,
+        };
+
+        await collectionJobApi.create(payload);
+        toast.success('定时任务创建成功');
+      }
+
       setDialogOpen(false);
+      setEditingJob(null);
       setForm(DEFAULT_FORM);
+      setDataSources([]);
+      setRules([]);
+      setRulesLoadFailed(false);
       await fetchCollectionJobs();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '定时任务创建失败');
+      toast.error(error instanceof Error ? error.message : editingJob ? '定时任务更新失败' : '定时任务创建失败');
     } finally {
       setIsSubmitting(false);
     }
-  }, [canCreateCollectionJobs, fetchCollectionJobs, form]);
+  }, [canCreateCollectionJobs, editingJob, fetchCollectionJobs, form]);
+
+  const handleDeleteCollectionJob = useCallback(
+    async (job: CollectionJobResponse) => {
+      if (!canCreateCollectionJobs) {
+        toast.error('缺少 data_source:create 权限');
+        return;
+      }
+
+      if (!window.confirm(`确认删除定时任务「${job.name}」吗？`)) {
+        return;
+      }
+
+      setDeletingJobIds(prev => (prev.includes(job.id) ? prev : [...prev, job.id]));
+      try {
+        await collectionJobApi.remove(job.id);
+        toast.success('定时任务删除成功');
+        if (editingJob?.id === job.id) {
+          handleDialogChange(false);
+        }
+        await fetchCollectionJobs();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '定时任务删除失败');
+      } finally {
+        setDeletingJobIds(prev => prev.filter(id => id !== job.id));
+      }
+    },
+    [canCreateCollectionJobs, editingJob?.id, fetchCollectionJobs, handleDialogChange],
+  );
 
   const isInitialLoading = canViewCollectionJobs && isLoading && collectionJobs.length === 0;
   const hasLoadError = canViewCollectionJobs && !isLoading && Boolean(loadError);
@@ -482,7 +566,7 @@ export default function CollectionJobConfigPage() {
             </div>
 
             <div className="overflow-auto">
-              <Table className="min-w-[980px]">
+              <Table className="min-w-[1100px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>名称</TableHead>
@@ -494,12 +578,13 @@ export default function CollectionJobConfigPage() {
                     <TableHead>Kwargs</TableHead>
                     <TableHead>状态</TableHead>
                     <TableHead>更新时间</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!canViewCollectionJobs && (
                     <TableRow>
-                      <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="py-8 text-center text-muted-foreground">
                         缺少 data_source:view 权限，无法查看定时任务。
                       </TableCell>
                     </TableRow>
@@ -507,7 +592,7 @@ export default function CollectionJobConfigPage() {
 
                   {canViewCollectionJobs && collectionJobs.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="py-8 text-center text-muted-foreground">
                         暂无定时任务
                       </TableCell>
                     </TableRow>
@@ -528,6 +613,24 @@ export default function CollectionJobConfigPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-xs text-slate-500">{toLocalTime(job.updated_at)}</TableCell>
+                      <TableCell className="space-x-2 text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenEditDialog(job)}
+                          disabled={!canCreateCollectionJobs || isSubmitting}
+                        >
+                          编辑
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void handleDeleteCollectionJob(job)}
+                          disabled={!canCreateCollectionJobs || isDeletingJob(job.id)}
+                        >
+                          {isDeletingJob(job.id) ? '删除中...' : '删除'}
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -540,9 +643,9 @@ export default function CollectionJobConfigPage() {
       <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent className="sm:max-w-[640px]">
           <DialogHeader>
-            <DialogTitle>创建定时任务</DialogTitle>
+            <DialogTitle>{isEditing ? '编辑定时任务' : '创建定时任务'}</DialogTitle>
             <DialogDescription>
-              调度配置写入 collection_jobs.schedule，创建或修改后需重启 beat 才会生效。
+              调度配置写入 collection_jobs.schedule，保存后需重启 beat 才会生效。
             </DialogDescription>
           </DialogHeader>
 
@@ -550,7 +653,7 @@ export default function CollectionJobConfigPage() {
             className="grid gap-4 py-2"
             onSubmit={event => {
               event.preventDefault();
-              void handleCreateCollectionJob();
+              void handleSubmitCollectionJob();
             }}
           >
             <div className="grid gap-2">
@@ -569,7 +672,7 @@ export default function CollectionJobConfigPage() {
                 <Select
                   value={form.task_type}
                   onValueChange={value => setForm(prev => ({ ...prev, task_type: value as CollectionJobTaskType }))}
-                  disabled={isSubmitting || !canCreateCollectionJobs}
+                  disabled={isSubmitting || !canCreateCollectionJobs || isEditing}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -606,7 +709,7 @@ export default function CollectionJobConfigPage() {
                 <Select
                   value={form.data_source_id}
                   onValueChange={handleDataSourceChange}
-                  disabled={isSubmitting || !canCreateCollectionJobs || isDataSourcesLoading}
+                  disabled={isSubmitting || !canCreateCollectionJobs || isDataSourcesLoading || isEditing}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={isDataSourcesLoading ? '加载数据源中...' : '选择数据源'} />
@@ -636,6 +739,7 @@ export default function CollectionJobConfigPage() {
                     || !canCreateCollectionJobs
                     || !selectedDataSourceId
                     || isRulesLoading
+                    || isEditing
                   }
                 >
                   <SelectTrigger>
@@ -716,10 +820,14 @@ export default function CollectionJobConfigPage() {
             </Button>
             <Button
               type="button"
-              onClick={() => void handleCreateCollectionJob()}
-              disabled={isSubmitting || !canCreateCollectionJobs || isDataSourcesLoading || isRulesLoading}
+              onClick={() => void handleSubmitCollectionJob()}
+              disabled={
+                isSubmitting
+                || !canCreateCollectionJobs
+                || (!isEditing && (isDataSourcesLoading || isRulesLoading))
+              }
             >
-              {isSubmitting ? '创建中...' : '创建任务'}
+              {isSubmitting ? (isEditing ? '保存中...' : '创建中...') : (isEditing ? '保存修改' : '创建任务')}
             </Button>
           </DialogFooter>
         </DialogContent>
