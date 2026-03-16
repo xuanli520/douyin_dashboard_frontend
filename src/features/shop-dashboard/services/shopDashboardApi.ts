@@ -16,6 +16,7 @@ import {
   ShopDashboardQueryResponse,
   TaskDefinition,
   TaskDefinitionCreateRequest,
+  TaskDefinitionUpdateRequest,
   TaskExecution,
   TaskExecutionListResponse,
   TaskListParams,
@@ -506,6 +507,17 @@ export const shopDashboardApi = {
   async createTask(payload: TaskDefinitionCreateRequest): Promise<TaskDefinition> {
     const response = await httpClient.post<ApiResponse<TaskDefinition>>(API_ENDPOINTS.TASKS_LIST, payload);
     return response.data;
+  },
+
+  async updateTask(taskId: string | number, payload: TaskDefinitionUpdateRequest): Promise<TaskDefinition> {
+    const normalizedTaskId = toTaskId(taskId);
+    const response = await httpClient.put<ApiResponse<TaskDefinition>>(API_ENDPOINTS.TASK_DETAIL(normalizedTaskId), payload);
+    return response.data;
+  },
+
+  async deleteTask(taskId: string | number): Promise<void> {
+    const normalizedTaskId = toTaskId(taskId);
+    await httpClient.delete<ApiResponse<null>>(API_ENDPOINTS.TASK_DETAIL(normalizedTaskId));
   },
 
   async getTask(taskId: string | number): Promise<TaskDefinition> {

@@ -6,6 +6,7 @@ import {
   CollectionJobResponse,
   CollectionJobSchedule,
   CollectionJobTaskType,
+  CollectionJobUpdate,
 } from '@/types';
 
 export interface CollectionJobListParams {
@@ -49,6 +50,30 @@ function normalizeCreatePayload(payload: CollectionJobCreate): CollectionJobCrea
   };
 }
 
+function normalizeUpdatePayload(payload: CollectionJobUpdate): CollectionJobUpdate {
+  const nextPayload: CollectionJobUpdate = {};
+
+  if (typeof payload.name === 'string') {
+    nextPayload.name = payload.name.trim();
+  }
+  if (payload.status) {
+    nextPayload.status = payload.status;
+  }
+  if (payload.schedule) {
+    nextPayload.schedule = normalizeSchedule(payload.schedule);
+  }
+
+  return nextPayload;
+}
+
+function toCollectionJobId(jobId: string | number): number {
+  const normalized = Number(jobId);
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    throw new Error('定时任务 ID 无效');
+  }
+  return normalized;
+}
+
 export const collectionJobApi = {
   async list(params: CollectionJobListParams = {}): Promise<CollectionJobResponse[]> {
     const query = new URLSearchParams();
@@ -72,5 +97,19 @@ export const collectionJobApi = {
       normalizeCreatePayload(payload)
     );
     return normalizeCollectionJob(response.data);
+  },
+
+  async update(jobId: string | number, payload: CollectionJobUpdate): Promise<CollectionJobResponse> {
+    const normalizedId = toCollectionJobId(jobId);
+    const response = await httpClient.put<ApiResponse<CollectionJobResponse>>(
+      API_ENDPOINTS.SCHEDULE_DETAIL(normalizedId),
+      normalizeUpdatePayload(payload)
+    );
+    return normalizeCollectionJob(response.data);
+  },
+
+  async remove(jobId: string | number): Promise<void> {
+    const normalizedId = toCollectionJobId(jobId);
+    await httpClient.delete<ApiResponse<null>>(API_ENDPOINTS.SCHEDULE_DETAIL(normalizedId));
   },
 };
