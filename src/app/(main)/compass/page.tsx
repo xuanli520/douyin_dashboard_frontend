@@ -434,7 +434,7 @@ export default function CompassPage() {
 
   // ── Visible layouts (what RGL actually sees) ──────────────────────────────
   const visibleLayouts = useMemo(() => {
-    const normalized = normalizeLayouts(layouts, currentPreset, visibleSlotIds, latestLayoutsRef.current);
+    const normalized = normalizeLayouts(layouts, currentPreset, visibleSlotIds, layouts);
     return filterLayoutsBySlotIds(normalized, visibleSlotIds);
   }, [layouts, currentPreset, visibleSlotIds]);
 
