@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, RefreshCw } from 'lucide-react';
@@ -32,6 +32,7 @@ import {
   TableRow,
 } from '@/app/components/ui/table';
 import { collectionJobApi } from '@/features/collection-job/services/collectionJobApi';
+import { dataSourceApi } from '@/features/data-source/services/dataSourceApi';
 import { useAuthStore } from '@/stores/authStore';
 import { usePermissionStore } from '@/stores/permissionStore';
 import {
@@ -39,6 +40,8 @@ import {
   CollectionJobResponse,
   CollectionJobStatus,
   CollectionJobTaskType,
+  DataSourceResponse,
+  ScrapingRuleListItem,
 } from '@/types';
 import { ROUTES } from '@/config/routes';
 
@@ -74,6 +77,11 @@ const STATUS_LABELS: Record<CollectionJobStatus, string> = {
   ACTIVE: '启用',
   INACTIVE: '停用',
 };
+
+const DATA_SOURCE_EMPTY_VALUE = '__data_source_empty__';
+const RULE_EMPTY_VALUE = '__rule_empty__';
+const RULE_LOADING_VALUE = '__rule_loading__';
+const RULE_NEED_DATA_SOURCE_VALUE = '__rule_need_data_source__';
 
 function parsePositiveInt(value: string): number | null {
   const normalized = Number(value.trim());
@@ -152,6 +160,14 @@ function parsePrefill(searchParams: URLSearchParams): Partial<CollectionJobFormS
   };
 }
 
+function formatDataSourceOption(dataSource: DataSourceResponse): string {
+  return `${dataSource.name} (ID: ${dataSource.id})`;
+}
+
+function formatRuleOption(rule: ScrapingRuleListItem): string {
+  return `${rule.name} (ID: ${rule.id})`;
+}
+
 export default function CollectionJobConfigPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -160,11 +176,22 @@ export default function CollectionJobConfigPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<CollectionJobFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dataSources, setDataSources] = useState<DataSourceResponse[]>([]);
+  const [isDataSourcesLoading, setIsDataSourcesLoading] = useState(false);
+  const [rules, setRules] = useState<ScrapingRuleListItem[]>([]);
+  const [isRulesLoading, setIsRulesLoading] = useState(false);
+  const [rulesLoadFailed, setRulesLoadFailed] = useState(false);
+  const formRef = useRef(form);
 
   const { isAuthenticated } = useAuthStore();
   const { isSuperuser, checkPermission } = usePermissionStore();
   const canViewCollectionJobs = isAuthenticated && (isSuperuser || checkPermission('data_source:view'));
   const canCreateCollectionJobs = isAuthenticated && (isSuperuser || checkPermission('data_source:create'));
+  const selectedDataSourceId = useMemo(() => parsePositiveInt(form.data_source_id), [form.data_source_id]);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
 
   const fetchCollectionJobs = useCallback(async () => {
     if (!canViewCollectionJobs) {
@@ -202,16 +229,121 @@ export default function CollectionJobConfigPage() {
     setDialogOpen(true);
   }, [canCreateCollectionJobs, searchParams]);
 
+  useEffect(() => {
+    if (!dialogOpen || !canCreateCollectionJobs) {
+      setDataSources([]);
+      setIsDataSourcesLoading(false);
+      return;
+    }
+
+    let active = true;
+    setIsDataSourcesLoading(true);
+
+    void dataSourceApi.getAll({ page: 1, size: 100 })
+      .then(response => {
+        if (!active) {
+          return;
+        }
+        setDataSources(response.items);
+      })
+      .catch(error => {
+        if (!active) {
+          return;
+        }
+        setDataSources([]);
+        toast.error(error instanceof Error ? error.message : '数据源加载失败');
+      })
+      .finally(() => {
+        if (active) {
+          setIsDataSourcesLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [canCreateCollectionJobs, dialogOpen]);
+
+  useEffect(() => {
+    if (!dialogOpen || !canCreateCollectionJobs || !selectedDataSourceId) {
+      setRules([]);
+      setIsRulesLoading(false);
+      setRulesLoadFailed(false);
+      return;
+    }
+
+    let active = true;
+    setIsRulesLoading(true);
+    setRulesLoadFailed(false);
+
+    void dataSourceApi.getScrapingRules(selectedDataSourceId)
+      .then(nextRules => {
+        if (!active) {
+          return;
+        }
+        setRules(nextRules);
+
+        const prefilledRuleId = formRef.current.rule_id;
+        if (!prefilledRuleId) {
+          return;
+        }
+        const ruleExists = nextRules.some(rule => String(rule.id) === prefilledRuleId);
+        if (ruleExists) {
+          return;
+        }
+
+        setForm(prev => (prev.rule_id ? { ...prev, rule_id: '' } : prev));
+        toast.error('当前数据源下不存在该采集规则，请重新选择');
+      })
+      .catch(error => {
+        if (!active) {
+          return;
+        }
+        setRules([]);
+        setRulesLoadFailed(true);
+        toast.error(error instanceof Error ? error.message : '采集规则加载失败');
+      })
+      .finally(() => {
+        if (active) {
+          setIsRulesLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [canCreateCollectionJobs, dialogOpen, selectedDataSourceId]);
+
   const handleDialogChange = useCallback((open: boolean) => {
     setDialogOpen(open);
     if (!open) {
       setForm(DEFAULT_FORM);
+      setDataSources([]);
+      setRules([]);
+      setRulesLoadFailed(false);
     }
   }, []);
 
   const handleOpenCreateDialog = useCallback(() => {
     setForm(DEFAULT_FORM);
+    setRules([]);
+    setRulesLoadFailed(false);
     setDialogOpen(true);
+  }, []);
+
+  const handleDataSourceChange = useCallback((value: string) => {
+    setForm(prev => ({
+      ...prev,
+      data_source_id: value,
+      rule_id: '',
+    }));
+  }, []);
+
+  const handleRuleChange = useCallback((value: string) => {
+    setForm(prev => ({
+      ...prev,
+      rule_id: value,
+    }));
   }, []);
 
   const handleCreateCollectionJob = useCallback(async () => {
@@ -228,13 +360,13 @@ export default function CollectionJobConfigPage() {
 
     const dataSourceId = parsePositiveInt(form.data_source_id);
     if (!dataSourceId) {
-      toast.error('data_source_id 必须为正整数');
+      toast.error('请选择数据源');
       return;
     }
 
     const ruleId = parsePositiveInt(form.rule_id);
     if (!ruleId) {
-      toast.error('rule_id 必须为正整数');
+      toast.error('请选择采集规则');
       return;
     }
 
@@ -442,23 +574,76 @@ export default function CollectionJobConfigPage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="grid gap-2">
-                <span className="text-sm font-medium">数据源 ID</span>
-                <Input
+                <span className="text-sm font-medium">数据源</span>
+                <Select
                   value={form.data_source_id}
-                  onChange={event => setForm(prev => ({ ...prev, data_source_id: event.target.value }))}
-                  placeholder="例如：12"
-                  disabled={isSubmitting || !canCreateCollectionJobs}
-                />
+                  onValueChange={handleDataSourceChange}
+                  disabled={isSubmitting || !canCreateCollectionJobs || isDataSourcesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={isDataSourcesLoading ? '加载数据源中...' : '选择数据源'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dataSources.length === 0 && (
+                      <SelectItem value={DATA_SOURCE_EMPTY_VALUE} disabled>
+                        {isDataSourcesLoading ? '加载数据源中...' : '暂无可用数据源'}
+                      </SelectItem>
+                    )}
+                    {dataSources.map(dataSource => (
+                      <SelectItem key={dataSource.id} value={String(dataSource.id)}>
+                        {formatDataSourceOption(dataSource)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-2">
-                <span className="text-sm font-medium">规则 ID</span>
-                <Input
+                <span className="text-sm font-medium">采集规则</span>
+                <Select
                   value={form.rule_id}
-                  onChange={event => setForm(prev => ({ ...prev, rule_id: event.target.value }))}
-                  placeholder="例如：34"
-                  disabled={isSubmitting || !canCreateCollectionJobs}
-                />
+                  onValueChange={handleRuleChange}
+                  disabled={
+                    isSubmitting
+                    || !canCreateCollectionJobs
+                    || !selectedDataSourceId
+                    || isRulesLoading
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        !selectedDataSourceId
+                          ? '先选择数据源'
+                          : isRulesLoading
+                            ? '加载规则中...'
+                            : '选择采集规则'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {!selectedDataSourceId && (
+                      <SelectItem value={RULE_NEED_DATA_SOURCE_VALUE} disabled>
+                        请先选择数据源
+                      </SelectItem>
+                    )}
+                    {selectedDataSourceId && isRulesLoading && (
+                      <SelectItem value={RULE_LOADING_VALUE} disabled>
+                        加载规则中...
+                      </SelectItem>
+                    )}
+                    {selectedDataSourceId && !isRulesLoading && rules.length === 0 && (
+                      <SelectItem value={RULE_EMPTY_VALUE} disabled>
+                        {rulesLoadFailed ? '规则加载失败，请切换数据源重试' : '该数据源下暂无规则'}
+                      </SelectItem>
+                    )}
+                    {selectedDataSourceId && !isRulesLoading && rules.map(rule => (
+                      <SelectItem key={rule.id} value={String(rule.id)}>
+                        {formatRuleOption(rule)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -504,7 +689,7 @@ export default function CollectionJobConfigPage() {
             <Button
               type="button"
               onClick={() => void handleCreateCollectionJob()}
-              disabled={isSubmitting || !canCreateCollectionJobs}
+              disabled={isSubmitting || !canCreateCollectionJobs || isDataSourcesLoading || isRulesLoading}
             >
               {isSubmitting ? '创建中...' : '创建任务'}
             </Button>
