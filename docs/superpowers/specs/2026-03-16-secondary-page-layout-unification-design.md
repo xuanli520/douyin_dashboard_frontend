@@ -43,6 +43,8 @@
 src/app/components/layout/SecondaryPageLayout.tsx
 ```
 
+> **注意：** `src/app/components/layout/` 目录目前不存在，需要新建。选择此位置而非 `src/components/` 是因为该组件属于 app 层页面级布局，与 `src/app/components/` 下的其他页面组件（如 `CollectionJobConfigPage.tsx`）保持一致。
+
 ### Props 接口
 
 ```ts
@@ -63,15 +65,19 @@ interface SecondaryPageLayoutProps {
 ```tsx
 <div className="container mx-auto py-6 space-y-6">
   <Breadcrumb>
-    {breadcrumbs.map((item, index) => (
-      <BreadcrumbItem key={index}>
-        {item.href
-          ? <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
-          : <BreadcrumbPage>{item.label}</BreadcrumbPage>
-        }
-        {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-      </BreadcrumbItem>
-    ))}
+    <BreadcrumbList>
+      {breadcrumbs.map((item, index) => (
+        <React.Fragment key={index}>
+          <BreadcrumbItem>
+            {item.href
+              ? <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
+              : <BreadcrumbPage>{item.label}</BreadcrumbPage>
+            }
+          </BreadcrumbItem>
+          {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+        </React.Fragment>
+      ))}
+    </BreadcrumbList>
   </Breadcrumb>
 
   <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
@@ -79,6 +85,10 @@ interface SecondaryPageLayoutProps {
   {children}
 </div>
 ```
+
+> **说明：** `BreadcrumbList` 渲染为 `<ol>`，`BreadcrumbItem` 渲染为 `<li>`，`BreadcrumbSeparator` 也是独立的 `<li>`，必须是 `BreadcrumbList` 的直接子项而非嵌套在 `BreadcrumbItem` 内。
+
+> **与父级布局的关系：** `(main)` layout 的 `<main>` 已提供 `p-6`（24px 四周内边距）。`SecondaryPageLayout` 的 `py-6` 在此基础上额外增加顶底各 24px，这与现有 `DataSourceDetailPage` 已使用的 `container mx-auto py-6` 模式一致，视觉上属于预期效果。
 
 ### 职责边界
 
@@ -127,14 +137,17 @@ interface SecondaryPageLayoutProps {
         </Button>
       </div>
     </CardHeader>
-    <CardContent>
-      {/* 现有 DataTable 保持不变 */}
+    <CardContent className="p-0">
+      {/* 原有 <div className="overflow-hidden border border-slate-200 bg-white ..."> + <Table>
+          结构直接移入此处，去掉外层 border（由 Card 提供边框），保留 overflow-auto 和 min-w-[980px] */}
     </CardContent>
   </Card>
 
   {/* 创建表单 Dialog 保持不变 */}
 </SecondaryPageLayout>
 ```
+
+> **注意：** 原 `CollectionJobConfigPage` 使用的是 `<div className="overflow-hidden border ..."> + <Table>`，不是 `<Card>`。此次改造将其包裹进 `<Card>`，外层 border 样式由 Card 提供，CardContent 使用 `p-0` 以避免双重内边距，原有表格 div 的 `overflow-auto` 和 `min-w-[980px]` 继续保留。
 
 ---
 
@@ -183,7 +196,7 @@ interface SecondaryPageLayoutProps {
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <div className="flex items-center gap-3">
-        <RuleTypeTag type={rule.rule_type} />
+        <RuleTypeTag type={rule.target_type} />
         <div>
           <CardTitle>{rule.name}</CardTitle>
           {rule.description && (
@@ -222,15 +235,37 @@ interface SecondaryPageLayoutProps {
 
 ### 加载骨架屏模板
 
+加载时，`breadcrumbs` 末级项使用静态占位文本（因为 API 数据尚未返回），`title` 固定为 `"加载中..."`：
+
 ```tsx
-<SecondaryPageLayout breadcrumbs={breadcrumbs} title="加载中...">
+// 定时任务配置页（数据始终可知，直接用静态文本）
+<SecondaryPageLayout
+  breadcrumbs={[{ label: "定时任务", href: "/task-schedule" }, { label: "定时任务配置" }]}
+  title="加载中..."
+>
   <Card>
-    <CardHeader>
-      <Skeleton className="h-6 w-48" />
-    </CardHeader>
-    <CardContent className="space-y-3">
+    <CardHeader><Skeleton className="h-6 w-48" /></CardHeader>
+    <CardContent className="space-y-3 p-4">
+      {/* 模拟表格行 */}
+      <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-3/4" />
+    </CardContent>
+  </Card>
+</SecondaryPageLayout>
+
+// 数据源详情页 / 采集规则详情页（动态名称未知，使用占位文本）
+<SecondaryPageLayout
+  breadcrumbs={[{ label: "数据源管理", href: "/data-source" }, { label: "详情" }]}
+  title="加载中..."
+>
+  <Card>
+    <CardHeader><Skeleton className="h-6 w-48" /></CardHeader>
+    <CardContent className="space-y-3">
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+      </div>
       <Skeleton className="h-4 w-1/2" />
     </CardContent>
   </Card>
@@ -244,8 +279,14 @@ interface SecondaryPageLayoutProps {
 
 ### 错误状态模板
 
+错误时同样使用静态文本作为 breadcrumbs 末级项（数据未加载成功）：
+
 ```tsx
-<SecondaryPageLayout breadcrumbs={breadcrumbs} title="加载失败">
+// 数据源详情页示例（采集规则详情页同理，替换 label 文本即可）
+<SecondaryPageLayout
+  breadcrumbs={[{ label: "数据源管理", href: "/data-source" }, { label: "详情" }]}
+  title="加载失败"
+>
   <Card>
     <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
       <p className="text-sm text-muted-foreground">加载数据失败，请稍后重试</p>
