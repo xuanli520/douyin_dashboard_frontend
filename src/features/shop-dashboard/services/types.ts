@@ -18,6 +18,13 @@ export interface TaskDefinitionCreateRequest {
   status?: TaskDefinitionStatus;
 }
 
+export interface TaskDefinitionUpdateRequest {
+  name?: string;
+  status?: TaskDefinitionStatus;
+  config?: Record<string, unknown> | null;
+  schedule?: Record<string, unknown> | null;
+}
+
 export interface TaskRunRequest {
   payload?: Record<string, unknown>;
 }

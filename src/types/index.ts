@@ -28,6 +28,12 @@ export interface CollectionJobCreate {
   status?: CollectionJobStatus;
 }
 
+export interface CollectionJobUpdate {
+  name?: string;
+  schedule?: CollectionJobSchedule;
+  status?: CollectionJobStatus;
+}
+
 export interface CollectionJobResponse {
   id: number;
   name: string;

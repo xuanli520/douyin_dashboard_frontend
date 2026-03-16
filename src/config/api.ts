@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
   ALERTS_LIST: `${API_BASE_PATH}/alerts`,
   REPORTS_OVERVIEW: `${API_BASE_PATH}/reports`,
   SCHEDULES_LIST: `${API_BASE_PATH}/schedules`,
+  SCHEDULE_DETAIL: (schedule_id: number) => `${API_BASE_PATH}/schedules/${schedule_id}`,
   SHOPS_LIST: `${API_BASE_PATH}/shops`,
   METRIC_DETAIL: (metric_type: string) => `${API_BASE_PATH}/metrics/${metric_type}`,
   TASKS_LIST: `${API_BASE_PATH}/tasks`,
