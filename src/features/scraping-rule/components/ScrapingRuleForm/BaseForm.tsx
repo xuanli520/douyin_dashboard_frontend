@@ -5,6 +5,8 @@
   ScrapingRuleIncrementalMode,
   TargetType,
 } from '@/types';
+import type { HttpError } from '@/lib/http/types';
+import type { FieldPath, FieldValues, UseFormReturn } from 'react-hook-form';
 
 export interface RuleConfigFormValues {
   granularity: ScrapingRuleGranularity | '';
@@ -55,6 +57,19 @@ export const dataLatencyOptions: Array<{ value: ScrapingRuleDataLatency; label: 
   { value: 'T+3', label: 'T+3' },
 ];
 
+const scrapingRuleErrorFieldMap = [
+  ['time_range', 'time_range_json'],
+  ['filters', 'filters_json'],
+  ['rate_limit', 'rate_limit_json'],
+  ['backfill_last_n_days', 'backfill_last_n_days'],
+  ['top_n', 'top_n'],
+  ['name', 'name'],
+  ['description', 'description'],
+  ['data_source_id', 'data_source_id'],
+  ['target_type', 'target_type'],
+  ['is_active', 'is_active'],
+] as const;
+
 function toJsonText(value: unknown): string {
   if (value === undefined) {
     return '';
@@ -70,16 +85,15 @@ function parseJsonField(value: string, fieldName: string): Record<string, unknow
   }
 }
 
-function parseOptionalNumber(value: string, fieldName: string): number | undefined {
+function parseOptionalNonNegativeInteger(value: string, fieldName: string): number | undefined {
   const trimmed = value.trim();
   if (!trimmed) {
     return undefined;
   }
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`${fieldName} 不是合法数字`);
+  if (!/^\d+$/.test(trimmed)) {
+    throw new Error(`${fieldName} 必须是非负整数`);
   }
-  return parsed;
+  return Number(trimmed);
 }
 
 function parseListField(value: string): string[] {
@@ -87,6 +101,147 @@ function parseListField(value: string): string[] {
     .split(',')
     .map(item => item.trim())
     .filter(Boolean);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function readErrorMessage(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+  return null;
+}
+
+function resolveScrapingRuleErrorField(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const matchedField = scrapingRuleErrorFieldMap.find(([sourceField]) => (
+    trimmed === sourceField ||
+    trimmed.startsWith(`${sourceField} `) ||
+    trimmed.startsWith(`${sourceField}:`)
+  ));
+
+  return matchedField?.[1] ?? null;
+}
+
+function extractStructuredErrors(error: unknown): Array<{ field?: string; message: string }> {
+  const payloads: Record<string, unknown>[] = [];
+  const httpError = error as HttpError | undefined;
+
+  if (isRecord(httpError?.data)) {
+    payloads.push(httpError.data);
+    if (isRecord(httpError.data.data)) {
+      payloads.push(httpError.data.data);
+    }
+  }
+
+  for (const payload of payloads) {
+    if (Array.isArray(payload.errors)) {
+      const errors = payload.errors.flatMap(item => {
+        if (!isRecord(item)) {
+          return [];
+        }
+
+        const message = readErrorMessage(item.message) ?? readErrorMessage(item.msg);
+        if (!message) {
+          return [];
+        }
+
+        const field = readErrorMessage(item.field);
+        return [{ field: field ?? undefined, message }];
+      });
+
+      if (errors.length > 0) {
+        return errors;
+      }
+    }
+
+    const field = readErrorMessage(payload.field);
+    const message = readErrorMessage(payload.message) ?? readErrorMessage(payload.msg);
+    if (field && message) {
+      return [{ field, message }];
+    }
+  }
+
+  return [];
+}
+
+export function validateOptionalJsonText(value: string): true | string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  try {
+    JSON.parse(trimmed);
+    return true;
+  } catch {
+    return 'JSON 格式错误';
+  }
+}
+
+export function validateOptionalNonNegativeIntegerText(value: string): true | string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return /^\d+$/.test(trimmed) ? true : '请输入非负整数';
+}
+
+export function applyScrapingRuleFormError<TFieldValues extends FieldValues>(
+  form: UseFormReturn<TFieldValues>,
+  error: unknown,
+  fallbackField: FieldPath<TFieldValues>,
+  fallbackMessage: string,
+) {
+  const values = form.getValues();
+  const structuredErrors = extractStructuredErrors(error);
+
+  if (structuredErrors.length > 0) {
+    let applied = false;
+
+    for (const structuredError of structuredErrors) {
+      const resolvedField = structuredError.field
+        ? resolveScrapingRuleErrorField(structuredError.field)
+        : null;
+
+      if (resolvedField && resolvedField in values) {
+        form.setError(resolvedField as FieldPath<TFieldValues>, {
+          type: 'server',
+          message: structuredError.message,
+        });
+        applied = true;
+        continue;
+      }
+
+      if (!applied) {
+        form.setError(fallbackField, { type: 'server', message: structuredError.message });
+        applied = true;
+      }
+    }
+
+    if (applied) {
+      return;
+    }
+  }
+
+  const message =
+    readErrorMessage(error instanceof Error ? error.message : error) ??
+    fallbackMessage;
+  const resolvedField = resolveScrapingRuleErrorField(message);
+
+  if (resolvedField && resolvedField in values) {
+    form.setError(resolvedField as FieldPath<TFieldValues>, { type: 'server', message });
+    return;
+  }
+
+  form.setError(fallbackField, { type: 'server', message });
 }
 
 export function buildRuleConfigFormDefaults(config?: ScrapingRuleConfig): RuleConfigFormValues {
@@ -128,7 +283,7 @@ export function buildRuleConfigFromForm(values: RuleConfigFormValues): ScrapingR
     config.incremental_mode = values.incremental_mode;
   }
 
-  const backfillLastNDays = parseOptionalNumber(values.backfill_last_n_days, 'backfill_last_n_days');
+  const backfillLastNDays = parseOptionalNonNegativeInteger(values.backfill_last_n_days, 'backfill_last_n_days');
   if (backfillLastNDays !== undefined) {
     config.backfill_last_n_days = backfillLastNDays;
   }
@@ -159,7 +314,7 @@ export function buildRuleConfigFromForm(values: RuleConfigFormValues): ScrapingR
     config.data_latency = values.data_latency;
   }
 
-  const topN = parseOptionalNumber(values.top_n, 'top_n');
+  const topN = parseOptionalNonNegativeInteger(values.top_n, 'top_n');
   if (topN !== undefined) {
     config.top_n = topN;
   }

@@ -1,12 +1,13 @@
 ﻿'use client';
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useCreateScrapingRule } from '../../hooks/useCreateScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { Switch } from '@/app/components/ui/switch';
 import {
   Form,
   FormControl,
@@ -25,6 +26,7 @@ import {
 import { RuleConfigFields } from './RuleConfigFields';
 import {
   RuleConfigFormValues,
+  applyScrapingRuleFormError,
   buildRuleConfigFromForm,
   buildRuleConfigFormDefaults,
   targetTypeOptions,
@@ -54,32 +56,12 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
       ...buildRuleConfigFormDefaults(),
     },
   });
-
-  const setConfigError = (message: string) => {
-    if (message.startsWith('time_range')) {
-      form.setError('time_range_json', { type: 'validate', message });
-      return;
-    }
-    if (message.startsWith('filters')) {
-      form.setError('filters_json', { type: 'validate', message });
-      return;
-    }
-    if (message.startsWith('rate_limit')) {
-      form.setError('rate_limit_json', { type: 'validate', message });
-      return;
-    }
-    if (message.startsWith('backfill_last_n_days')) {
-      form.setError('backfill_last_n_days', { type: 'validate', message });
-      return;
-    }
-    if (message.startsWith('top_n')) {
-      form.setError('top_n', { type: 'validate', message });
-      return;
-    }
-    form.setError('name', { type: 'validate', message });
-  };
+  const { clearErrors } = form;
+  const ruleConfigForm = form as unknown as UseFormReturn<RuleConfigFormValues>;
 
   async function onSubmit(values: CreateRuleFormValues) {
+    clearErrors();
+
     if (!values.data_source_id) {
       form.setError('data_source_id', { type: 'required', message: '请选择数据源' });
       return;
@@ -88,8 +70,8 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
     try {
       const config = buildRuleConfigFromForm(values);
       await create({
-        name: values.name,
-        description: values.description || undefined,
+        name: values.name.trim(),
+        description: values.description.trim() || undefined,
         target_type: values.target_type,
         data_source_id: Number(values.data_source_id),
         is_active: values.is_active,
@@ -102,8 +84,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         router.push('/scraping-rule');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : '创建失败';
-      setConfigError(message);
+      applyScrapingRuleFormError(form, error, 'name', '创建失败');
     }
   }
 
@@ -113,7 +94,10 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         <FormField
           control={form.control}
           name="name"
-          rules={{ required: '名称必填' }}
+          rules={{
+            required: '名称必填',
+            validate: value => value.trim() ? true : '名称必填',
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>名称</FormLabel>
@@ -197,25 +181,19 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
             name="is_active"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>状态</FormLabel>
-                <Select onValueChange={value => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
+                <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
+                  <FormLabel>状态</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="true">启用</SelectItem>
-                    <SelectItem value="false">停用</SelectItem>
-                  </SelectContent>
-                </Select>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <RuleConfigFields form={form} />
+        <RuleConfigFields form={ruleConfigForm} />
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel || (() => router.back())}>
