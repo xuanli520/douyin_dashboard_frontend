@@ -1,11 +1,12 @@
 // 用户状态管理 (React Context + Hook)
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import type { User, UserCreate, UserUpdate, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
 import { useRouter } from 'next/navigation';
 import { getAccessToken } from '@/lib/auth';
+import { useAuthStore } from './authStore';
 import { initializePermissionStore, usePermissionStore } from './permissionStore';
 
 // Token 刷新定时器引用
@@ -99,6 +100,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     for (let attempt = 0; attempt < retryCount; attempt++) {
       try {
         const user = await userService.getCurrentUser();
+        useAuthStore.getState().setAuthenticated(user.id, user.username);
         setState((prev) => ({
           ...prev,
           currentUser: {
@@ -114,6 +116,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } catch (error: any) {
         lastError = error;
         if (error.message?.includes('401') || error.message?.includes('未授权')) {
+          useAuthStore.getState().setUnauthenticated();
           setState((prev) => ({
             ...prev,
             currentUser: null,
@@ -141,6 +144,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
       await userService.login(params);
+      useAuthStore.getState().initialize();
       await fetchCurrentUser();
       // 登录成功后清理权限缓存并重新获取
       usePermissionStore.getState().clearPermissions();
@@ -174,6 +178,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         error: null,
         isSuperuser: false,
       });
+      useAuthStore.getState().setUnauthenticated();
     }
   }, [clearRefreshTimer]);
 
@@ -275,6 +280,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       const hasToken = !!getAccessToken();
+      useAuthStore.getState().initialize();
       if (hasToken) {
         // 如果有 token，启动刷新定时器并获取用户信息
         startRefreshTimer();
