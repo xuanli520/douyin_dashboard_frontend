@@ -1,16 +1,37 @@
-﻿import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import { Switch } from '@/app/components/ui/switch';
 import { Textarea } from '@/app/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { granularityOptions, incrementalModeOptions, dataLatencyOptions } from './BaseForm';
+import {
+  RuleConfigFormValues,
+  dataLatencyOptions,
+  granularityOptions,
+  incrementalModeOptions,
+  validateOptionalJsonText,
+  validateOptionalNonNegativeIntegerText,
+} from './BaseForm';
+
+const EMPTY_SELECT_VALUE = '__EMPTY__';
 
 interface RuleConfigFieldsProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<RuleConfigFormValues>;
 }
 
 export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
+  const toOptionalSelectValue = (value: string) => value || EMPTY_SELECT_VALUE;
+  const fromOptionalSelectValue = (value: string) => (
+    value === EMPTY_SELECT_VALUE ? '' : value
+  );
+
   return (
     <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
       <h3 className="font-medium">规则配置</h3>
@@ -23,9 +44,8 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
             <FormItem>
               <FormLabel>粒度</FormLabel>
               <Select
-                key={`granularity-${field.value || '__EMPTY__'}`}
-                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
-                value={field.value || '__EMPTY__'}
+                onValueChange={value => field.onChange(fromOptionalSelectValue(value))}
+                value={toOptionalSelectValue(field.value)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -33,7 +53,7 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  <SelectItem value={EMPTY_SELECT_VALUE}>未设置</SelectItem>
                   {granularityOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -64,11 +84,16 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
       <FormField
         control={form.control}
         name="time_range_json"
+        rules={{ validate: validateOptionalJsonText }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>time_range (JSON)</FormLabel>
             <FormControl>
-              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"start": "2026-03-01", "end": "2026-03-08"}' {...field} />
+              <Textarea
+                className="min-h-[100px] font-mono text-xs"
+                placeholder='{"start": "2026-03-01", "end": "2026-03-08"}'
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -83,9 +108,8 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
             <FormItem>
               <FormLabel>增量模式</FormLabel>
               <Select
-                key={`incremental_mode-${field.value || '__EMPTY__'}`}
-                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
-                value={field.value || '__EMPTY__'}
+                onValueChange={value => field.onChange(fromOptionalSelectValue(value))}
+                value={toOptionalSelectValue(field.value)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -93,7 +117,7 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  <SelectItem value={EMPTY_SELECT_VALUE}>未设置</SelectItem>
                   {incrementalModeOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -109,11 +133,19 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
         <FormField
           control={form.control}
           name="backfill_last_n_days"
+          rules={{ validate: validateOptionalNonNegativeIntegerText }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>补采最近 N 天</FormLabel>
               <FormControl>
-                <Input placeholder="7" {...field} />
+                <Input
+                  inputMode="numeric"
+                  min={0}
+                  placeholder="7"
+                  step={1}
+                  type="number"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -124,11 +156,16 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
       <FormField
         control={form.control}
         name="filters_json"
+        rules={{ validate: validateOptionalJsonText }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>filters (JSON)</FormLabel>
             <FormControl>
-              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"shop_id": ["123"]}' {...field} />
+              <Textarea
+                className="min-h-[100px] font-mono text-xs"
+                placeholder='{"shop_id": ["123"]}'
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -187,9 +224,8 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
             <FormItem>
               <FormLabel>数据延迟</FormLabel>
               <Select
-                key={`data_latency-${field.value || '__EMPTY__'}`}
-                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
-                value={field.value || '__EMPTY__'}
+                onValueChange={value => field.onChange(fromOptionalSelectValue(value))}
+                value={toOptionalSelectValue(field.value)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -197,7 +233,7 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  <SelectItem value={EMPTY_SELECT_VALUE}>未设置</SelectItem>
                   {dataLatencyOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -214,11 +250,16 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
       <FormField
         control={form.control}
         name="rate_limit_json"
+        rules={{ validate: validateOptionalJsonText }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>rate_limit (JSON)</FormLabel>
             <FormControl>
-              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"qps": 10}' {...field} />
+              <Textarea
+                className="min-h-[100px] font-mono text-xs"
+                placeholder='{"qps": 10}'
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -229,11 +270,19 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
         <FormField
           control={form.control}
           name="top_n"
+          rules={{ validate: validateOptionalNonNegativeIntegerText }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Top N</FormLabel>
               <FormControl>
-                <Input placeholder="100" {...field} />
+                <Input
+                  inputMode="numeric"
+                  min={0}
+                  placeholder="100"
+                  step={1}
+                  type="number"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -261,22 +310,12 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
           name="include_long_tail"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>包含长尾</FormLabel>
-              <Select
-                key={`include_long_tail-${field.value === true ? 'true' : 'false'}`}
-                onValueChange={value => field.onChange(value === 'true')}
-                value={field.value === true ? 'true' : 'false'}
-              >
+              <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
+                <FormLabel>包含长尾</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="true">是</SelectItem>
-                  <SelectItem value="false">否</SelectItem>
-                </SelectContent>
-              </Select>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -287,22 +326,12 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
           name="session_level"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>会话级别</FormLabel>
-              <Select
-                key={`session_level-${field.value === true ? 'true' : 'false'}`}
-                onValueChange={value => field.onChange(value === 'true')}
-                value={field.value === true ? 'true' : 'false'}
-              >
+              <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
+                <FormLabel>会话级别</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="true">是</SelectItem>
-                  <SelectItem value="false">否</SelectItem>
-                </SelectContent>
-              </Select>
+              </div>
               <FormMessage />
             </FormItem>
           )}
