@@ -1,25 +1,20 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { BaseForm } from './BaseForm';
+import { useRouter } from 'next/navigation';
 import { useCreateScrapingRule } from '../../hooks/useCreateScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/app/components/ui/form';
-import { RuleConfigFields } from './RuleConfigFields';
 import {
   Select,
   SelectContent,
@@ -27,79 +22,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select';
+import { RuleConfigFields } from './RuleConfigFields';
+import {
+  RuleConfigFormValues,
+  buildRuleConfigFromForm,
+  buildRuleConfigFormDefaults,
+  targetTypeOptions,
+} from './BaseForm';
+import { TargetType } from '@/types';
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "名称至少需要2个字符。",
-  }),
-  description: z.string().optional(),
-  target_type: z.enum([
-    'SHOP_OVERVIEW', 'TRAFFIC', 'PRODUCT', 'LIVE', 'CONTENT_VIDEO',
-    'ORDER_FULFILLMENT', 'AFTERSALE_REFUND', 'CUSTOMER', 'ADS'
-  ]),
-  data_source_id: z.coerce.number(),
-  schedule_type: z.enum(['cron', 'interval', 'once']),
-  schedule_value: z.string().min(1, "调度值为必填项"),
-  is_active: z.boolean().default(true),
-  config: z.object({
-    target_url: z.string().url("必须是有效的URL").optional(),
-    timeout: z.number().default(30000),
-    retry_count: z.number().default(3),
-    max_pages: z.number().optional(),
-    selectors: z.record(z.string(), z.string()).optional(),
-  }).passthrough(),
-});
+interface CreateRuleFormValues extends RuleConfigFormValues {
+  name: string;
+  description: string;
+  target_type: TargetType;
+  data_source_id: string;
+  is_active: boolean;
+}
 
 export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
   const router = useRouter();
   const { create, loading } = useCreateScrapingRule();
   const { data: dataSources } = useDataSources({ size: 100 });
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CreateRuleFormValues>({
     defaultValues: {
-      name: "",
-      description: "",
-      target_type: "SHOP_OVERVIEW",
-      schedule_type: "once",
-      schedule_value: "0",
+      name: '',
+      description: '',
+      target_type: 'SHOP_OVERVIEW',
+      data_source_id: '',
       is_active: true,
-      config: {
-        target_url: "",
-        timeout: 30000,
-        retry_count: 3,
-        selectors: {},
-      },
+      ...buildRuleConfigFormDefaults(),
     },
   });
 
-  const targetType = form.watch("target_type") || "SHOP_OVERVIEW";
+  const setConfigError = (message: string) => {
+    if (message.startsWith('time_range')) {
+      form.setError('time_range_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('filters')) {
+      form.setError('filters_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('rate_limit')) {
+      form.setError('rate_limit_json', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('backfill_last_n_days')) {
+      form.setError('backfill_last_n_days', { type: 'validate', message });
+      return;
+    }
+    if (message.startsWith('top_n')) {
+      form.setError('top_n', { type: 'validate', message });
+      return;
+    }
+    form.setError('name', { type: 'validate', message });
+  };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: CreateRuleFormValues) {
+    if (!values.data_source_id) {
+      form.setError('data_source_id', { type: 'required', message: '请选择数据源' });
+      return;
+    }
+
     try {
-      const apiData = {
+      const config = buildRuleConfigFromForm(values);
+      await create({
         name: values.name,
-        description: values.description,
+        description: values.description || undefined,
         target_type: values.target_type,
-        data_source_id: values.data_source_id,
-        schedule: values.schedule_type === 'cron'
-          ? values.schedule_value
-          : values.schedule_type === 'interval'
-            ? values.schedule_value
-            : undefined,
+        data_source_id: Number(values.data_source_id),
         is_active: values.is_active,
-        config: values.config,
-      };
-      await create(apiData);
+        config,
+      });
+
       if (onSuccess) {
         onSuccess();
       } else {
         router.push('/scraping-rule');
       }
     } catch (error) {
-      console.error(error);
+      const message = error instanceof Error ? error.message : '创建失败';
+      setConfigError(message);
     }
-  };
+  }
 
   return (
     <Form {...form}>
@@ -107,6 +113,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
         <FormField
           control={form.control}
           name="name"
+          rules={{ required: '名称必填' }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>名称</FormLabel>
@@ -117,7 +124,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -125,36 +132,32 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
             <FormItem>
               <FormLabel>描述</FormLabel>
               <FormControl>
-                <Input placeholder="描述" {...field} />
+                <Input placeholder="可选描述" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="target_type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>目标类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="选择目标类型" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="SHOP_OVERVIEW">店铺概览</SelectItem>
-                    <SelectItem value="TRAFFIC">流量</SelectItem>
-                    <SelectItem value="PRODUCT">商品</SelectItem>
-                    <SelectItem value="LIVE">直播</SelectItem>
-                    <SelectItem value="CONTENT_VIDEO">短视频</SelectItem>
-                    <SelectItem value="ORDER_FULFILLMENT">订单履约</SelectItem>
-                    <SelectItem value="AFTERSALE_REFUND">售后退款</SelectItem>
-                    <SelectItem value="CUSTOMER">客户</SelectItem>
-                    <SelectItem value="ADS">广告</SelectItem>
+                    {targetTypeOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -168,15 +171,15 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
             render={({ field }) => (
               <FormItem>
                 <FormLabel>数据源</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="选择数据源" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {dataSources?.items?.map((ds) => (
-                      <SelectItem key={ds.id} value={ds.id.toString()}>
+                    {dataSources?.items?.map(ds => (
+                      <SelectItem key={ds.id} value={String(ds.id)}>
                         {ds.name}
                       </SelectItem>
                     ))}
@@ -188,54 +191,38 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name="schedule_type"
+            name="is_active"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>调度类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel>状态</FormLabel>
+                <Select onValueChange={value => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="选择调度类型" />
+                      <SelectValue />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="once">一次</SelectItem>
-                    <SelectItem value="interval">间隔</SelectItem>
-                    <SelectItem value="cron">Cron表达式</SelectItem>
+                    <SelectItem value="true">启用</SelectItem>
+                    <SelectItem value="false">停用</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <FormField
-            control={form.control}
-            name="schedule_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度值</FormLabel>
-                <FormControl>
-                  <Input placeholder="例如: 3600 或 0 * * * *" {...field} />
-                </FormControl>
-                <FormDescription>间隔为秒数，Cron为Cron表达式。</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
-        <RuleConfigFields form={form} type={targetType} />
+        <RuleConfigFields form={form} />
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel || (() => router.back())}>
             取消
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? "创建中..." : "创建规则"}
+            {loading ? '创建中...' : '创建规则'}
           </Button>
         </div>
       </form>

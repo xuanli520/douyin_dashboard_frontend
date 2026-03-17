@@ -1,11 +1,14 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
+import { Plus, Filter } from 'lucide-react';
+import { toast } from 'sonner';
 import { RuleTable } from './RuleTable';
 import { useScrapingRules } from '../../hooks/useScrapingRules';
 import { useDeleteScrapingRule } from '../../hooks/useDeleteScrapingRule';
 import { useActivateScrapingRule } from '../../hooks/useActivateScrapingRule';
-import { Plus, Filter } from 'lucide-react';
+import { ScrapingRule } from '../../services/types';
+import { shopDashboardApi } from '@/features/shop-dashboard/services/shopDashboardApi';
 import { Input } from '@/app/components/ui/input';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
@@ -19,7 +22,6 @@ import {
   SelectValue,
 } from '@/app/components/ui/select';
 
-
 export function ScrapingRuleList() {
   const { data, loading, error, refresh, filters, updateFilters } = useScrapingRules();
   const { remove } = useDeleteScrapingRule();
@@ -28,6 +30,7 @@ export function ScrapingRuleList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [triggeringRuleId, setTriggeringRuleId] = useState<number | null>(null);
 
   const handleDelete = (id: number) => {
     setRuleToDelete(id);
@@ -35,7 +38,9 @@ export function ScrapingRuleList() {
   };
 
   const confirmDelete = async () => {
-    if (ruleToDelete === null) return;
+    if (ruleToDelete === null) {
+      return;
+    }
     await remove(ruleToDelete);
     refresh();
     setDeleteDialogOpen(false);
@@ -44,6 +49,21 @@ export function ScrapingRuleList() {
   const handleToggleActive = async (id: number, active: boolean) => {
     await activate(id, active);
     refresh();
+  };
+
+  const handleTrigger = async (rule: ScrapingRule) => {
+    setTriggeringRuleId(rule.id);
+    try {
+      const result = await shopDashboardApi.triggerShopDashboardCollection({
+        data_source_id: rule.data_source_id,
+        rule_id: rule.id,
+      });
+      toast.success(`触发成功，执行ID: ${result.execution.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '触发采集失败');
+    } finally {
+      setTriggeringRuleId(null);
+    }
   };
 
   const handleCreateSuccess = () => {
@@ -56,7 +76,7 @@ export function ScrapingRuleList() {
   };
 
   const handleSizeChange = (size: number) => {
-    updateFilters({ size: size, page: 1 });
+    updateFilters({ size, page: 1 });
   };
 
   return (
@@ -78,13 +98,13 @@ export function ScrapingRuleList() {
           <Input
             placeholder="搜索规则..."
             value={filters.name || ''}
-            onChange={(e) => updateFilters({ name: e.target.value, page: 1 })}
+            onChange={event => updateFilters({ name: event.target.value, page: 1 })}
             className="filter-input w-[220px] pl-9"
           />
         </div>
         <Select
           value={filters.target_type || 'all'}
-          onValueChange={(value) => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
+          onValueChange={value => updateFilters({ target_type: value === 'all' ? undefined : value as any, page: 1 })}
         >
           <SelectTrigger className="filter-input w-[150px]">
             <SelectValue placeholder="全部类型" />
@@ -104,7 +124,7 @@ export function ScrapingRuleList() {
         </Select>
       </div>
 
-      {error && <div className="text-left text-red-500 py-8">错误: {error.message}</div>}
+      {error && <div className="py-8 text-left text-red-500">错误: {error.message}</div>}
 
       {!error && (
         <RuleTable
@@ -115,6 +135,8 @@ export function ScrapingRuleList() {
           onSizeChange={handleSizeChange}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
+          onTrigger={handleTrigger}
+          triggeringRuleId={triggeringRuleId}
         />
       )}
 
@@ -122,11 +144,11 @@ export function ScrapingRuleList() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
-        description="确定要删除此规则吗？此操作无法撤销。"
+        description="确定要删除此规则吗？此操作不可撤销。"
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[720px]">
           <DialogHeader>
             <DialogTitle>创建采集规则</DialogTitle>
           </DialogHeader>

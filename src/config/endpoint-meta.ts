@@ -29,6 +29,11 @@ export const ENDPOINT_META: Record<string, EndpointMeta> = {
     expectedRelease: '2026-03-10',
     description: '调度能力开发中',
   },
+  '/api/v1/schedules/:schedule_id': {
+    status: 'development',
+    expectedRelease: '2026-03-10',
+    description: '调度详情与修改删除能力开发中',
+  },
   '/api/v1/shops': {
     status: 'development',
     expectedRelease: '2026-03-10',
@@ -54,15 +59,20 @@ export const ENDPOINT_META: Record<string, EndpointMeta> = {
     expectedRelease: '2026-03-10',
     description: '任务执行能力开发中',
   },
+  '/api/v1/tasks/:task_id': {
+    status: 'development',
+    expectedRelease: '2026-03-10',
+    description: '任务详情与修改删除能力开发中',
+  },
   '/api/v1/tasks/:task_id/executions': {
     status: 'development',
     expectedRelease: '2026-03-10',
     description: '任务执行记录能力开发中',
   },
-  '/api/v1/tasks/:task_id/stop': {
+  '/api/v1/tasks/:task_id/cancel': {
     status: 'development',
     expectedRelease: '2026-03-10',
-    description: '任务停止能力开发中',
+    description: '任务取消能力开发中',
   },
 };
 

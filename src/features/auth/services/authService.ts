@@ -24,7 +24,7 @@ export const authService = {
       formData.append('username', credentials.username);
       formData.append('password', credentials.password);
       
-      const response = await httpClient.post<TokenResponse>(
+      const response = await httpClient.post<ApiResponse<TokenResponse>>(
         API_ENDPOINTS.JWT_LOGIN,
         formData,
         {
@@ -33,13 +33,15 @@ export const authService = {
           },
         }
       );
+
+      const tokenData = response.data;
       
       storeTokens({
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
       });
       
-      return response;
+      return tokenData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
@@ -75,14 +77,16 @@ export const authService = {
         throw new Error('No refresh token');
       }
       
-      const response = await httpClient.post<{ access_token: string; token_type: string }>(
+      const response = await httpClient.post<ApiResponse<{ access_token: string; token_type: string }>>(
         `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshToken)}`
       );
+
+      const tokenData = response.data;
       
       storeTokens({
-        access_token: response.access_token,
+        access_token: tokenData.access_token,
       });
-      return response;
+      return tokenData;
     },
   },
 };

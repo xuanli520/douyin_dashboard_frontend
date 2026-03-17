@@ -70,9 +70,18 @@ describe('scrapingRuleApi', () => {
   });
 
   describe('getById', () => {
-    it('should fetch single scraping rule', async () => {
+    it('should fetch single scraping rule with schedule-only contract', async () => {
       const mockResponse = {
-        data: { id: 1, name: 'Test Rule', target_type: 'SHOP_OVERVIEW', is_active: true },
+        data: {
+          id: 1,
+          name: 'Test Rule',
+          target_type: 'SHOP_OVERVIEW',
+          is_active: true,
+          schedule: '0 * * * *',
+          schedule_type: 'cron',
+          schedule_value: '0 * * * *',
+          config: {},
+        },
       };
       vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
 
@@ -80,19 +89,32 @@ describe('scrapingRuleApi', () => {
 
       expect(result.id).toBe(1);
       expect(result.name).toBe('Test Rule');
+      expect(result.schedule).toBe('0 * * * *');
+      expect(result).not.toHaveProperty('schedule_type');
+      expect(result).not.toHaveProperty('schedule_value');
     });
   });
 
   describe('create', () => {
-    it('should create scraping rule', async () => {
+    it('should create scraping rule with backend editable config fields', async () => {
       const mockData = {
         name: 'New Rule',
         data_source_id: 1,
         target_type: 'SHOP_OVERVIEW' as const,
-        config: {},
+        schedule: '0 */2 * * *',
+        config: {
+          granularity: 'DAY' as const,
+          timezone: 'Asia/Shanghai',
+          time_range: { start: '2026-03-01', end: '2026-03-08' },
+          incremental_mode: 'BY_DATE' as const,
+          filters: { shop_id: ['1001'] },
+          dimensions: ['date', 'shop_id'],
+          metrics: ['gmv', 'order_count'],
+          data_latency: 'T+1' as const,
+        },
       };
       const mockResponse = {
-        data: { id: 1, name: 'New Rule', target_type: 'SHOP_OVERVIEW', is_active: true },
+        data: { id: 1, name: 'New Rule', target_type: 'SHOP_OVERVIEW', is_active: true, schedule: '0 */2 * * *', config: mockData.config },
       };
       vi.mocked(httpClient.post).mockResolvedValue(mockResponse);
 
@@ -101,11 +123,18 @@ describe('scrapingRuleApi', () => {
       expect(httpClient.post).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          name: 'New Rule',
+          name: mockData.name,
+          data_source_id: mockData.data_source_id,
+          target_type: mockData.target_type,
+          config: mockData.config,
         })
       );
+      const calledPayload = vi.mocked(httpClient.post).mock.calls[0][1] as Record<string, unknown>;
+      expect(calledPayload).not.toHaveProperty('schedule');
       expect(result.id).toBe(1);
       expect(result.name).toBe('New Rule');
+      expect(result).not.toHaveProperty('schedule_type');
+      expect(result).not.toHaveProperty('schedule_value');
     });
   });
 

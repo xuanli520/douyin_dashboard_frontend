@@ -339,7 +339,7 @@ href={subItem.href || '#'}
       {/* Decorative Glow */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#C8FDE6]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-      <nav className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto overflow-x-hidden sidebar-scrollbar">
+      <nav className="flex-1 min-h-0 py-6 flex flex-col gap-2 overflow-y-auto overflow-x-hidden sidebar-scrollbar">
         {menuItems.filter(item => {
           if (!item.perm) return true;
           return can({ is_superuser: isSuperuser, permissions: userPermissions }, item.perm);

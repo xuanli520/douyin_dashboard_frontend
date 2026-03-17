@@ -1,206 +1,172 @@
-'use client';
+﻿import {
+  ScrapingRuleConfig,
+  ScrapingRuleDataLatency,
+  ScrapingRuleGranularity,
+  ScrapingRuleIncrementalMode,
+  TargetType,
+} from '@/types';
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/app/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/app/components/ui/form';
-import { Input } from '@/app/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { RuleConfigFields } from './RuleConfigFields';
-import { DataSource } from '@/features/data-source/services/types';
-
-export const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "名称至少需要2个字符。",
-  }),
-  description: z.string().optional(),
-  rule_type: z.enum(['orders', 'products', 'users', 'comments']),
-  data_source_id: z.coerce.number(),
-  schedule_type: z.enum(['cron', 'interval', 'once']),
-  schedule_value: z.string().min(1, "调度值为必填项"),
-  config: z.object({
-    target_url: z.string().url("必须是有效的URL").optional(),
-    timeout: z.number().default(30000),
-    retry_count: z.number().default(3),
-    max_pages: z.number().optional(),
-    selectors: z.record(z.string(), z.string()).optional(),
-  }).passthrough(),
-});
-
-export type ScrapingRuleFormData = z.infer<typeof formSchema>;
-
-export interface BaseFormProps {
-  initialData?: any;
-  dataSources?: DataSource[];
-  onSubmit: (data: any) => Promise<void>;
-  onCancel: () => void;
-  submitLabel: string;
-  isLoading?: boolean;
+export interface RuleConfigFormValues {
+  granularity: ScrapingRuleGranularity | '';
+  timezone: string;
+  time_range_json: string;
+  incremental_mode: ScrapingRuleIncrementalMode | '';
+  backfill_last_n_days: string;
+  filters_json: string;
+  dimensions_text: string;
+  metrics_text: string;
+  dedupe_key: string;
+  rate_limit_json: string;
+  data_latency: ScrapingRuleDataLatency | '';
+  top_n: string;
+  sort_by: string;
+  include_long_tail: boolean;
+  session_level: boolean;
 }
 
-export function BaseForm({
-  initialData,
-  dataSources,
-  onSubmit,
-  onCancel,
-  submitLabel,
-  isLoading = false,
-}: BaseFormProps) {
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      rule_type: "orders",
-      schedule_type: "once",
-      schedule_value: "0",
-      config: {
-        target_url: "",
-        timeout: 30000,
-        retry_count: 3,
-        selectors: {},
-      },
-      ...initialData,
-    },
-  });
+export const targetTypeOptions: Array<{ value: TargetType; label: string }> = [
+  { value: 'SHOP_OVERVIEW', label: '店铺概览' },
+  { value: 'TRAFFIC', label: '流量' },
+  { value: 'PRODUCT', label: '商品' },
+  { value: 'LIVE', label: '直播' },
+  { value: 'CONTENT_VIDEO', label: '短视频' },
+  { value: 'ORDER_FULFILLMENT', label: '订单履约' },
+  { value: 'AFTERSALE_REFUND', label: '售后退款' },
+  { value: 'CUSTOMER', label: '客户' },
+  { value: 'ADS', label: '广告' },
+];
 
-  const ruleType = form.watch("rule_type");
+export const granularityOptions: Array<{ value: ScrapingRuleGranularity; label: string }> = [
+  { value: 'HOUR', label: '小时' },
+  { value: 'DAY', label: '天' },
+  { value: 'WEEK', label: '周' },
+  { value: 'MONTH', label: '月' },
+];
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>名称</FormLabel>
-              <FormControl>
-                <Input placeholder="规则名称" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>描述</FormLabel>
-              <FormControl>
-                <Input placeholder="描述" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+export const incrementalModeOptions: Array<{ value: ScrapingRuleIncrementalMode; label: string }> = [
+  { value: 'BY_DATE', label: '按日期' },
+  { value: 'BY_CURSOR', label: '按游标' },
+];
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="rule_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="orders">订单</SelectItem>
-                    <SelectItem value="products">商品</SelectItem>
-                    <SelectItem value="users">用户</SelectItem>
-                    <SelectItem value="comments">评论</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+export const dataLatencyOptions: Array<{ value: ScrapingRuleDataLatency; label: string }> = [
+  { value: 'REALTIME', label: '实时' },
+  { value: 'T+1', label: 'T+1' },
+  { value: 'T+2', label: 'T+2' },
+  { value: 'T+3', label: 'T+3' },
+];
 
-          <FormField
-            control={form.control}
-            name="data_source_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>数据源</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择数据源" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {dataSources?.map((ds) => (
-                      <SelectItem key={ds.id} value={ds.id.toString()}>
-                        {ds.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+function toJsonText(value: unknown): string {
+  if (value === undefined) {
+    return '';
+  }
+  return JSON.stringify(value, null, 2);
+}
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="schedule_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度类型</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择调度类型" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="once">一次</SelectItem>
-                    <SelectItem value="interval">间隔</SelectItem>
-                    <SelectItem value="cron">Cron表达式</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+function parseJsonField(value: string, fieldName: string): Record<string, unknown> {
+  try {
+    return JSON.parse(value) as Record<string, unknown>;
+  } catch {
+    throw new Error(`${fieldName} 不是合法 JSON`);
+  }
+}
 
-          <FormField
-            control={form.control}
-            name="schedule_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>调度值</FormLabel>
-                <FormControl>
-                  <Input placeholder="例如: 3600 或 0 * * * *" {...field} />
-                </FormControl>
-                <FormDescription>间隔为秒数，Cron为Cron表达式。</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+function parseOptionalNumber(value: string, fieldName: string): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${fieldName} 不是合法数字`);
+  }
+  return parsed;
+}
 
-        <RuleConfigFields form={form} type={ruleType} />
+function parseListField(value: string): string[] {
+  return value
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            取消
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "处理中..." : submitLabel}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
+export function buildRuleConfigFormDefaults(config?: ScrapingRuleConfig): RuleConfigFormValues {
+  return {
+    granularity: config?.granularity || '',
+    timezone: config?.timezone || '',
+    time_range_json: toJsonText(config?.time_range),
+    incremental_mode: config?.incremental_mode || '',
+    backfill_last_n_days: config?.backfill_last_n_days !== undefined ? String(config.backfill_last_n_days) : '',
+    filters_json: toJsonText(config?.filters),
+    dimensions_text: config?.dimensions?.join(', ') || '',
+    metrics_text: config?.metrics?.join(', ') || '',
+    dedupe_key: config?.dedupe_key || '',
+    rate_limit_json: toJsonText(config?.rate_limit),
+    data_latency: config?.data_latency || '',
+    top_n: config?.top_n !== undefined ? String(config.top_n) : '',
+    sort_by: config?.sort_by || '',
+    include_long_tail: config?.include_long_tail ?? false,
+    session_level: config?.session_level ?? false,
+  };
+}
+
+export function buildRuleConfigFromForm(values: RuleConfigFormValues): ScrapingRuleConfig {
+  const config: ScrapingRuleConfig = {
+    include_long_tail: values.include_long_tail,
+    session_level: values.session_level,
+  };
+
+  if (values.granularity) {
+    config.granularity = values.granularity;
+  }
+  if (values.timezone.trim()) {
+    config.timezone = values.timezone.trim();
+  }
+  if (values.time_range_json.trim()) {
+    config.time_range = parseJsonField(values.time_range_json, 'time_range');
+  }
+  if (values.incremental_mode) {
+    config.incremental_mode = values.incremental_mode;
+  }
+
+  const backfillLastNDays = parseOptionalNumber(values.backfill_last_n_days, 'backfill_last_n_days');
+  if (backfillLastNDays !== undefined) {
+    config.backfill_last_n_days = backfillLastNDays;
+  }
+
+  if (values.filters_json.trim()) {
+    config.filters = parseJsonField(values.filters_json, 'filters');
+  }
+
+  const dimensions = parseListField(values.dimensions_text);
+  if (dimensions.length > 0) {
+    config.dimensions = dimensions;
+  }
+
+  const metrics = parseListField(values.metrics_text);
+  if (metrics.length > 0) {
+    config.metrics = metrics;
+  }
+
+  if (values.dedupe_key.trim()) {
+    config.dedupe_key = values.dedupe_key.trim();
+  }
+
+  if (values.rate_limit_json.trim()) {
+    config.rate_limit = parseJsonField(values.rate_limit_json, 'rate_limit');
+  }
+
+  if (values.data_latency) {
+    config.data_latency = values.data_latency;
+  }
+
+  const topN = parseOptionalNumber(values.top_n, 'top_n');
+  if (topN !== undefined) {
+    config.top_n = topN;
+  }
+
+  if (values.sort_by.trim()) {
+    config.sort_by = values.sort_by.trim();
+  }
+
+  return config;
 }

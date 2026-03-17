@@ -69,7 +69,7 @@ export default function MainLayout({
         <Header />
 
         {/* 页面内容 */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto p-6">
           {children}
         </main>
       </div>

@@ -1,105 +1,294 @@
-import React from 'react';
+﻿import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/app/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
-import { TargetType } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { granularityOptions, incrementalModeOptions, dataLatencyOptions } from './BaseForm';
 
 interface RuleConfigFieldsProps {
   form: UseFormReturn<any>;
-  type: TargetType;
 }
 
-export function RuleConfigFields({ form, type }: RuleConfigFieldsProps) {
+export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-muted/50">
-      <h3 className="font-medium mb-2">规则配置</h3>
-      
+    <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
+      <h3 className="font-medium">规则配置</h3>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="granularity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>粒度</FormLabel>
+              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择粒度" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  {granularityOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="timezone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>时区</FormLabel>
+              <FormControl>
+                <Input placeholder="Asia/Shanghai" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
       <FormField
         control={form.control}
-        name="config.target_url"
+        name="time_range_json"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>目标URL</FormLabel>
+            <FormLabel>time_range (JSON)</FormLabel>
             <FormControl>
-              <Input placeholder="https://..." {...field} value={field.value || ''} />
+              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"start": "2026-03-01", "end": "2026-03-08"}' {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {type === 'PRODUCT' && (
-        <>
-          <FormField
-            control={form.control}
-            name="config.selectors.item"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>元素选择器 (CSS)</FormLabel>
-                <FormControl>
-                  <Input placeholder=".item-card" {...field} value={field.value || ''} />
-                </FormControl>
-                <FormDescription>列表中每个元素的CSS选择器</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="config.max_pages"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>最大页数</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} value={field.value || ''} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </>
-      )}
-
-      {(type === 'PRODUCT' || type === 'ORDER_FULFILLMENT') && (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
-          name="config.selectors.title"
+          name="incremental_mode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>标题选择器</FormLabel>
+              <FormLabel>增量模式</FormLabel>
+              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择增量模式" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  {incrementalModeOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="backfill_last_n_days"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>补采最近 N 天</FormLabel>
               <FormControl>
-                <Input placeholder="h1.title" {...field} value={field.value || ''} />
+                <Input placeholder="7" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-      )}
+      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <FormField
+        control={form.control}
+        name="filters_json"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>filters (JSON)</FormLabel>
+            <FormControl>
+              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"shop_id": ["123"]}' {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
-          name="config.timeout"
+          name="dimensions_text"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>超时时间 (毫秒)</FormLabel>
+              <FormLabel>dimensions (逗号分隔)</FormLabel>
               <FormControl>
-                <Input type="number" {...field} value={field.value || 30000} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                <Input placeholder="date, shop_id" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="config.retry_count"
+          name="metrics_text"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>重试次数</FormLabel>
+              <FormLabel>metrics (逗号分隔)</FormLabel>
               <FormControl>
-                <Input type="number" {...field} value={field.value || 3} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                <Input placeholder="gmv, order_count" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="dedupe_key"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>去重键</FormLabel>
+              <FormControl>
+                <Input placeholder="order_id" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="data_latency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>数据延迟</FormLabel>
+              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择数据延迟" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="__EMPTY__">未设置</SelectItem>
+                  {dataLatencyOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="rate_limit_json"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>rate_limit (JSON)</FormLabel>
+            <FormControl>
+              <Textarea className="min-h-[100px] font-mono text-xs" placeholder='{"qps": 10}' {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="top_n"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Top N</FormLabel>
+              <FormControl>
+                <Input placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="sort_by"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>排序字段</FormLabel>
+              <FormControl>
+                <Input placeholder="gmv" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="include_long_tail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>包含长尾</FormLabel>
+              <Select
+                onValueChange={value => field.onChange(value === 'true')}
+                value={field.value ? 'true' : 'false'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="true">是</SelectItem>
+                  <SelectItem value="false">否</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="session_level"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>会话级别</FormLabel>
+              <Select
+                onValueChange={value => field.onChange(value === 'true')}
+                value={field.value ? 'true' : 'false'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="true">是</SelectItem>
+                  <SelectItem value="false">否</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

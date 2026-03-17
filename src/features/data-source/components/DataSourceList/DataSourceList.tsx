@@ -1,17 +1,17 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Search, Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { DataSourceTable } from './DataSourceTable';
+import { DataSourceForm } from '../DataSourceForm';
 import { useDataSources } from '../../hooks/useDataSources';
 import { useCreateDataSource } from '../../hooks/useCreateDataSource';
 import { useUpdateDataSource } from '../../hooks/useUpdateDataSource';
 import { useDeleteDataSource } from '../../hooks/useDeleteDataSource';
-import { DataSourceTable } from './DataSourceTable';
-import { DataSourceForm } from '../DataSourceForm';
-import { Search, Plus } from 'lucide-react';
 import { DataSourceType, DataSourceStatus, DataSourceCreate, DataSource } from '../../services/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
-import { toast } from 'sonner';
 import { useQueryState } from '@/app/(main)/admin/_components/common/QueryState';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import {
@@ -26,7 +26,7 @@ interface DataSourceQuery {
   page: number;
   size: number;
   name?: string;
-  type?: string;
+  source_type?: string;
   status?: string;
 }
 
@@ -35,27 +35,26 @@ const dataSourceQueryCodec = {
     page: Number(sp.get('page')) || 1,
     size: Number(sp.get('size')) || 10,
     name: sp.get('name') || undefined,
-    type: sp.get('type') || 'all',
+    source_type: sp.get('source_type') || 'all',
     status: sp.get('status') || 'all',
   }),
   serialize: (state: DataSourceQuery) => ({
     page: state.page?.toString(),
     size: state.size?.toString(),
     name: state.name,
-    type: state.type === 'all' ? undefined : state.type,
+    source_type: state.source_type === 'all' ? undefined : state.source_type,
     status: state.status === 'all' ? undefined : state.status,
   }),
-  resetPageOnChangeKeys: ['name', 'type', 'status', 'size'] as ('name' | 'type' | 'status' | 'size')[]
+  resetPageOnChangeKeys: ['name', 'source_type', 'status', 'size'] as ('name' | 'source_type' | 'status' | 'size')[],
 };
 
 export function DataSourceList() {
   const [query, setQuery] = useQueryState(dataSourceQueryCodec);
   const { data, loading, refetch } = useDataSources({
     ...query,
-    // 过滤掉 'all' 值，只传有效的枚举值
-    status: query.status === 'all' ? undefined : query.status,
-    type: query.type === 'all' ? undefined : query.type,
-  } as any);
+    source_type: query.source_type === 'all' ? undefined : query.source_type as DataSourceType,
+    status: query.status === 'all' ? undefined : query.status as DataSourceStatus,
+  });
   const { create, loading: creating } = useCreateDataSource();
   const { update, loading: updating } = useUpdateDataSource();
   const { remove, loading: deleting } = useDeleteDataSource();
@@ -72,16 +71,17 @@ export function DataSourceList() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    setSearchText(query.name || '');
+  }, [query.name]);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
     setSearchText(value);
-    setQuery({ name: value, page: 1 });
+    setQuery({ name: value || undefined, page: 1 });
   };
 
   const handleTypeChange = (value: string) => {
-    setQuery({ type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
+    setQuery({ source_type: value === 'all' ? undefined : value as DataSourceType, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
@@ -93,33 +93,38 @@ export function DataSourceList() {
       await create(formData);
       toast.success('数据源创建成功');
       setIsCreateOpen(false);
-      refetch();
+      await refetch();
     } catch (error) {
-      toast.error('创建数据源失败');
+      const message = error instanceof Error ? error.message : '创建数据源失败';
+      toast.error(message);
       console.error(error);
     }
   };
 
   const handleUpdate = async (formData: DataSourceCreate) => {
-    if (!editingId) return;
+    if (!editingId) {
+      return;
+    }
     try {
       await update(editingId, formData);
       toast.success('数据源更新成功');
       setEditingId(null);
       setEditingSource(undefined);
-      refetch();
+      await refetch();
     } catch (error) {
-      toast.error('更新数据源失败');
+      const message = error instanceof Error ? error.message : '更新数据源失败';
+      toast.error(message);
       console.error(error);
     }
   };
 
   const handleEditClick = (id: number) => {
     const source = data?.items?.find(item => item.id === id);
-    if (source) {
-      setEditingSource(source);
-      setEditingId(id);
+    if (!source) {
+      return;
     }
+    setEditingSource(source);
+    setEditingId(id);
   };
 
   const handleDeleteClick = (id: number) => {
@@ -128,12 +133,14 @@ export function DataSourceList() {
   };
 
   const confirmDelete = async () => {
-    if (!sourceToDelete) return;
+    if (!sourceToDelete) {
+      return;
+    }
     try {
       await remove(sourceToDelete);
       toast.success('数据源删除成功');
       setDeleteDialogOpen(false);
-      refetch();
+      await refetch();
     } catch (error) {
       toast.error('删除数据源失败');
       console.error(error);
@@ -145,7 +152,7 @@ export function DataSourceList() {
   };
 
   const handleSizeChange = (size: number) => {
-    setQuery({ size: size, page: 1 });
+    setQuery({ size, page: 1 });
   };
 
   return (
@@ -163,15 +170,17 @@ export function DataSourceList() {
       </div>
 
       <div className="filter-bar-container flex flex-wrap items-center gap-3">
-        <Select value={mounted ? (filters.type || 'all') : 'all'} onValueChange={handleTypeChange}>
+        <Select value={mounted ? (filters.source_type || 'all') : 'all'} onValueChange={handleTypeChange}>
           <SelectTrigger className="filter-input w-[160px]">
             <SelectValue placeholder="全部类型" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部类型</SelectItem>
-            <SelectItem value="DOUYIN_API">抖音API</SelectItem>
+            <SelectItem value="DOUYIN_API">抖音 API</SelectItem>
+            <SelectItem value="DOUYIN_SHOP">抖音小店</SelectItem>
+            <SelectItem value="DOUYIN_APP">抖音 App</SelectItem>
             <SelectItem value="FILE_UPLOAD">文件上传</SelectItem>
-            <SelectItem value="SELF_HOSTED">数据库</SelectItem>
+            <SelectItem value="SELF_HOSTED">自托管</SelectItem>
             <SelectItem value="FILE_IMPORT">文件导入</SelectItem>
           </SelectContent>
         </Select>
@@ -182,7 +191,7 @@ export function DataSourceList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部状态</SelectItem>
-            <SelectItem value="ACTIVE">活跃</SelectItem>
+            <SelectItem value="ACTIVE">启用</SelectItem>
             <SelectItem value="INACTIVE">停用</SelectItem>
             <SelectItem value="ERROR">错误</SelectItem>
           </SelectContent>
@@ -211,7 +220,7 @@ export function DataSourceList() {
       />
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[720px]">
           <DialogHeader>
             <DialogTitle>添加新数据源</DialogTitle>
           </DialogHeader>
@@ -224,7 +233,7 @@ export function DataSourceList() {
       </Dialog>
 
       <Dialog open={!!editingId} onOpenChange={(open) => !open && setEditingId(null)}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[720px]">
           <DialogHeader>
             <DialogTitle>编辑数据源</DialogTitle>
           </DialogHeader>
@@ -245,7 +254,7 @@ export function DataSourceList() {
         onConfirm={confirmDelete}
         isLoading={deleting}
         title="确认删除数据源？"
-        description="此操作无法撤销，将永久删除该数据源及其所有配置。"
+        description="此操作不可撤销，将永久删除该数据源及其关联配置。"
       />
     </div>
   );

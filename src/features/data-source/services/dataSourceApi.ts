@@ -2,7 +2,8 @@ import { httpClient } from '@/lib/http/client';
 import { ApiResponse, PaginatedData } from '@/lib/http/types';
 import { API_ENDPOINTS } from '@/config/api';
 import {
-  DataSource,
+  DataSourceStatus,
+  DataSourceType,
   DataSourceCreate,
   DataSourceUpdate,
   DataSourceResponse,
@@ -11,10 +12,15 @@ import {
 
 export interface DataSourceFilter {
   name?: string;
-  status?: string;
-  source_type?: string;
+  status?: DataSourceStatus;
+  source_type?: DataSourceType;
   page?: number;
   size?: number;
+}
+
+export interface ShopDashboardLoginStateUploadPayload {
+  accountId: string;
+  storageState: Record<string, unknown>;
 }
 
 export const dataSourceApi = {
@@ -85,6 +91,31 @@ export const dataSourceApi = {
       API_ENDPOINTS.DATA_SOURCE_VALIDATE(id)
     );
     return response.data;
+  },
+
+  uploadShopDashboardLoginState: async (
+    id: number,
+    payload: ShopDashboardLoginStateUploadPayload
+  ): Promise<DataSourceResponse> => {
+    const formData = new FormData();
+    formData.append('account_id', payload.accountId);
+    formData.append(
+      'file',
+      new Blob([JSON.stringify(payload.storageState)], { type: 'application/json' }),
+      'storage_state.json'
+    );
+
+    const response = await httpClient.post<ApiResponse<DataSourceResponse>>(
+      API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(id),
+      formData
+    );
+    return response.data;
+  },
+
+  clearShopDashboardLoginState: async (id: number): Promise<void> => {
+    await httpClient.delete<ApiResponse<void>>(
+      API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(id)
+    );
   },
 
   getScrapingRules: async (id: number): Promise<ScrapingRuleListItem[]> => {

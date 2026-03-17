@@ -138,6 +138,10 @@
   opacity: 1;
 }
 
+.layout.layout-initializing .react-grid-item {
+  transition: none !important;
+}
+
 /* Charts / SVG inherit unified font */
 :root .recharts-wrapper text,
 :root svg text {

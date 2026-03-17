@@ -9,8 +9,49 @@ export type DataSourceType = 'DOUYIN_API' | 'DOUYIN_SHOP' | 'DOUYIN_APP' | 'FILE
 export type DataSourceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';
 export type TargetType = 'SHOP_OVERVIEW' | 'TRAFFIC' | 'PRODUCT' | 'LIVE' | 'CONTENT_VIDEO' | 'ORDER_FULFILLMENT' | 'AFTERSALE_REFUND' | 'CUSTOMER' | 'ADS';
 export type ScrapingRuleStatus = 'ACTIVE' | 'INACTIVE';
-export type ScheduleType = 'cron' | 'interval' | 'once';
 export type ImportStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PARTIAL' | 'CANCELLED' | 'VALIDATION_FAILED';
+export type CollectionJobTaskType = 'ETL_ORDERS' | 'ETL_PRODUCTS' | 'SHOP_DASHBOARD_COLLECTION';
+export type CollectionJobStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface CollectionJobSchedule {
+  cron: string;
+  timezone: string;
+  kwargs: Record<string, unknown>;
+}
+
+export interface CollectionJobCreate {
+  name: string;
+  task_type: CollectionJobTaskType;
+  data_source_id: number;
+  rule_id: number;
+  schedule: CollectionJobSchedule;
+  status?: CollectionJobStatus;
+}
+
+export interface CollectionJobUpdate {
+  name?: string;
+  schedule?: CollectionJobSchedule;
+  status?: CollectionJobStatus;
+}
+
+export interface CollectionJobResponse {
+  id: number;
+  name: string;
+  task_type: CollectionJobTaskType;
+  data_source_id: number;
+  rule_id: number;
+  schedule: CollectionJobSchedule;
+  status: CollectionJobStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShopDashboardLoginStateMeta {
+  cookie_count?: number;
+  account_id?: string;
+  updated_at?: string;
+  state_version?: string;
+}
 
 export interface DataSourceConfig {
   url?: string;
@@ -21,6 +62,8 @@ export interface DataSourceConfig {
   username?: string;
   password?: string;
   database?: string;
+  shop_dashboard_login_state?: Record<string, unknown>;
+  shop_dashboard_login_state_meta?: ShopDashboardLoginStateMeta;
   [key: string]: unknown;
 }
 
@@ -64,15 +107,26 @@ export interface DataSourceResponse {
 
 export type PaginatedDataSourceResponse = PaginatedData<DataSourceResponse>;
 
+export type ScrapingRuleGranularity = 'HOUR' | 'DAY' | 'WEEK' | 'MONTH';
+export type ScrapingRuleIncrementalMode = 'BY_DATE' | 'BY_CURSOR';
+export type ScrapingRuleDataLatency = 'REALTIME' | 'T+1' | 'T+2' | 'T+3';
+
 export interface ScrapingRuleConfig {
-  target_url?: string;
-  selectors?: Record<string, string>;
-  max_pages?: number;
-  concurrency?: number;
-  retry_count?: number;
-  timeout?: number;
-  headers?: Record<string, string>;
-  cookies?: Record<string, string>;
+  granularity?: ScrapingRuleGranularity;
+  timezone?: string;
+  time_range?: Record<string, unknown>;
+  incremental_mode?: ScrapingRuleIncrementalMode;
+  backfill_last_n_days?: number;
+  filters?: Record<string, unknown>;
+  dimensions?: string[];
+  metrics?: string[];
+  dedupe_key?: string;
+  rate_limit?: Record<string, unknown>;
+  data_latency?: ScrapingRuleDataLatency;
+  top_n?: number;
+  sort_by?: string;
+  include_long_tail?: boolean;
+  session_level?: boolean;
   [key: string]: unknown;
 }
 
@@ -83,8 +137,6 @@ export interface ScrapingRule {
   target_type: TargetType;
   config: ScrapingRuleConfig;
   schedule?: string;
-  schedule_type?: ScheduleType;
-  schedule_value?: string;
   is_active: boolean;
   description?: string;
   created_at: string;
@@ -100,8 +152,6 @@ export interface ScrapingRuleResponse {
   target_type: TargetType;
   config: ScrapingRuleConfig;
   schedule?: string;
-  schedule_type?: ScheduleType;
-  schedule_value?: string;
   is_active: boolean;
   description?: string;
   created_at: string;
@@ -115,8 +165,6 @@ export interface ScrapingRuleListItem {
   target_type: TargetType;
   config: ScrapingRuleConfig;
   schedule?: string;
-  schedule_type?: ScheduleType;
-  schedule_value?: string;
   is_active: boolean;
   description?: string;
   created_at: string;
@@ -129,16 +177,13 @@ export interface ScrapingRuleCreate {
   name: string;
   target_type: TargetType;
   config: ScrapingRuleConfig;
-  schedule?: string;
   is_active?: boolean;
   description?: string;
 }
 
 export interface ScrapingRuleUpdate {
   name?: string;
-  target_type?: TargetType;
   config?: ScrapingRuleConfig;
-  schedule?: string;
   is_active?: boolean;
   description?: string;
 }
