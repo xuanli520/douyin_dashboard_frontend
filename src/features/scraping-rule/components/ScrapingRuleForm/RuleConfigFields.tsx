@@ -22,7 +22,11 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>粒度</FormLabel>
-              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+              <Select
+                key={`granularity-${field.value || '__EMPTY__'}`}
+                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
+                value={field.value || '__EMPTY__'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="选择粒度" />
@@ -78,7 +82,11 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>增量模式</FormLabel>
-              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+              <Select
+                key={`incremental_mode-${field.value || '__EMPTY__'}`}
+                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
+                value={field.value || '__EMPTY__'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="选择增量模式" />
@@ -178,7 +186,11 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>数据延迟</FormLabel>
-              <Select onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)} value={field.value || '__EMPTY__'}>
+              <Select
+                key={`data_latency-${field.value || '__EMPTY__'}`}
+                onValueChange={value => field.onChange(value === '__EMPTY__' ? '' : value)}
+                value={field.value || '__EMPTY__'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="选择数据延迟" />
@@ -251,8 +263,9 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
             <FormItem>
               <FormLabel>包含长尾</FormLabel>
               <Select
+                key={`include_long_tail-${field.value === true ? 'true' : 'false'}`}
                 onValueChange={value => field.onChange(value === 'true')}
-                value={field.value ? 'true' : 'false'}
+                value={field.value === true ? 'true' : 'false'}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -276,8 +289,9 @@ export function RuleConfigFields({ form }: RuleConfigFieldsProps) {
             <FormItem>
               <FormLabel>会话级别</FormLabel>
               <Select
+                key={`session_level-${field.value === true ? 'true' : 'false'}`}
                 onValueChange={value => field.onChange(value === 'true')}
-                value={field.value ? 'true' : 'false'}
+                value={field.value === true ? 'true' : 'false'}
               >
                 <FormControl>
                   <SelectTrigger>

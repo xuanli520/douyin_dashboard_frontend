@@ -143,6 +143,8 @@ export interface ScrapingRule {
   updated_at: string;
   data_source_name?: string;
   last_run_at?: string;
+  last_executed_at?: string;
+  last_execution_id?: string;
 }
 
 export interface ScrapingRuleResponse {
@@ -156,6 +158,9 @@ export interface ScrapingRuleResponse {
   description?: string;
   created_at: string;
   updated_at: string;
+  last_run_at?: string;
+  last_executed_at?: string;
+  last_execution_id?: string;
 }
 
 export interface ScrapingRuleListItem {
@@ -170,6 +175,9 @@ export interface ScrapingRuleListItem {
   created_at: string;
   updated_at: string;
   data_source_name?: string;
+  last_run_at?: string;
+  last_executed_at?: string;
+  last_execution_id?: string;
 }
 
 export interface ScrapingRuleCreate {

@@ -91,7 +91,6 @@ export function EditForm({ id }: EditFormProps) {
   };
 
   async function onSubmit(values: EditRuleFormValues) {
-
     try {
       const config = buildRuleConfigFromForm(values);
       await update(id, {
@@ -170,7 +169,11 @@ export function EditForm({ id }: EditFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>状态</FormLabel>
-                <Select onValueChange={value => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
+                <Select
+                  key={`is_active-${field.value === true ? 'true' : 'false'}`}
+                  onValueChange={value => field.onChange(value === 'true')}
+                  value={field.value === true ? 'true' : 'false'}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue />
