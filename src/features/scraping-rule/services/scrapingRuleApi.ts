@@ -12,6 +12,9 @@ const normalizeScheduleContract = <T extends object>(rule: T): T => {
   const normalized = { ...(rule as Record<string, unknown>) };
   delete normalized.schedule_type;
   delete normalized.schedule_value;
+  if (!normalized.last_run_at && typeof normalized.last_executed_at === 'string') {
+    normalized.last_run_at = normalized.last_executed_at;
+  }
   return normalized as T;
 };
 
