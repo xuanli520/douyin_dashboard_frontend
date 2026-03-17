@@ -47,7 +47,12 @@ export const useAuthStore = create<AuthStore>()(
         initialize: () => {
           const hasToken = !!getAccessToken();
           if (hasToken) {
-            set({ isLoading: false });
+            set((state) => ({
+              isAuthenticated: true,
+              isLoading: false,
+              userId: state.userId,
+              username: state.username,
+            }));
           } else {
             set({
               isAuthenticated: false,
