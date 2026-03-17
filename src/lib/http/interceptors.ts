@@ -1,4 +1,4 @@
-import { RequestInterceptor, ResponseInterceptor, HttpError, RequestConfig } from './types';
+import { RequestInterceptor, ResponseInterceptor, HttpError, HttpResponse, RequestConfig } from './types';
 import { getAccessToken, setAccessToken, getRefreshToken, clearTokens } from '@/lib/auth';
 import { API_ENDPOINTS } from '@/config/api';
 import { ENDPOINT_CONFIG } from '@/config/endpoint-config';
@@ -58,7 +58,7 @@ async function doRefreshToken(): Promise<string> {
   return newAccessToken;
 }
 
-async function retryRequest(originalConfig: RequestConfig, token: string) {
+async function retryRequest(originalConfig: RequestConfig, token: string): Promise<HttpResponse<unknown>> {
   const retryConfig: RequestConfig = {
     ...originalConfig,
     headers: {
@@ -67,7 +67,10 @@ async function retryRequest(originalConfig: RequestConfig, token: string) {
     },
   };
 
-  const res = await fetch(withBaseUrl(retryConfig.url!), retryConfig);
+  const res = await fetch(withBaseUrl(retryConfig.url!), {
+    ...retryConfig,
+    credentials: 'include',
+  });
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`) as HttpError;
     err.status = res.status;
@@ -75,12 +78,22 @@ async function retryRequest(originalConfig: RequestConfig, token: string) {
     throw err;
   }
 
-  const data = await res.json();
-  const err = new Error('Response interceptor returned non-error') as HttpError;
-  err.status = res.status;
-  err.config = retryConfig;
-  err.data = data;
-  return err;
+  const contentType = res.headers.get('content-type');
+  let data: unknown = null;
+  if (res.status !== 204 && res.status !== 205 && res.status !== 304) {
+    if (contentType?.includes('application/json')) {
+      data = await res.json();
+    } else {
+      data = await res.text();
+    }
+  }
+
+  return {
+    data,
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers,
+  };
 }
 
 function buildStatusDescription(

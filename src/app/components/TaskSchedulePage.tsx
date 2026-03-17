@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
+import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
@@ -39,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
-import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search, Clock3, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Play, XCircle, ListChecks, RefreshCw, Search, Clock3 } from 'lucide-react';
 import {
   TaskDefinition,
   TaskDefinitionStatus,
@@ -413,24 +414,18 @@ interface TaskActionsMenuProps {
   task: TaskDefinition;
   isRunning: boolean;
   isCancelling: boolean;
-  isDeleting: boolean;
   onRun: (task: TaskDefinition) => void;
   onViewExecutions: (task: TaskDefinition) => void;
-  onEdit: (task: TaskDefinition) => void;
   onCancel: (task: TaskDefinition) => void;
-  onDelete: (task: TaskDefinition) => void;
 }
 
 function TaskActionsMenu({
   task,
   isRunning,
   isCancelling,
-  isDeleting,
   onRun,
   onViewExecutions,
-  onEdit,
   onCancel,
-  onDelete,
 }: TaskActionsMenuProps) {
   return (
     <DropdownMenu>
@@ -450,10 +445,6 @@ function TaskActionsMenu({
           <ListChecks className="mr-2 h-4 w-4" />
           执行记录
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(task)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          编辑任务
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => onCancel(task)}
@@ -463,16 +454,61 @@ function TaskActionsMenu({
           <XCircle className="mr-2 h-4 w-4" />
           {isCancelling ? '取消中...' : '取消任务'}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onDelete(task)}
-          disabled={isDeleting}
-          className="text-red-600 focus:text-red-600"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          {isDeleting ? '删除中...' : '删除任务'}
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+interface TaskActionsProps {
+  task: TaskDefinition;
+  isRunning: boolean;
+  isCancelling: boolean;
+  isDeleting: boolean;
+  onRun: (task: TaskDefinition) => void;
+  onViewExecutions: (task: TaskDefinition) => void;
+  onEdit: (task: TaskDefinition) => void;
+  onCancel: (task: TaskDefinition) => void;
+  onDelete: (task: TaskDefinition) => void;
+}
+
+function TaskActions({
+  task,
+  isRunning,
+  isCancelling,
+  isDeleting,
+  onRun,
+  onViewExecutions,
+  onEdit,
+  onCancel,
+  onDelete,
+}: TaskActionsProps) {
+  return (
+    <div className="flex items-center justify-end gap-4 text-sm font-mono">
+      <button
+        type="button"
+        onClick={() => onEdit(task)}
+        disabled={isDeleting}
+        className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 hover:underline decoration-cyan-500/50 underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+      >
+        编辑
+      </button>
+      <button
+        type="button"
+        onClick={() => onDelete(task)}
+        disabled={isDeleting}
+        className="text-rose-600 dark:text-rose-400 hover:text-rose-500 dark:hover:text-rose-300 hover:underline decoration-rose-500/50 underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+      >
+        {isDeleting ? '删除中...' : '删除'}
+      </button>
+      <TaskActionsMenu
+        task={task}
+        isRunning={isRunning}
+        isCancelling={isCancelling}
+        onRun={onRun}
+        onViewExecutions={onViewExecutions}
+        onCancel={onCancel}
+      />
+    </div>
   );
 }
 
@@ -697,6 +733,8 @@ export default function TaskSchedulePage() {
     schedule: '{}',
   });
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<TaskDefinition | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingTaskIds, setDeletingTaskIds] = useState<number[]>([]);
   const router = useRouter();
 
@@ -707,6 +745,7 @@ export default function TaskSchedulePage() {
     (taskId: number) => deletingTaskIds.includes(taskId),
     [deletingTaskIds],
   );
+  const isDeleteDialogLoading = taskToDelete ? isDeletingTask(taskToDelete.id) : false;
 
   // ── 关键字过滤（纯前端，不触发请求）──
   const filteredTasks = useMemo(() => {
@@ -881,32 +920,50 @@ export default function TaskSchedulePage() {
     }
   }, [detailTask?.id, editForm, editingTask, fetchExecutions, fetchTasks]);
 
-  const handleDeleteTask = useCallback(
-    async (task: TaskDefinition) => {
-      if (!window.confirm(`确认删除任务 ${task.id} 吗？`)) {
+  const handleRequestDeleteTask = useCallback((task: TaskDefinition) => {
+    setTaskToDelete(task);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteDialogChange = useCallback(
+    (open: boolean) => {
+      if (isDeleteDialogLoading) {
         return;
       }
-
-      setDeletingTaskIds(prev => (prev.includes(task.id) ? prev : [...prev, task.id]));
-      try {
-        await shopDashboardApi.deleteTask(task.id);
-        toast.success(`任务 ${task.id} 已删除`);
-        if (detailTask?.id === task.id) {
-          setDetailTask(null);
-          clearExecutions();
-        }
-        if (editingTask?.id === task.id) {
-          setEditingTask(null);
-        }
-        await fetchTasks();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '删除任务失败');
-      } finally {
-        setDeletingTaskIds(prev => prev.filter(id => id !== task.id));
+      setDeleteDialogOpen(open);
+      if (!open) {
+        setTaskToDelete(null);
       }
     },
-    [clearExecutions, detailTask?.id, editingTask?.id, fetchTasks],
+    [isDeleteDialogLoading],
   );
+
+  const handleConfirmDeleteTask = useCallback(async () => {
+    if (!taskToDelete) {
+      return;
+    }
+
+    const currentTask = taskToDelete;
+    setDeletingTaskIds(prev => (prev.includes(currentTask.id) ? prev : [...prev, currentTask.id]));
+    try {
+      await shopDashboardApi.deleteTask(currentTask.id);
+      toast.success(`任务 ${currentTask.id} 已删除`);
+      if (detailTask?.id === currentTask.id) {
+        setDetailTask(null);
+        clearExecutions();
+      }
+      if (editingTask?.id === currentTask.id) {
+        setEditingTask(null);
+      }
+      setDeleteDialogOpen(false);
+      setTaskToDelete(null);
+      await fetchTasks();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '删除任务失败');
+    } finally {
+      setDeletingTaskIds(prev => prev.filter(id => id !== currentTask.id));
+    }
+  }, [clearExecutions, detailTask?.id, editingTask?.id, fetchTasks, taskToDelete]);
 
   const openTaskExecutions = useCallback(
     (task: TaskDefinition) => {
@@ -961,9 +1018,9 @@ export default function TaskSchedulePage() {
       {
         key: 'actions',
         header: '操作',
-        width: 70,
+        width: 220,
         render: task => (
-          <TaskActionsMenu
+          <TaskActions
             task={task}
             isRunning={actionLoading.isRunning(task.id)}
             isCancelling={actionLoading.isCancelling(task.id)}
@@ -972,7 +1029,7 @@ export default function TaskSchedulePage() {
             onViewExecutions={openTaskExecutions}
             onEdit={handleOpenEditTask}
             onCancel={task => void handleCancelTask(task)}
-            onDelete={task => void handleDeleteTask(task)}
+            onDelete={handleRequestDeleteTask}
           />
         ),
       },
@@ -982,7 +1039,7 @@ export default function TaskSchedulePage() {
       actionLoading.isRunning,
       actionLoading.isCancelling,
       handleCancelTask,
-      handleDeleteTask,
+      handleRequestDeleteTask,
       handleOpenEditTask,
       handleRunTask,
       isDeletingTask,
@@ -1025,6 +1082,19 @@ export default function TaskSchedulePage() {
         <Clock3 className="mr-2 h-4 w-4" />
         定时任务配置
       </Button>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={handleDeleteDialogChange}
+        onConfirm={() => void handleConfirmDeleteTask()}
+        isLoading={isDeleteDialogLoading}
+        title="确认删除任务？"
+        description={
+          taskToDelete
+            ? `此操作不可撤销，将永久删除任务 "${taskToDelete.name}"。`
+            : '此操作不可撤销，将永久删除该任务。'
+        }
+      />
 
       <EditTaskDialog
         task={editingTask}

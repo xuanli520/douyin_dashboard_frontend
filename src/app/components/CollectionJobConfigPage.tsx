@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/app/components/ui/dialog';
+import { DeleteConfirmDialog } from '@/app/(main)/admin/_components/common/DeleteConfirmDialog';
 import {
   Table,
   TableBody,
@@ -199,6 +200,8 @@ export default function CollectionJobConfigPage() {
   const [editingJob, setEditingJob] = useState<CollectionJobResponse | null>(null);
   const [form, setForm] = useState<CollectionJobFormState>(DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<CollectionJobResponse | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingJobIds, setDeletingJobIds] = useState<number[]>([]);
   const [dataSources, setDataSources] = useState<DataSourceResponse[]>([]);
   const [isDataSourcesLoading, setIsDataSourcesLoading] = useState(false);
@@ -222,6 +225,7 @@ export default function CollectionJobConfigPage() {
     (jobId: number) => deletingJobIds.includes(jobId),
     [deletingJobIds],
   );
+  const isDeleteDialogLoading = jobToDelete ? isDeletingJob(jobToDelete.id) : false;
 
   const fetchCollectionJobs = useCallback(async () => {
     if (!canViewCollectionJobs) {
@@ -481,33 +485,53 @@ export default function CollectionJobConfigPage() {
     }
   }, [canCreateCollectionJobs, editingJob, fetchCollectionJobs, form]);
 
-  const handleDeleteCollectionJob = useCallback(
-    async (job: CollectionJobResponse) => {
+  const handleRequestDeleteCollectionJob = useCallback(
+    (job: CollectionJobResponse) => {
       if (!canCreateCollectionJobs) {
         toast.error('缺少 data_source:create 权限');
         return;
       }
+      setJobToDelete(job);
+      setDeleteDialogOpen(true);
+    },
+    [canCreateCollectionJobs],
+  );
 
-      if (!window.confirm(`确认删除定时任务「${job.name}」吗？`)) {
+  const handleDeleteDialogChange = useCallback(
+    (open: boolean) => {
+      if (isDeleteDialogLoading) {
         return;
       }
-
-      setDeletingJobIds(prev => (prev.includes(job.id) ? prev : [...prev, job.id]));
-      try {
-        await collectionJobApi.remove(job.id);
-        toast.success('定时任务删除成功');
-        if (editingJob?.id === job.id) {
-          handleDialogChange(false);
-        }
-        await fetchCollectionJobs();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '定时任务删除失败');
-      } finally {
-        setDeletingJobIds(prev => prev.filter(id => id !== job.id));
+      setDeleteDialogOpen(open);
+      if (!open) {
+        setJobToDelete(null);
       }
     },
-    [canCreateCollectionJobs, editingJob?.id, fetchCollectionJobs, handleDialogChange],
+    [isDeleteDialogLoading],
   );
+
+  const handleConfirmDeleteCollectionJob = useCallback(async () => {
+    if (!jobToDelete) {
+      return;
+    }
+
+    const currentJob = jobToDelete;
+    setDeletingJobIds(prev => (prev.includes(currentJob.id) ? prev : [...prev, currentJob.id]));
+    try {
+      await collectionJobApi.remove(currentJob.id);
+      toast.success('定时任务删除成功');
+      if (editingJob?.id === currentJob.id) {
+        handleDialogChange(false);
+      }
+      setDeleteDialogOpen(false);
+      setJobToDelete(null);
+      await fetchCollectionJobs();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '定时任务删除失败');
+    } finally {
+      setDeletingJobIds(prev => prev.filter(id => id !== currentJob.id));
+    }
+  }, [editingJob?.id, fetchCollectionJobs, handleDialogChange, jobToDelete]);
 
   const isInitialLoading = canViewCollectionJobs && isLoading && collectionJobs.length === 0;
   const hasLoadError = canViewCollectionJobs && !isLoading && Boolean(loadError);
@@ -613,23 +637,25 @@ export default function CollectionJobConfigPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-xs text-slate-500">{toLocalTime(job.updated_at)}</TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenEditDialog(job)}
-                          disabled={!canCreateCollectionJobs || isSubmitting}
-                        >
-                          编辑
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => void handleDeleteCollectionJob(job)}
-                          disabled={!canCreateCollectionJobs || isDeletingJob(job.id)}
-                        >
-                          {isDeletingJob(job.id) ? '删除中...' : '删除'}
-                        </Button>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-4 text-sm font-mono">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditDialog(job)}
+                            disabled={!canCreateCollectionJobs || isSubmitting}
+                            className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 hover:underline decoration-cyan-500/50 underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRequestDeleteCollectionJob(job)}
+                            disabled={!canCreateCollectionJobs || isDeletingJob(job.id)}
+                            className="text-rose-600 dark:text-rose-400 hover:text-rose-500 dark:hover:text-rose-300 hover:underline decoration-rose-500/50 underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                          >
+                            {isDeletingJob(job.id) ? '删除中...' : '删除'}
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -639,6 +665,19 @@ export default function CollectionJobConfigPage() {
           </CardContent>
         </Card>
       )}
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={handleDeleteDialogChange}
+        onConfirm={() => void handleConfirmDeleteCollectionJob()}
+        isLoading={isDeleteDialogLoading}
+        title="确认删除定时任务？"
+        description={
+          jobToDelete
+            ? `此操作不可撤销，将永久删除定时任务 "${jobToDelete.name}"。`
+            : '此操作不可撤销，将永久删除该定时任务。'
+        }
+      />
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent className="sm:max-w-[640px]">

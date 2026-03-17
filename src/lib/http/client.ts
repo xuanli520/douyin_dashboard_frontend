@@ -63,10 +63,19 @@ export class HttpClient {
     }
     return result;
   }
+
+  private isHttpError(value: HttpResponse<unknown> | HttpError): value is HttpError {
+    return value instanceof Error;
+  }
   
-  private async applyResponseErrorInterceptors(error: HttpError): Promise<HttpError> {
-    let result = error;
+  private async applyResponseErrorInterceptors(
+    error: HttpError
+  ): Promise<HttpResponse<unknown> | HttpError> {
+    let result: HttpResponse<unknown> | HttpError = error;
     for (const interceptor of this.responseInterceptors.getAll()) {
+      if (!this.isHttpError(result)) {
+        return result;
+      }
       if (interceptor.onResponseError) {
         result = await interceptor.onResponseError(result);
       }
@@ -180,8 +189,13 @@ export class HttpClient {
           return this.requestWithRetry(config, retryCount + 1);
         }
       }
-      
-      throw await this.applyResponseErrorInterceptors(httpError);
+
+      const interceptorResult = await this.applyResponseErrorInterceptors(httpError);
+      if (!this.isHttpError(interceptorResult)) {
+        return await this.applyResponseInterceptors(interceptorResult as HttpResponse<T>);
+      }
+
+      throw interceptorResult;
     }
   }
   
