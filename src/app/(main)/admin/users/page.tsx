@@ -18,7 +18,7 @@ import {
 } from '@/services/adminService';
 import { User, UserCreate, UserUpdate } from '@/types/user';
 import { UserStatsResponse } from '@/types';
-import { PermissionGate } from '../_components/common/PermissionGate';
+import { PermissionGate } from '@/components/auth/PermissionGate';
 import { DeleteConfirmDialog } from '../_components/common/DeleteConfirmDialog';
 import { CyberButton } from '@/components/ui/cyber/CyberButton';
 import { Plus } from 'lucide-react';
@@ -77,7 +77,7 @@ function UsersPageContent() {
       const res = await getUsers(query);
       setData(res.items || []);
       setTotal(res.meta?.total || 0);
-    } catch (error) {
+    } catch {
       toast.error('获取用户列表失败');
       setData([]);
     } finally {
@@ -130,8 +130,9 @@ function UsersPageContent() {
       toast.success('删除成功');
       setDeleteDialogOpen(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || '删除失败');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '删除失败';
+      toast.error(message);
     } finally {
       setIsDeleting(false);
     }
@@ -175,7 +176,7 @@ function UsersPageContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
         </h1>
-        <PermissionGate require="user:create" mode="hide">
+        <PermissionGate permission="user:create" mode="hide">
           <CyberButton onClick={handleCreate} className="shadow-lg shadow-cyan-500/20 group">
             <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
             新建用户

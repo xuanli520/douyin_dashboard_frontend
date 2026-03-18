@@ -1,9 +1,9 @@
 ﻿export const API_BASE_PATH = '/api/v1';
 
 export const API_ENDPOINTS = {
-  JWT_LOGIN: `${API_BASE_PATH}/auth/jwt/login`,
-  JWT_REFRESH: `${API_BASE_PATH}/auth/jwt/refresh`,
-  JWT_LOGOUT: `${API_BASE_PATH}/auth/jwt/logout`,
+  JWT_LOGIN: `${API_BASE_PATH}/auth/login`,
+  JWT_REFRESH: `${API_BASE_PATH}/auth/refresh`,
+  JWT_LOGOUT: `${API_BASE_PATH}/auth/logout`,
   REGISTER: `${API_BASE_PATH}/auth/register`,
   FORGOT_PASSWORD: `${API_BASE_PATH}/auth/forgot-password`,
   RESET_PASSWORD: `${API_BASE_PATH}/auth/reset-password`,

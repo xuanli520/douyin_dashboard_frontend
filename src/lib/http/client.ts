@@ -26,7 +26,7 @@ export class HttpClient {
   
   constructor(config: Partial<HttpClientConfig> = {}) {
     this.config = {
-      baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+      baseURL: '',
       timeout: 30000,
       retries: 3,
       retryDelay: 1000,
@@ -251,7 +251,6 @@ export class HttpClient {
 export const httpClient = new HttpClient();
 
 // 添加默认拦截器
-import { authInterceptor, endpointStatusInterceptor, tokenRefreshInterceptor } from './interceptors';
-httpClient.addRequestInterceptor(authInterceptor);
+import { endpointStatusInterceptor, tokenRefreshInterceptor } from './interceptors';
 httpClient.addResponseInterceptor(tokenRefreshInterceptor);
 httpClient.addResponseInterceptor(endpointStatusInterceptor);

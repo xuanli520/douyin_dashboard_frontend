@@ -1,18 +1,19 @@
 import { RequestInterceptor, ResponseInterceptor, HttpError, HttpResponse, RequestConfig } from './types';
-import { getAccessToken, setAccessToken, getRefreshToken, clearTokens } from '@/lib/auth';
+import { clearSession } from '@/lib/auth';
 import { API_ENDPOINTS } from '@/config/api';
 import { ENDPOINT_CONFIG } from '@/config/endpoint-config';
 import { ENDPOINT_STATUS_HTTP, EndpointStatus, getEndpointStatus } from '@/types/endpoint';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+import { buildStatusDescription } from '@/lib/endpoint-status/formatters';
 
 const AUTH_SKIP_ENDPOINTS = new Set<string>([
   API_ENDPOINTS.JWT_LOGIN,
   API_ENDPOINTS.JWT_REFRESH,
+  API_ENDPOINTS.JWT_LOGOUT,
 ]);
 
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<void> | null = null;
 const toastTimeline: number[] = [];
+const AUTH_PAGE_PATHS = new Set(['/login', '/register']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
@@ -25,56 +26,59 @@ function isAuthSkipped(url?: string) {
   return Array.from(AUTH_SKIP_ENDPOINTS).some((path) => url.includes(path));
 }
 
-function withBaseUrl(url?: string) {
-  if (!url) {
-    return '';
-  }
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-  return `${API_BASE}${url}`;
+function isAuthPagePath(pathname: string): boolean {
+  return AUTH_PAGE_PATHS.has(pathname);
 }
 
-async function doRefreshToken(): Promise<string> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    throw new Error('No refresh token');
+function buildRequestUrl(config: RequestConfig): string {
+  let url = config.url || '';
+  if (!config.params) {
+    return url;
   }
 
-  const refreshUrl = withBaseUrl(`${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshToken)}`);
-  const response = await fetch(refreshUrl, { method: 'POST' });
+  const params = new URLSearchParams();
+  Object.entries(config.params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      params.append(key, String(value));
+    }
+  });
+
+  const queryString = params.toString();
+  if (!queryString) {
+    return url;
+  }
+
+  url += (url.includes('?') ? '&' : '?') + queryString;
+  return url;
+}
+
+async function doRefreshToken(): Promise<void> {
+  const response = await fetch(API_ENDPOINTS.JWT_REFRESH, {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
+  });
 
   if (!response.ok) {
     throw new Error('Refresh failed');
   }
-
-  const result = await response.json();
-  const newAccessToken = result?.data?.access_token;
-  if (!newAccessToken) {
-    throw new Error('Invalid refresh response');
-  }
-
-  setAccessToken(newAccessToken);
-  return newAccessToken;
 }
 
-async function retryRequest(originalConfig: RequestConfig, token: string): Promise<HttpResponse<unknown>> {
-  const retryConfig: RequestConfig = {
-    ...originalConfig,
-    headers: {
-      ...originalConfig.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  };
+async function retryRequest(originalConfig: RequestConfig): Promise<HttpResponse<unknown>> {
+  const url = buildRequestUrl(originalConfig);
+  if (!url) {
+    throw new Error('Missing request url');
+  }
 
-  const res = await fetch(withBaseUrl(retryConfig.url!), {
-    ...retryConfig,
+  const res = await fetch(url, {
+    ...originalConfig,
     credentials: 'include',
   });
+
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`) as HttpError;
     err.status = res.status;
-    err.config = retryConfig;
+    err.config = originalConfig;
     throw err;
   }
 
@@ -94,48 +98,6 @@ async function retryRequest(originalConfig: RequestConfig, token: string): Promi
     statusText: res.statusText,
     headers: res.headers,
   };
-}
-
-function buildStatusDescription(
-  status: EndpointStatus,
-  message: string,
-  data?: Record<string, unknown>
-): string {
-  const normalizeRelease = (release?: string) => {
-    if (!release) return release;
-    return release === '2026-03-01' ? '2026-03-10' : release;
-  };
-
-  switch (status) {
-    case 'development': {
-      const isMock = data?.mock === true;
-      const mockLabel = isMock ? '（演示数据）' : '';
-      const releaseValue = typeof data?.expected_release === 'string'
-        ? normalizeRelease(data.expected_release)
-        : '2026-03-10';
-      const release = releaseValue ? `，预计 ${releaseValue} 发布` : '';
-      return `${message}${mockLabel}${release}`;
-    }
-    case 'planned': {
-      const releaseValue = typeof data?.expected_release === 'string'
-        ? normalizeRelease(data.expected_release)
-        : '2026-03-10';
-      const release = releaseValue ? `，预计 ${releaseValue} 推出` : '';
-      return `${message}${release}`;
-    }
-    case 'deprecated': {
-      const alternative = typeof data?.alternative === 'string' ? data.alternative : '';
-      const removalDate = typeof data?.removal_date === 'string' ? data.removal_date : '';
-      let desc = message;
-      if (alternative) {
-        desc += `，请使用: ${alternative}`;
-      }
-      if (removalDate) {
-        desc += `，将于 ${removalDate} 移除`;
-      }
-      return desc;
-    }
-  }
 }
 
 function canShowToast(): boolean {
@@ -219,19 +181,6 @@ function handleDeprecatedSoftResponse(
   return true;
 }
 
-export const authInterceptor: RequestInterceptor = {
-  onRequest(config) {
-    const token = getAccessToken();
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
-    return config;
-  },
-};
-
 export const requestTimingInterceptor: RequestInterceptor = {
   onRequest(config) {
     config.headers = {
@@ -261,14 +210,16 @@ export const tokenRefreshInterceptor: ResponseInterceptor = {
           });
         }
 
-        const newToken = await refreshPromise;
-        return retryRequest(originalConfig, newToken);
-      } catch (refreshError) {
-        clearTokens();
+        await refreshPromise;
+        return retryRequest(originalConfig);
+      } catch {
+        clearSession();
         if (typeof window !== 'undefined') {
-          window.location.href = '/login?reason=session_expired';
+          if (!isAuthPagePath(window.location.pathname)) {
+            window.location.href = '/login?reason=session_expired';
+          }
         }
-        throw refreshError;
+        throw error;
       }
     }
 

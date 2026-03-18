@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { AuthState } from '@/types';
-import { getAccessToken, clearTokens } from '@/lib/auth';
+import { clearSession } from '@/lib/auth';
 
 interface AuthStore extends AuthState {
   setAuthenticated: (userId: number, username: string) => void;
@@ -10,12 +10,12 @@ interface AuthStore extends AuthState {
   initialize: () => void;
 }
 
-const AUTH_VERSION = 1;
+const AUTH_VERSION = 2;
 
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         isAuthenticated: false,
         isLoading: true,
         userId: null,
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         setUnauthenticated: () => {
-          clearTokens();
+          clearSession();
           set({
             isAuthenticated: false,
             isLoading: false,
@@ -45,29 +45,16 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         initialize: () => {
-          const hasToken = !!getAccessToken();
-          if (hasToken) {
-            set((state) => ({
-              isAuthenticated: true,
-              isLoading: false,
-              userId: state.userId,
-              username: state.username,
-            }));
-          } else {
-            set({
-              isAuthenticated: false,
-              isLoading: false,
-              userId: null,
-              username: null,
-            });
-          }
+          set({
+            isAuthenticated: false,
+            isLoading: true,
+          });
         },
       }),
       {
         name: 'auth-storage',
         version: AUTH_VERSION,
         partialize: (state) => ({
-          isAuthenticated: state.isAuthenticated,
           userId: state.userId,
           username: state.username,
         }),
