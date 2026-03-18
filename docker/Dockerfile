@@ -13,6 +13,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG API_PROXY_TARGET
+ENV API_PROXY_TARGET=${API_PROXY_TARGET}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
@@ -24,6 +26,8 @@ RUN test -f .next/standalone/server.js
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+ARG API_PROXY_TARGET
+ENV API_PROXY_TARGET=${API_PROXY_TARGET}
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -33,6 +37,8 @@ RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 # 只复制运行必需的文件
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+RUN mkdir -p .next/cache && chown -R nextjs:nextjs .next
 
 USER nextjs
 

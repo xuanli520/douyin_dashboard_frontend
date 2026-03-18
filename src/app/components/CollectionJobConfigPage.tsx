@@ -488,7 +488,7 @@ export default function CollectionJobConfigPage() {
   const handleRequestDeleteCollectionJob = useCallback(
     (job: CollectionJobResponse) => {
       if (!canCreateCollectionJobs) {
-        toast.error('缺少 data_source:create 权限');
+      toast.error('缺少 data_source:create 权限');
         return;
       }
       setJobToDelete(job);

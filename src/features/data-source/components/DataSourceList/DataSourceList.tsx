@@ -50,7 +50,7 @@ const dataSourceQueryCodec = {
 
 export function DataSourceList() {
   const [query, setQuery] = useQueryState(dataSourceQueryCodec);
-  const { data, loading, refetch } = useDataSources({
+  const { data, loading } = useDataSources({
     ...query,
     source_type: query.source_type === 'all' ? undefined : query.source_type as DataSourceType,
     status: query.status === 'all' ? undefined : query.status as DataSourceStatus,
@@ -93,8 +93,7 @@ export function DataSourceList() {
       await create(formData);
       toast.success('数据源创建成功');
       setIsCreateOpen(false);
-      await refetch();
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '创建数据源失败';
       toast.error(message);
       console.error(error);
@@ -110,8 +109,7 @@ export function DataSourceList() {
       toast.success('数据源更新成功');
       setEditingId(null);
       setEditingSource(undefined);
-      await refetch();
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '更新数据源失败';
       toast.error(message);
       console.error(error);
@@ -140,9 +138,9 @@ export function DataSourceList() {
       await remove(sourceToDelete);
       toast.success('数据源删除成功');
       setDeleteDialogOpen(false);
-      await refetch();
-    } catch (error) {
-      toast.error('删除数据源失败');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '删除数据源失败';
+      toast.error(message);
       console.error(error);
     }
   };

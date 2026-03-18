@@ -4,7 +4,10 @@ const nextConfig = {
   output: "standalone",
 
   async rewrites() {
-    const apiBase = process.env.API_BASE || "http://8.137.84.161:8000";
+    const apiBase = process.env.API_PROXY_TARGET;
+    if (!apiBase) {
+      throw new Error("API_PROXY_TARGET is required");
+    }
     return [
       {
         source: "/api/v1/:path*",

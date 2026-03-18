@@ -11,68 +11,28 @@ export interface EndpointMeta {
 export const ENDPOINT_META: Record<string, EndpointMeta> = {
   '/api/v1/analysis': {
     status: 'development',
-    expectedRelease: '2026-03-10',
+    expectedRelease: '2026-04-30',
     description: '数据分析能力开发中',
   },
   '/api/v1/alerts': {
     status: 'development',
-    expectedRelease: '2026-03-10',
+    expectedRelease: '2026-04-30',
     description: '风险预警能力开发中',
   },
   '/api/v1/reports': {
     status: 'development',
-    expectedRelease: '2026-03-10',
+    expectedRelease: '2026-04-30',
     description: '报表能力开发中',
   },
   '/api/v1/schedules': {
     status: 'development',
-    expectedRelease: '2026-03-10',
+    expectedRelease: '2026-04-30',
     description: '调度能力开发中',
   },
   '/api/v1/schedules/:schedule_id': {
     status: 'development',
-    expectedRelease: '2026-03-10',
+    expectedRelease: '2026-04-30',
     description: '调度详情与修改删除能力开发中',
-  },
-  '/api/v1/shops': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '店铺相关能力开发中',
-  },
-  '/api/v1/shops/:shop_id/score': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '店铺评分能力开发中',
-  },
-  '/api/v1/metrics/:metric_type': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '指标能力开发中',
-  },
-  '/api/v1/tasks': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '任务管理能力开发中',
-  },
-  '/api/v1/tasks/:task_id/run': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '任务执行能力开发中',
-  },
-  '/api/v1/tasks/:task_id': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '任务详情与修改删除能力开发中',
-  },
-  '/api/v1/tasks/:task_id/executions': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '任务执行记录能力开发中',
-  },
-  '/api/v1/tasks/:task_id/cancel': {
-    status: 'development',
-    expectedRelease: '2026-03-10',
-    description: '任务取消能力开发中',
   },
 };
 
