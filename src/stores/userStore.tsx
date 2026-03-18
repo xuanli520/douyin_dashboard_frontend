@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import type { User, LoginParams } from '@/types/user';
 import * as userService from '@/services/userService';
 import { useRouter, usePathname } from 'next/navigation';
@@ -54,6 +54,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [state, setState] = useState<UserState>(createInitialUserState);
+  const hasInitializedRef = useRef(false);
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));
@@ -159,11 +160,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const isAuthPublicRoute = PUBLIC_AUTH_ROUTES.includes(resolvedPathname);
 
     if (isAuthPublicRoute) {
+      hasInitializedRef.current = false;
       usePermissionStore.getState().clearPermissions();
       useAuthStore.getState().setUnauthenticated();
       setState(createInitialUserState());
       return;
     }
+
+    if (hasInitializedRef.current) {
+      return;
+    }
+    hasInitializedRef.current = true;
 
     const initializeAuthState = async () => {
       useAuthStore.getState().initialize();
