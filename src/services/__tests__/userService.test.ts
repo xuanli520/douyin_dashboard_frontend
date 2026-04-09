@@ -1,41 +1,38 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { API_ENDPOINTS } from '@/config/api';
 
-// Mock the dependencies before importing the module
-vi.mock('@/lib/api-client', () => ({
-  authGet: vi.fn(),
-  authPost: vi.fn(),
-  authPatch: vi.fn(),
-  authDel: vi.fn(),
+const { mockPost } = vi.hoisted(() => ({
+  mockPost: vi.fn(),
 }));
 
-vi.mock('@/lib/api', () => ({
-  post: vi.fn(),
-}));
-
-vi.mock('@/lib/auth', () => ({
-  getAccessToken: vi.fn(),
-  setAccessToken: vi.fn(),
-  getRefreshToken: vi.fn(),
-  clearTokens: vi.fn(),
-  storeTokens: vi.fn(),
-}));
-
-vi.mock('@/config/api', () => ({
-  API_ENDPOINTS: {
-    JWT_REFRESH: '/auth/refresh',
-    JWT_LOGIN: '/auth/login',
-    JWT_LOGOUT: '/auth/logout',
-    REGISTER: '/auth/register',
-    USERS_ME: '/users/me',
-    USERS_BY_ID: (id: number) => `/users/${id}`,
+vi.mock('@/lib/http/client', () => ({
+  httpClient: {
+    post: mockPost,
   },
-  SUCCESS_CODES: [200, 201],
 }));
 
-describe('wrappedRequest', () => {
-  it('should throw error for invalid HTTP method', async () => {
-    const { login } = await import('../userService');
+describe('userService endpoint contract', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    expect(typeof login).toBe('function');
+  it('refreshToken 调用同源 refresh 端点', async () => {
+    mockPost.mockResolvedValueOnce({});
+    const { refreshToken } = await import('../userService');
+
+    await refreshToken();
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost.mock.calls[0][0]).toBe(API_ENDPOINTS.JWT_REFRESH);
+  });
+
+  it('logout 调用同源 logout 端点', async () => {
+    mockPost.mockResolvedValueOnce({});
+    const { logout } = await import('../userService');
+
+    await logout();
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost.mock.calls[0][0]).toBe(API_ENDPOINTS.JWT_LOGOUT);
   });
 });

@@ -47,7 +47,7 @@ const menuItems: MenuItem[] = [
       { id: 'admin-users', label: '用户管理', icon: Users, href: ROUTES.ADMIN_USERS, perm: 'user:read' },
       { id: 'admin-roles', label: '角色管理', icon: Shield, href: ROUTES.ADMIN_ROLES, perm: 'role:read' },
       { id: 'admin-permissions', label: '权限管理', icon: Key, href: ROUTES.ADMIN_PERMISSIONS, perm: 'permission:read' },
-      { id: 'admin-login-audit', label: '登录审计', icon: Activity, href: ROUTES.ADMIN_LOGIN_AUDIT, perm: 'system:logs' },
+      { id: 'admin-login-audit', label: '登录审计', icon: Activity, href: ROUTES.ADMIN_LOGIN_AUDIT, perm: 'audit:read' },
     ],
   },
 ];
@@ -111,7 +111,6 @@ export function Sidebar() {
     try {
       setLogoutError(null);
       await logout();
-      router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
       setLogoutError('退出失败，请重试');

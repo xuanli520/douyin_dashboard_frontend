@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2, Key, Shield } from 'lucide-react';
-import { PermissionGate } from '../../_components/common/PermissionGate';
+import { PermissionGate } from '@/components/auth/PermissionGate';
 import { useUserStore } from '@/stores/userStore';
 
 interface UserActionsProps {
@@ -38,21 +38,21 @@ export function UserActions({ user, onEdit, onDelete, onAssignRoles, onResetPass
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>操作</DropdownMenuLabel>
         
-        <PermissionGate require="user:update" mode="hide">
+        <PermissionGate permission="user:update" mode="hide">
             <DropdownMenuItem onClick={() => onEdit(user)}>
             <Edit className="mr-2 h-4 w-4" />
             编辑用户
             </DropdownMenuItem>
         </PermissionGate>
 
-        <PermissionGate require="user:manage_roles" mode="hide">
+        <PermissionGate permission="user:manage_roles" mode="hide">
             <DropdownMenuItem onClick={() => onAssignRoles(user)}>
             <Shield className="mr-2 h-4 w-4" />
             分配角色
             </DropdownMenuItem>
         </PermissionGate>
 
-        <PermissionGate require="user:update" mode="hide">
+        <PermissionGate permission="user:update" mode="hide">
              <DropdownMenuItem onClick={() => onResetPassword(user)}>
             <Key className="mr-2 h-4 w-4" />
             重置密码
@@ -61,7 +61,7 @@ export function UserActions({ user, onEdit, onDelete, onAssignRoles, onResetPass
         
         <DropdownMenuSeparator />
         
-        <PermissionGate require="user:delete" mode="hide">
+        <PermissionGate permission="user:delete" mode="hide">
             <DropdownMenuItem 
                 onClick={() => onDelete(user)} 
                 disabled={isSelf}

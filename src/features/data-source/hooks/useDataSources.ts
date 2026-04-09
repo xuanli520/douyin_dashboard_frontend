@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { dataSourceApi, DataSourceFilter } from '../services/dataSourceApi';
 import { DataSourceResponse, PageMeta } from '@/types';
+import { queryKeys } from '@/lib/query/keys';
+import { normalizeDataSourceFilter } from '../services/dataSourceService';
 
 interface PaginatedDataSourceResponse {
   items: DataSourceResponse[];
@@ -9,13 +11,7 @@ interface PaginatedDataSourceResponse {
 }
 
 function normalizeFilters(filters?: DataSourceFilter): DataSourceFilter {
-  return {
-    page: filters?.page ?? 1,
-    size: filters?.size ?? 10,
-    name: filters?.name,
-    status: filters?.status,
-    source_type: filters?.source_type,
-  };
+  return normalizeDataSourceFilter(filters);
 }
 
 function isSameFilter(a: DataSourceFilter, b: DataSourceFilter): boolean {
@@ -29,23 +25,7 @@ function isSameFilter(a: DataSourceFilter, b: DataSourceFilter): boolean {
 }
 
 export function useDataSources(initialFilters?: DataSourceFilter) {
-  const pathname = usePathname();
-  const [data, setData] = useState<PaginatedDataSourceResponse>({
-    items: [],
-    meta: {
-      page: 1,
-      size: 10,
-      total: 0,
-      pages: 0,
-      has_next: false,
-      has_prev: false,
-    },
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const [filters, setFilters] = useState<DataSourceFilter>(() => normalizeFilters(initialFilters));
-
-  const requestIdRef = useRef(0);
 
   useEffect(() => {
     if (!initialFilters) {
@@ -53,50 +33,12 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
     }
     const next = normalizeFilters(initialFilters);
     setFilters(prev => (isSameFilter(prev, next) ? prev : next));
-  }, [
-    initialFilters?.name,
-    initialFilters?.status,
-    initialFilters?.source_type,
-    initialFilters?.page,
-    initialFilters?.size,
-  ]);
+  }, [initialFilters]);
 
-  const fetchData = useCallback(async (currentFilters: DataSourceFilter) => {
-    const requestId = ++requestIdRef.current;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await dataSourceApi.getAll(currentFilters);
-      if (requestId === requestIdRef.current) {
-        setData(response);
-      }
-      return response;
-    } catch (err) {
-      if (requestId === requestIdRef.current) {
-        setError(err as Error);
-      }
-      console.error('Failed to fetch data sources:', err);
-      throw err;
-    } finally {
-      if (requestId === requestIdRef.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    fetchData(filters).catch(err => {
-      if (!isCancelled) {
-        console.error(err);
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [pathname, filters, fetchData]);
+  const query = useQuery({
+    queryKey: queryKeys.dataSources.list(filters as Record<string, unknown>),
+    queryFn: () => dataSourceApi.getAll(filters),
+  });
 
   const updateFilters = useCallback((newFilters: Partial<DataSourceFilter>) => {
     setFilters(prev => {
@@ -109,12 +51,26 @@ export function useDataSources(initialFilters?: DataSourceFilter) {
   }, []);
 
   const refetch = useCallback(() => {
-    return fetchData(filters);
-  }, [fetchData, filters]);
+    return query.refetch();
+  }, [query]);
+
+  const data: PaginatedDataSourceResponse = query.data ?? {
+    items: [],
+    meta: {
+      page: filters.page ?? 1,
+      size: filters.size ?? 10,
+      total: 0,
+      pages: 0,
+      has_next: false,
+      has_prev: false,
+    },
+  };
+
+  const error = query.error instanceof Error ? query.error : null;
 
   return {
     data,
-    loading,
+    loading: query.isLoading || query.isFetching,
     error,
     filters,
     updateFilters,

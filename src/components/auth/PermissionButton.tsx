@@ -28,9 +28,24 @@ export function PermissionButton({
   size,
   onClick,
 }: PermissionButtonProps) {
-  const { isSuperuser, checkPermission } = usePermissionStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isSuperuser, checkPermission, isLoading: permissionLoading } = usePermissionStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
   const hasAccess = isAuthenticated && (isSuperuser || checkPermission(permission));
+  const isHydrating = authLoading || permissionLoading;
+
+  if (isHydrating) {
+    return (
+      <Button
+        disabled={disabled}
+        className={className}
+        variant={variant}
+        size={size}
+        onClick={onClick}
+      >
+        {children}
+      </Button>
+    );
+  }
 
   if (!isAuthenticated) {
     return <>{fallback}</>;

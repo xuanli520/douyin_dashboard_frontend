@@ -1,22 +1,23 @@
-import { useState } from 'react';
-import { dataSourceApi } from '../services/dataSourceApi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query/keys';
+import { deleteDataSourceMutationFn } from '../services/dataSourceService';
 
 export function useDeleteDataSource() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
+  const mutation = useMutation<number, Error, number>({
+    mutationFn: deleteDataSourceMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dataSources.all });
+    },
+  });
 
   const remove = async (id: number): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      await dataSourceApi.delete(id);
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    await mutation.mutateAsync(id);
   };
 
-  return { remove, loading, error };
+  return {
+    remove,
+    loading: mutation.isPending,
+    error: mutation.error,
+  };
 }

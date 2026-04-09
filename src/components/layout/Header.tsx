@@ -23,7 +23,7 @@ const menuItems = [
   { id: 'risk-alert', label: '风险预警', href: ROUTES.RISK_ALERT },
   { id: 'data-source', label: '数据源管理', href: ROUTES.DATA_SOURCE },
   { id: 'scraping-rule', label: '采集规则', href: ROUTES.SCRAPING_RULE },
-  { id: 'user-permission', label: '用户管理', href: ROUTES.USER_PERMISSION },
+  { id: 'admin-users', label: '用户管理', href: ROUTES.ADMIN_USERS },
   { id: 'login-audit', label: '登录审计', href: ROUTES.ADMIN_LOGIN_AUDIT },
   { id: 'role-management', label: '角色管理', href: ROUTES.ADMIN_ROLES },
   { id: 'permission-management', label: '权限管理', href: ROUTES.ADMIN_PERMISSIONS },
@@ -56,7 +56,7 @@ export function Header() {
            </div>
            <div className="h-8 w-px bg-slate-200 mx-2" />
            <h1 className="text-lg font-bold text-[#1e3a5a]">
-             {currentItem?.label || '用户管理'}
+             {currentItem?.label || '数据看板'}
            </h1>
         </div>
       </header>
@@ -92,7 +92,7 @@ export function Header() {
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-700/80 mx-2" />
           
           <h1 className="page-title text-lg font-bold text-[#1e3a5a] dark:text-slate-100">
-            {currentItem?.label || '用户管理'}
+            {currentItem?.label || '数据看板'}
           </h1>
         </div>
 
@@ -128,7 +128,7 @@ export function Header() {
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
           <h1 className="page-title text-2xl font-bold tracking-wider font-mono uppercase">
-            {currentItem?.label || '用户管理'}
+            {currentItem?.label || '数据看板'}
           </h1>
           <div className="sys-online-tag px-2 py-0.5 rounded-full text-[10px] font-mono tracking-widest">
             <span className="sys-online-text">SYS.ONLINE</span>

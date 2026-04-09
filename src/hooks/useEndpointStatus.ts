@@ -61,8 +61,9 @@ export function useEndpointStatus(options: UseEndpointStatusOptions): UseEndpoin
     }
 
     const status = statusFromResponse ?? meta?.status ?? null;
-    const expectedRelease = meta?.expectedRelease
-      ?? (typeof data?.expected_release === 'string' ? data.expected_release : undefined);
+    const expectedRelease = typeof data?.expected_release === 'string'
+      ? data.expected_release
+      : meta?.expectedRelease;
     const alternative = typeof data?.alternative === 'string'
       ? data.alternative
       : meta?.alternative;
@@ -79,7 +80,9 @@ export function useEndpointStatus(options: UseEndpointStatusOptions): UseEndpoin
       expectedRelease,
       alternative,
       removalDate,
-      description: meta?.description,
+      description: typeof data?.description === 'string'
+        ? data.description
+        : meta?.description,
       isLoading: false,
       isDevelopment: status === 'development',
       isPlanned: status === 'planned',

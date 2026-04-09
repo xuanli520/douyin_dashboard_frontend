@@ -10,6 +10,7 @@ import {
   getEndpointStatus,
 } from '@/types/endpoint';
 import { ENDPOINT_CONFIG } from '@/config/endpoint-config';
+import { buildStatusDescription } from '@/lib/endpoint-status/formatters';
 
 interface ApiErrorState {
   status: EndpointStatus | null;
@@ -42,48 +43,6 @@ function isValidEndpointResponse(data: unknown): data is EndpointErrorResponse {
     return false;
   }
   return typeof data.code === 'number' && typeof data.msg === 'string';
-}
-
-function buildStatusDescription(
-  status: EndpointStatus,
-  message: string,
-  data?: Record<string, unknown>
-): string {
-  const normalizeRelease = (release?: string) => {
-    if (!release) return release;
-    return release === '2026-03-01' ? '2026-03-10' : release;
-  };
-
-  switch (status) {
-    case 'development': {
-      const isMock = data?.mock === true;
-      const mockLabel = isMock ? '（演示数据）' : '';
-      const releaseValue = typeof data?.expected_release === 'string'
-        ? normalizeRelease(data.expected_release)
-        : '2026-03-10';
-      const release = releaseValue ? `，预计 ${releaseValue} 发布` : '';
-      return `${message}${mockLabel}${release}`;
-    }
-    case 'planned': {
-      const releaseValue = typeof data?.expected_release === 'string'
-        ? normalizeRelease(data.expected_release)
-        : '2026-03-10';
-      const release = releaseValue ? `，预计 ${releaseValue} 推出` : '';
-      return `${message}${release}`;
-    }
-    case 'deprecated': {
-      const alt = typeof data?.alternative === 'string' ? data.alternative : '';
-      const date = typeof data?.removal_date === 'string' ? data.removal_date : '';
-      let desc = message;
-      if (alt) {
-        desc += `，请使用: ${alt}`;
-      }
-      if (date) {
-        desc += `，将于 ${date} 移除`;
-      }
-      return desc;
-    }
-  }
 }
 
 export function useApiError() {

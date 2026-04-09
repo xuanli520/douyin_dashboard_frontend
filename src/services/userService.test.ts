@@ -1,103 +1,76 @@
-/**
- * userService API 参数修复验证测试
- *
- * 测试以下修复:
- * 1. login() - 移除 grant_type, 使用 camelCase 参数名
- * 2. refreshToken() - refresh_token 作为查询参数
- * 3. logout() - refresh_token 作为查询参数
- */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { API_ENDPOINTS } from '@/config/api';
 
-// Import the actual module to verify behavior
-// We'll verify the URL construction logic directly
+const { mockGet, mockPost, mockPatch, mockDelete, mockStoreTokens, mockClearSession } = vi.hoisted(() => ({
+  mockGet: vi.fn(),
+  mockPost: vi.fn(),
+  mockPatch: vi.fn(),
+  mockDelete: vi.fn(),
+  mockStoreTokens: vi.fn(),
+  mockClearSession: vi.fn(),
+}));
 
-describe('userService API 参数修复验证', () => {
+vi.mock('@/lib/http/client', () => ({
+  httpClient: {
+    get: mockGet,
+    post: mockPost,
+    patch: mockPatch,
+    delete: mockDelete,
+  },
+}));
+
+vi.mock('@/lib/auth', () => ({
+  storeTokens: mockStoreTokens,
+  clearSession: mockClearSession,
+}));
+
+describe('userService cookie session', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('refreshToken() URL 构造', () => {
-    it('refreshToken 应该使用查询参数传递 refresh_token', () => {
-      // Verify the expected URL format matches the implementation
-      const refreshTokenValue = 'test-refresh-token';
-      const expectedUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
-
-      expect(expectedUrl).toBe('/api/v1/auth/jwt/refresh?refresh_token=test-refresh-token');
-      expect(expectedUrl).toContain('?refresh_token=');
-      expect(expectedUrl).not.toContain('grant_type');
-    });
-
-    it('应该正确编码特殊字符', () => {
-      const refreshTokenValue = 'token/with=special&chars';
-      const expectedUrl = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
-
-      expect(expectedUrl).toBe('/api/v1/auth/jwt/refresh?refresh_token=token%2Fwith%3Dspecial%26chars');
-    });
+  it('认证端点应收敛到非 jwt 路径', () => {
+    expect(API_ENDPOINTS.JWT_LOGIN).toBe('/api/v1/auth/login');
+    expect(API_ENDPOINTS.JWT_REFRESH).toBe('/api/v1/auth/refresh');
+    expect(API_ENDPOINTS.JWT_LOGOUT).toBe('/api/v1/auth/logout');
   });
 
-  describe('logout() URL 构造', () => {
-    it('logout 应该使用查询参数传递 refresh_token', () => {
-      const refreshTokenValue = 'test-refresh-token';
-      const expectedUrl = `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
+  it('refreshToken 不应拼接 refresh_token query', async () => {
+    mockPost.mockResolvedValueOnce({});
+    const { refreshToken } = await import('./userService');
 
-      expect(expectedUrl).toBe('/api/v1/auth/jwt/logout?refresh_token=test-refresh-token');
-      expect(expectedUrl).toContain('?refresh_token=');
-    });
+    await refreshToken();
 
-    it('应该正确编码特殊字符', () => {
-      const refreshTokenValue = 'logout/token+with spaces';
-      const expectedUrl = `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(refreshTokenValue)}`;
-
-      expect(expectedUrl).toBe('/api/v1/auth/jwt/logout?refresh_token=logout%2Ftoken%2Bwith%20spaces');
-    });
+    expect(mockPost).toHaveBeenCalledWith(API_ENDPOINTS.JWT_REFRESH);
+    const refreshUrl = mockPost.mock.calls[0][0] as string;
+    expect(refreshUrl.includes('refresh_token=')).toBe(false);
   });
 
-  describe('login() 参数构造', () => {
-    it('login 不应该包含 grant_type 参数', () => {
-      const params = { username: 'testuser', password: 'testpass' };
-      const formData = new URLSearchParams();
-      formData.append('username', params.username);
-      formData.append('password', params.password);
+  it('logout 不应拼接 refresh_token query 且应清理会话', async () => {
+    mockPost.mockResolvedValueOnce({});
+    const { logout } = await import('./userService');
 
-      // 验证不包含 grant_type
-      expect(formData.toString()).not.toContain('grant_type');
-      expect(formData.toString()).toBe('username=testuser&password=testpass');
-    });
+    await logout();
 
-    it('login 应该使用 camelCase captchaVerifyParam', () => {
-      const params = { username: 'testuser', password: 'testpass', captchaVerifyParam: 'captcha-data' };
-      const formData = new URLSearchParams();
-      formData.append('username', params.username);
-      formData.append('password', params.password);
-      if (params.captchaVerifyParam) {
-        formData.append('captchaVerifyParam', params.captchaVerifyParam);
-      }
-
-      // 验证使用 camelCase
-      expect(formData.toString()).toContain('captchaVerifyParam');
-      expect(formData.toString()).not.toContain('captcha_verify_param');
-      expect(formData.get('captchaVerifyParam')).toBe('captcha-data');
-    });
+    expect(mockPost).toHaveBeenCalledWith(API_ENDPOINTS.JWT_LOGOUT);
+    const logoutUrl = mockPost.mock.calls[0][0] as string;
+    expect(logoutUrl.includes('refresh_token=')).toBe(false);
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
   });
 
-  describe('URL 格式验证 - 修复后应该', () => {
-    it('refresh URL 格式正确', () => {
-      const token = 'abc123';
-      const url = `${API_ENDPOINTS.JWT_REFRESH}?refresh_token=${encodeURIComponent(token)}`;
+  it('login 不应再持久化 token 到本地存储', async () => {
+    mockPost.mockResolvedValueOnce({});
+    const { login } = await import('./userService');
 
-      // 验证 refresh_token 在查询参数中
-      expect(url.split('?')[0]).toBe(API_ENDPOINTS.JWT_REFRESH);
-      expect(url.split('?')[1]).toBe(`refresh_token=${token}`);
-    });
+    await login({ username: 'u', password: 'p' });
 
-    it('logout URL 格式正确', () => {
-      const token = 'abc123';
-      const url = `${API_ENDPOINTS.JWT_LOGOUT}?refresh_token=${encodeURIComponent(token)}`;
-
-      // 验证 refresh_token 在查询参数中
-      expect(url.split('?')[0]).toBe(API_ENDPOINTS.JWT_LOGOUT);
-      expect(url.split('?')[1]).toBe(`refresh_token=${token}`);
-    });
+    expect(mockPost).toHaveBeenCalledWith(
+      API_ENDPOINTS.JWT_LOGIN,
+      expect.any(URLSearchParams),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+    );
+    expect(mockStoreTokens).not.toHaveBeenCalled();
   });
 });
