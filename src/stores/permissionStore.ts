@@ -195,22 +195,36 @@ export const usePermissionStore = create<PermissionStore>()(
 );
 
 export async function initializePermissionStore() {
-  const { fetchPermissions, fetchAllRoles, fetchUserPermissions, setLoading } = usePermissionStore.getState();
+  const {
+    fetchPermissions,
+    fetchAllRoles,
+    fetchUserPermissions,
+    setLoading,
+    setError,
+  } = usePermissionStore.getState();
 
   setLoading(true);
 
-  const results = await Promise.allSettled([
-    fetchPermissions(),
-    fetchAllRoles(),
-    fetchUserPermissions(),
-  ]);
+  try {
+    await fetchUserPermissions();
 
-  results.forEach((result, index) => {
-    if (result.status === 'rejected') {
-      const label = ['fetchPermissions', 'fetchAllRoles', 'fetchUserPermissions'][index];
-      console.warn(`[initializePermissionStore] ${label} failed:`, result.reason);
+    if (usePermissionStore.getState().isSuperuser) {
+      const results = await Promise.allSettled([
+        fetchPermissions(),
+        fetchAllRoles(),
+      ]);
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const label = ['fetchPermissions', 'fetchAllRoles'][index];
+          console.warn(`[initializePermissionStore] ${label} failed:`, result.reason);
+        }
+      });
     }
-  });
+  } catch (error) {
+    setError('Failed to fetch user permissions');
+    console.warn('[initializePermissionStore] fetchUserPermissions failed:', error);
+  }
 
   setLoading(false);
 
