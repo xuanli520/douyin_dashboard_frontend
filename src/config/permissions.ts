@@ -15,12 +15,6 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
     forbiddenRedirect: '/403',
   },
   {
-    route: ROUTES.DATA_ANALYSIS,
-    requiredPermissions: ['analysis:view'],
-    unauthRedirect: '/login',
-    forbiddenRedirect: '/403',
-  },
-  {
     route: ROUTES.TASK_SCHEDULE,
     requiredPermissions: ['schedule:view'],
     unauthRedirect: '/login',
@@ -29,18 +23,6 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
   {
     route: ROUTES.TASK_SCHEDULE_COLLECTION_JOBS,
     requiredPermissions: ['schedule:view'],
-    unauthRedirect: '/login',
-    forbiddenRedirect: '/403',
-  },
-  {
-    route: ROUTES.REPORTS,
-    requiredPermissions: ['report:view'],
-    unauthRedirect: '/login',
-    forbiddenRedirect: '/403',
-  },
-  {
-    route: ROUTES.RISK_ALERT,
-    requiredPermissions: ['alert:view'],
     unauthRedirect: '/login',
     forbiddenRedirect: '/403',
   },

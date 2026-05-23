@@ -9,21 +9,6 @@ export interface EndpointMeta {
 }
 
 export const ENDPOINT_META: Record<string, EndpointMeta> = {
-  '/api/v1/analysis': {
-    status: 'development',
-    expectedRelease: '2026-04-30',
-    description: '数据分析能力开发中',
-  },
-  '/api/v1/alerts': {
-    status: 'development',
-    expectedRelease: '2026-04-30',
-    description: '风险预警能力开发中',
-  },
-  '/api/v1/reports': {
-    status: 'development',
-    expectedRelease: '2026-04-30',
-    description: '报表能力开发中',
-  },
   '/api/v1/schedules': {
     status: 'development',
     expectedRelease: '2026-04-30',

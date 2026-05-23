@@ -26,9 +26,6 @@ export const API_ENDPOINTS = {
 
   PERMISSIONS_ME: `${API_BASE_PATH}/permissions/me`,
 
-  ANALYSIS_OVERVIEW: `${API_BASE_PATH}/analysis`,
-  ALERTS_LIST: `${API_BASE_PATH}/alerts`,
-  REPORTS_OVERVIEW: `${API_BASE_PATH}/reports`,
   SCHEDULES_LIST: `${API_BASE_PATH}/schedules`,
   SCHEDULE_DETAIL: (schedule_id: number) => `${API_BASE_PATH}/schedules/${schedule_id}`,
   SHOPS_LIST: `${API_BASE_PATH}/shops`,

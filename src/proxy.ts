@@ -6,10 +6,7 @@ import { verifyAccessCookieToken } from '@/lib/auth/server';
 
 const protectedRoutes = [
   '/dashboard',
-  '/data-analysis',
   '/data-source',
-  '/reports',
-  '/risk-alert',
   '/task-schedule',
   '/user-permission',
   '/admin',
