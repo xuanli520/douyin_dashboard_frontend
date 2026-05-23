@@ -17,8 +17,8 @@ interface LoginPageProps {
 // 预生成的粒子配置 (避免 SSR/客户端 hydration 不匹配)
 // 阿里云验证码2.0配置
 const CAPTCHA_REGION = 'cn';
-const CAPTCHA_PREFIX = '1fs7dl';
-const CAPTCHA_SCENE_ID = '71tobb9u';
+const CAPTCHA_PREFIX = '4mpsog';
+const CAPTCHA_SCENE_ID = 'zp3wnzt8';
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
