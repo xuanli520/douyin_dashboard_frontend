@@ -1,6 +1,7 @@
 export const ROUTES = {
   COMPASS: '/compass',
   DASHBOARD: '/dashboard',
+  DATA_CENTER: '/data-center',
   METRIC_DETAIL: '/metric-detail',
   TASK_SCHEDULE: '/task-schedule',
   TASK_SCHEDULE_COLLECTION_JOBS: '/task-schedule/collection-jobs',

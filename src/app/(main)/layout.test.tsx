@@ -11,6 +11,10 @@ vi.mock('@/components/layout/Sidebar', () => ({
   Sidebar: () => <div data-testid="sidebar" />,
 }));
 
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/compass',
+}));
+
 describe('MainLayout theme readiness', () => {
   beforeEach(() => {
     useThemeStore.setState({

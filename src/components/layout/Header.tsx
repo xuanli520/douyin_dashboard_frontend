@@ -6,7 +6,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Bell, Search } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import Image from 'next/image';
 import { ROUTES } from '@/config/routes';
 import { useThemeStore } from '@/stores/themeStore';
@@ -93,25 +93,16 @@ export function Header() {
           </h1>
         </div>
 
-        {/* Right Section - Search and Actions */}
+        {/* Right Section - Actions */}
         <div className="flex items-center gap-4">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
-            <input
-              type="text"
-              placeholder="搜索..."
-              className="w-[240px] pl-10 pr-4 py-2 text-sm bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] text-slate-700 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
-            />
-          </div>
-
-          {/* Notification Button */}
+          {/* Data Center Entry Button (Replaces Notification) */}
           <button 
-            className="relative p-2.5 rounded-md text-slate-500 dark:text-slate-300 hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-200"
-            title="通知"
+            onClick={() => window.location.href = ROUTES.DATA_CENTER}
+            className="flex items-center gap-2 rounded-md border border-[#0284c7] bg-[#0284c7] px-4 py-2 text-white shadow-sm transition-all duration-200 hover:border-[#0369a1] hover:bg-[#0369a1] dark:border-[#0ea5e9] dark:bg-[#0ea5e9] dark:text-[#082f49] dark:hover:border-[#38bdf8] dark:hover:bg-[#38bdf8]"
+            title="进入数据中控台"
           >
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full" />
-            <Bell size={20} />
+            <LayoutDashboard size={18} />
+            <span className="text-sm font-medium">数据中控台</span>
           </button>
         </div>
       </header>
@@ -158,24 +149,15 @@ export function Header() {
 
       {/* Right Section */}
       <div className="flex items-center gap-6">
-        {/* Search Input - Cyberpunk Style */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#C8FDE6] to-[#F4D5BD] rounded-lg blur opacity-10 dark:opacity-20 group-hover:opacity-30 dark:group-hover:opacity-40 transition-opacity duration-300" />
-          <input
-            type="text"
-            placeholder="搜索数据..."
-            className="relative w-[240px] px-4 py-2 text-sm bg-white/80 dark:bg-[#0a101f]/80 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-[#C8FDE6]/50 focus:bg-white dark:focus:bg-[#0f172a] text-slate-800 dark:text-[#C8FDE6] placeholder-slate-400 dark:placeholder-slate-600 transition-all font-mono tracking-wide"
-          />
-        </div>
-
-        {/* Notification Button */}
+        {/* Data Center Entry Button (Replaces Notification) */}
         <div className="flex items-center gap-2">
            <button 
-            className="relative p-2.5 rounded-lg hover:bg-[#C8FDE6]/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#C8FDE6] transition-all duration-300 group border border-transparent hover:border-[#C8FDE6]/30"
-            title="通知"
+            onClick={() => window.location.href = ROUTES.DATA_CENTER}
+            className="group flex items-center gap-2 rounded-lg border border-[#0284c7]/35 bg-[#0284c7]/10 px-4 py-2 text-[#0284c7] shadow-[0_0_10px_rgba(2,132,199,0.12)] transition-all duration-300 hover:bg-[#0284c7]/20 hover:text-[#0369a1] hover:shadow-[0_0_15px_rgba(2,132,199,0.22)] dark:border-[#0ea5e9]/50 dark:bg-[#0284c7]/15 dark:text-[#38bdf8] dark:hover:bg-[#0284c7]/25 dark:hover:text-[#7dd3fc]"
+            title="进入数据中控台"
           >
-            <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full shadow-[0_0_8px_red] animate-pulse" />
-            <Bell className="w-5 h-5 transition-transform group-hover:scale-110" />
+            <LayoutDashboard className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <span className="text-sm font-medium tracking-wide">数据中控台</span>
           </button>
         </div>
       </div>

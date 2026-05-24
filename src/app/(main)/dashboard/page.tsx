@@ -5,11 +5,10 @@ import { Responsive, useContainerWidth } from 'react-grid-layout';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { 
-  Moon, Sun, LayoutDashboard, LayoutTemplate
+  Moon, Sun, LayoutDashboard, LayoutTemplate, Download
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CompassWidget from '@/components/dashboard/CompassWidget';
 import MetricCard from '@/components/dashboard/MetricCard';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
@@ -196,7 +195,6 @@ const WIDGETS: WidgetItem[] = [
   },
 ];
 
-type DashboardTimeRange = 'day' | 'week';
 const METRIC_QUERY_TYPES: MetricType[] = ['product', 'logistics', 'service', 'risk'];
 const METRIC_TYPE_BY_WIDGET: Record<string, MetricType> = {
   'card-product': 'product',
@@ -309,8 +307,20 @@ function normalizeScore(value: number | undefined): number {
   return Math.round((value as number) * 100) / 100;
 }
 
-function toDateRange(range: DashboardTimeRange): string {
-  return range === 'day' ? '1d' : '7d';
+function sanitizeFilename(value: string): string {
+  return value.replace(/[\\/:*?"<>|]/g, '_').trim() || 'shop-detail';
+}
+
+function downloadJsonFile(filename: string, data: unknown): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function toNumeric(value: unknown): number {
@@ -488,7 +498,6 @@ function DashboardPageContent() {
   );
   const [mounted, setMounted] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [timeRange, setTimeRange] = useState<DashboardTimeRange>('day');
   const [layouts, setLayouts] = useState<GridLayouts>(defaultLayouts);
   const [currentPreset, setCurrentPreset] = useState<(typeof PRESET_OPTIONS)[number]>(DEFAULT_PRESET);
   const latestLayoutsRef = useRef<GridLayouts>(defaultLayouts);
@@ -504,7 +513,7 @@ function DashboardPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const dateRange = useMemo(() => toDateRange(timeRange), [timeRange]);
+  const dateRange = '1d';
 
   const shopsQuery = useQuery({
     queryKey: ['shop-dashboard', 'dashboard', 'shops', dateRange],
@@ -633,7 +642,7 @@ function DashboardPageContent() {
     measureWidth();
     const frame = requestAnimationFrame(() => measureWidth());
     return () => cancelAnimationFrame(frame);
-  }, [mounted, measureWidth, storeId, timeRange]);
+  }, [mounted, measureWidth, storeId]);
 
   const onLayoutChange = useCallback((_currentLayout: any, allLayouts: any) => {
     const normalized = normalizeLayouts(allLayouts as GridLayouts, currentPreset, latestLayoutsRef.current);
@@ -678,6 +687,21 @@ function DashboardPageContent() {
     });
   }, [mounted]);
 
+  const handleExportDashboardData = useCallback(() => {
+    const selectedShop = shopOptions.find((shop) => shop.value === storeId);
+    const filename = `${sanitizeFilename(selectedShop?.label ?? `shop-${storeId}`)}-${dateRange}-detail.json`;
+
+    downloadJsonFile(filename, {
+      exportedAt: new Date().toISOString(),
+      shopId: storeId,
+      shopName: selectedShop?.label,
+      dateRange,
+      shopDetail: shopDetailQuery.data ?? null,
+      metrics: metricsByType,
+      widgets,
+    });
+  }, [dateRange, metricsByType, shopDetailQuery.data, shopOptions, storeId, widgets]);
+
   if (!mounted) return <div className="min-h-screen bg-canvas" />;
 
   const activeWidgets = widgets.filter(w => visibleWidgets[w.id]);
@@ -719,40 +743,16 @@ function DashboardPageContent() {
           </div>
 
           <div className="flex items-center gap-4">
-            
-            {/* Time Filter Tabs */}
-            <Tabs
-              value={timeRange}
-              onValueChange={(value) => {
-                if (value === 'day' || value === 'week') {
-                  setTimeRange(value);
-                }
-              }}
-              className="w-[140px] hidden md:block"
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleExportDashboardData}
+              className="w-9 h-9 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-full"
+              aria-label="导出数据"
+              title="导出数据"
             >
-              <TabsList className="grid w-full grid-cols-2 h-9 bg-slate-100/80 dark:bg-slate-800/60 rounded-lg p-1 border border-black/5 dark:border-white/5">
-                <TabsTrigger 
-                  value="day" 
-                  className="rounded-md text-[11px] font-semibold transition-all duration-200
-                             text-slate-500 dark:text-slate-400
-                             data-[state=active]:bg-white data-[state=active]:text-slate-900 
-                             data-[state=active]:shadow-sm
-                             dark:data-[state=active]:bg-primary dark:data-[state=active]:text-white"
-                >
-                  本日
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="week" 
-                  className="rounded-md text-[11px] font-semibold transition-all duration-200
-                             text-slate-500 dark:text-slate-400
-                             data-[state=active]:bg-white data-[state=active]:text-slate-900 
-                             data-[state=active]:shadow-sm
-                             dark:data-[state=active]:bg-primary dark:data-[state=active]:text-white"
-                >
-                  本周
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+              <Download size={16} />
+            </Button>
 
             <div className="h-4 w-[1px] bg-border/40 mx-1 hidden md:block" />
 

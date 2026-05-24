@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, Info } from 'lucide-react';
+import { ChevronLeft, Download, Info } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -14,6 +14,22 @@ import type { Indicator } from '@/types/indicator';
 interface IndicatorDetailPageProps {
   indicator: Indicator;
   onBack: () => void;
+}
+
+function sanitizeFilename(value: string): string {
+  return value.replace(/[\\/:*?"<>|]/g, '_').trim() || 'indicator-detail';
+}
+
+function downloadJsonFile(filename: string, data: unknown): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function IndicatorDetailPage({
@@ -32,6 +48,13 @@ export default function IndicatorDetailPage({
   };
 
   const currentRange = getCurrentRange();
+  const handleExportIndicatorData = () => {
+    downloadJsonFile(`${sanitizeFilename(indicator.name)}-indicator-detail.json`, {
+      exportedAt: new Date().toISOString(),
+      indicator,
+      currentRange,
+    });
+  };
 
   return (
     <div className="w-full text-foreground transition-colors duration-300">
@@ -69,7 +92,16 @@ export default function IndicatorDetailPage({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {/* Score Card */}
-        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border shadow-sm p-6 relative">
+          <button
+            type="button"
+            onClick={handleExportIndicatorData}
+            className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-primary-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="导出数据"
+            title="导出数据"
+          >
+            <Download className="h-4 w-4" />
+          </button>
           <div className="flex flex-col md:flex-row items-start justify-between gap-8">
             <div className="flex-shrink-0">
               <h2 className="text-lg font-medium mb-2 text-muted-foreground">
@@ -89,7 +121,7 @@ export default function IndicatorDetailPage({
             </div>
 
             {/* Formula Display for Category Score */}
-            <div className="flex-1 w-full max-w-2xl bg-muted/30 border border-border/50 rounded-lg p-6 backdrop-blur-sm">
+            <div className="flex-1 w-full max-w-2xl bg-muted/30 border border-border/50 rounded-lg p-6 pr-14 backdrop-blur-sm">
               <div className="flex items-start gap-3 mb-4">
                 <div className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 shadow-sm">
                   =
