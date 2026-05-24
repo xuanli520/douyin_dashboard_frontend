@@ -45,6 +45,8 @@ export function MetricCard({ title, value, suffix = '', change, icon: Icon, data
       changeColor = isPositive ? 'text-emerald-500' : 'text-red-500';
     }
   }
+  const changeTextClass = `${changeColor} dark:text-white`;
+  const changeLabelClass = 'text-slate-500 dark:text-white';
 
   // Theme colors
   const bgClass = isEnterprise
@@ -93,12 +95,18 @@ export function MetricCard({ title, value, suffix = '', change, icon: Icon, data
 
       {/* Change Indicator */}
       <div className={`flex items-center gap-2 text-sm z-10 mt-4 ${isPrimary ? 'justify-center' : 'justify-start'}`}>
-        <span className={titleClass}>{isEnterprise ? '' : '较昨日'}</span>
-        <span className={`flex items-center font-medium ${changeColor}`}>
+        <span className={changeLabelClass}>{isEnterprise ? '' : '较昨日'}</span>
+        <span className="flex items-center gap-1 font-medium">
           {isEnterprise ? (
-            <>{changeSymbol} {Math.abs(change)} {isPrimary ? '较昨日' : '较昨日'}</>
+            <>
+              <span className={changeColor}>{changeSymbol}</span>
+              <span className={changeTextClass}>{Math.abs(change)} 较昨日</span>
+            </>
           ) : (
-             <>{change > 0 ? '+' : '-'}{Math.abs(change)}{suffix && suffix !== '分' ? suffix : ''} {changeArrow}</>
+            <>
+              <span className={changeTextClass}>{change > 0 ? '+' : '-'}{Math.abs(change)}{suffix && suffix !== '分' ? suffix : ''}</span>
+              <span className={changeColor}>{changeArrow}</span>
+            </>
           )}
         </span>
       </div>

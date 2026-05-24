@@ -147,3 +147,21 @@
 :root svg text {
   font-family: var(--font-sans);
 }
+
+.ui-fade-opacity-300 {
+  transition-property: opacity !important;
+  transition-duration: 300ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ui-fade-transform-300 {
+  transition-property: opacity, transform !important;
+  transition-duration: 300ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ui-fade-transform-200 {
+  transition-property: opacity, transform !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}

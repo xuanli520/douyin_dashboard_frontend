@@ -34,17 +34,20 @@ export default function MainLayout({
 
   const sidebarContent = isDataCenterPage ? (
     <>
-      {isDataCenterNavOpen && (
-        <button
-          type="button"
-          aria-label="关闭导航遮罩"
-          className="fixed inset-0 z-[55] bg-slate-950/20 backdrop-blur-[1px] transition-opacity dark:bg-black/45"
-          onClick={() => setIsDataCenterNavOpen(false)}
-        />
-      )}
+      <button
+        type="button"
+        aria-label="关闭导航遮罩"
+        aria-hidden={!isDataCenterNavOpen}
+        tabIndex={isDataCenterNavOpen ? 0 : -1}
+        className={`ui-fade-opacity-300 fixed inset-0 z-[55] bg-slate-950/20 backdrop-blur-[1px] dark:bg-black/45 ${
+          isDataCenterNavOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsDataCenterNavOpen(false)}
+      />
       <div
-        className={`fixed inset-y-0 left-0 z-[70] flex h-full transition-transform duration-300 ease-out ${
-          isDataCenterNavOpen ? 'translate-x-0' : '-translate-x-[240px]'
+        aria-hidden={!isDataCenterNavOpen}
+        className={`ui-fade-transform-300 fixed inset-y-0 left-0 z-[70] flex h-full will-change-[opacity,transform] ${
+          isDataCenterNavOpen ? 'translate-x-0 opacity-100' : '-translate-x-[240px] opacity-0 pointer-events-none'
         }`}
       >
         <Sidebar />
