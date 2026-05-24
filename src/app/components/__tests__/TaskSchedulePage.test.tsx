@@ -98,7 +98,7 @@ describe('TaskSchedulePage', () => {
     });
   });
 
-  it('采集任务立即执行会自动使用任务配置参数触发', async () => {
+  it('采集任务立即执行会自动带入任务配置参数并确认触发', async () => {
     mockTaskList({
       id: 202,
       name: 'shop-dashboard-collection',
@@ -109,29 +109,23 @@ describe('TaskSchedulePage', () => {
       },
     });
 
-    mockedApi.triggerShopDashboardCollection.mockResolvedValue({
-      task: buildTask(202, {
-        name: 'shop-dashboard-collection',
-        task_type: 'SHOP_DASHBOARD_COLLECTION',
-      }),
-      execution: {
-        id: 9001,
-        task_id: 202,
-        queue_task_id: 'queue-202-1',
-        status: 'QUEUED',
-        trigger_mode: 'MANUAL',
-        payload: {
-          data_source_id: 66,
-          rule_id: 77,
-        },
-        started_at: null,
-        completed_at: null,
-        processed_rows: 0,
-        error_message: null,
-        triggered_by: 1,
-        created_at: '2026-03-09T02:00:00Z',
-        updated_at: '2026-03-09T02:00:00Z',
+    mockedApi.runTask.mockResolvedValue({
+      id: 9001,
+      task_id: 202,
+      queue_task_id: 'queue-202-1',
+      status: 'QUEUED',
+      trigger_mode: 'MANUAL',
+      payload: {
+        data_source_id: 66,
+        rule_id: 77,
       },
+      started_at: null,
+      completed_at: null,
+      processed_rows: 0,
+      error_message: null,
+      triggered_by: 1,
+      created_at: '2026-03-09T02:00:00Z',
+      updated_at: '2026-03-09T02:00:00Z',
     });
 
     render(<TaskSchedulePage />);
@@ -140,10 +134,18 @@ describe('TaskSchedulePage', () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: '打开操作菜单' }));
     fireEvent.click(await screen.findByRole('menuitem', { name: '立即执行' }));
 
+    expect(await screen.findByText('执行任务')).toBeTruthy();
     await waitFor(() => {
-      expect(mockedApi.triggerShopDashboardCollection).toHaveBeenCalledWith({
-        data_source_id: 66,
-        rule_id: 77,
+      expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('{\n  "data_source_id": 66,\n  "rule_id": 77\n}');
+    });
+    fireEvent.click(screen.getByRole('button', { name: '确认执行' }));
+
+    await waitFor(() => {
+      expect(mockedApi.runTask).toHaveBeenCalledWith(202, {
+        payload: {
+          data_source_id: 66,
+          rule_id: 77,
+        },
       });
     });
   });

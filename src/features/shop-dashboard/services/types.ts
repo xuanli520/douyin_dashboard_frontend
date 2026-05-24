@@ -26,8 +26,41 @@ export interface TaskDefinitionUpdateRequest {
 }
 
 export interface TaskRunRequest {
-  payload?: Record<string, unknown>;
+  payload?: TaskRunPayload;
 }
+
+export interface ShopDashboardTimeRange {
+  start: string;
+  end: string;
+}
+
+export interface ShopDashboardAgentRecipeRef {
+  namespace: string;
+  key: string;
+  version?: number;
+}
+
+export interface ShopDashboardAgentExtraConfig {
+  agent_recipe?: ShopDashboardAgentRecipeRef;
+  agent_discovery?: boolean;
+  agent_recipe_validation?: boolean;
+  agent_recipe_recovery?: boolean;
+  [key: string]: unknown;
+}
+
+export interface ShopDashboardTaskRunPayload {
+  data_source_id: number;
+  rule_id: number;
+  execution_id?: string;
+  shop_id?: string;
+  shop_ids?: string[];
+  all?: boolean;
+  time_range?: ShopDashboardTimeRange;
+  extra_config?: ShopDashboardAgentExtraConfig;
+  [key: string]: unknown;
+}
+
+export type TaskRunPayload = ShopDashboardTaskRunPayload | Record<string, unknown>;
 
 export type MetricType = 'product' | 'logistics' | 'service' | 'risk';
 
@@ -177,6 +210,11 @@ export interface ShopDashboardCollectionTriggerRequest {
   data_source_id: number;
   rule_id: number;
   execution_id?: string;
+  shop_id?: string;
+  shop_ids?: string[];
+  all?: boolean;
+  time_range?: ShopDashboardTimeRange;
+  extra_config?: ShopDashboardAgentExtraConfig;
 }
 
 export interface ShopDashboardCollectionTriggerResult {

@@ -559,10 +559,7 @@ export const shopDashboardApi = {
       });
     }
 
-    const runPayload: Record<string, unknown> = {
-      data_source_id: payload.data_source_id,
-      rule_id: payload.rule_id,
-    };
+    const runPayload: Record<string, unknown> = { ...payload };
     if (payload.execution_id) {
       runPayload.execution_id = payload.execution_id;
     }
