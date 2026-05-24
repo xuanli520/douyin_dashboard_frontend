@@ -46,6 +46,7 @@ import {
   TaskDefinitionStatus,
   TaskExecution,
   TaskExecutionStatus,
+  ShopDashboardTaskRunPayload,
   TaskTriggerMode,
   TaskType,
 } from '@/features/shop-dashboard/services/types';
@@ -68,6 +69,11 @@ interface TaskEditFormState {
   status: TaskDefinitionStatus;
   config: string;
   schedule: string;
+}
+
+interface RunTaskDialogState {
+  task: TaskDefinition | null;
+  payload: string;
 }
 
 // ─────────────────────────────────────────────
@@ -127,7 +133,55 @@ function toPositiveInt(value: unknown): number | null {
   return null;
 }
 
-function extractCollectionPayload(source: unknown): { data_source_id: number; rule_id: number } | null {
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function toOptionalString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function toStringArray(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const items = value
+      .map(item => String(item || '').trim())
+      .filter(Boolean);
+    return items.length > 0 ? [...new Set(items)] : undefined;
+  }
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const items = value
+    .split(/[,;|\n]/)
+    .map(item => item.trim())
+    .filter(Boolean);
+  return items.length > 0 ? [...new Set(items)] : undefined;
+}
+
+function toOptionalBool(value: unknown): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const text = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(text)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'off'].includes(text)) {
+      return false;
+    }
+  }
+  return undefined;
+}
+
+function extractCollectionPayload(source: unknown): ShopDashboardTaskRunPayload | null {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     return null;
   }
@@ -140,10 +194,30 @@ function extractCollectionPayload(source: unknown): { data_source_id: number; ru
     return null;
   }
 
-  return {
+  const payload: ShopDashboardTaskRunPayload = {
     data_source_id: dataSourceId,
     rule_id: ruleId,
   };
+  const executionId = toOptionalString(record.execution_id);
+  const shopId = toOptionalString(record.shop_id);
+  const shopIds = toStringArray(record.shop_ids);
+  const all = toOptionalBool(record.all);
+  const timeRange = asRecord(record.time_range);
+  const extraConfig = asRecord(record.extra_config);
+
+  if (executionId) payload.execution_id = executionId;
+  if (shopId) payload.shop_id = shopId;
+  if (shopIds) payload.shop_ids = shopIds;
+  if (typeof all === 'boolean') payload.all = all;
+  if (timeRange && typeof timeRange.start === 'string' && typeof timeRange.end === 'string') {
+    payload.time_range = {
+      start: timeRange.start,
+      end: timeRange.end,
+    };
+  }
+  if (extraConfig) payload.extra_config = extraConfig;
+
+  return payload;
 }
 
 function toLocalTime(value: string): string {
@@ -185,6 +259,13 @@ function triggerModeLabel(mode: TaskTriggerMode): string {
 
 function formatTaskJson(value: Record<string, unknown> | null): string {
   if (!value || Object.keys(value).length === 0) {
+    return '{}';
+  }
+  return JSON.stringify(value, null, 2);
+}
+
+function formatRunPayload(value: Record<string, unknown>): string {
+  if (Object.keys(value).length === 0) {
     return '{}';
   }
   return JSON.stringify(value, null, 2);
@@ -620,6 +701,64 @@ function EditTaskDialog({
   );
 }
 
+interface RunTaskDialogProps {
+  state: RunTaskDialogState;
+  isSubmitting: boolean;
+  onChange: Dispatch<SetStateAction<RunTaskDialogState>>;
+  onSubmit: () => void;
+  onClose: () => void;
+}
+
+function RunTaskDialog({
+  state,
+  isSubmitting,
+  onChange,
+  onSubmit,
+  onClose,
+}: RunTaskDialogProps) {
+  const task = state.task;
+
+  return (
+    <Dialog
+      open={Boolean(task)}
+      onOpenChange={open => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-[760px]">
+        <DialogHeader>
+          <DialogTitle>执行任务</DialogTitle>
+          {task && (
+            <DialogDescription>
+              任务ID: {task.id} | 任务类型: {taskTypeLabel(task.task_type)}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        <div className="grid gap-2 py-2">
+          <span className="text-sm font-medium">Payload (JSON)</span>
+          <Textarea
+            value={state.payload}
+            onChange={event => onChange(prev => ({ ...prev, payload: event.target.value }))}
+            rows={14}
+            className="font-mono text-xs"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            取消
+          </Button>
+          <Button type="button" onClick={onSubmit} disabled={isSubmitting}>
+            {isSubmitting ? '执行中...' : '确认执行'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface ExecutionsDialogProps {
   task: TaskDefinition | null;
   executions: TaskExecution[];
@@ -733,6 +872,11 @@ export default function TaskSchedulePage() {
     schedule: '{}',
   });
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [runDialog, setRunDialog] = useState<RunTaskDialogState>({
+    task: null,
+    payload: '{}',
+  });
+  const [isRunSubmitting, setIsRunSubmitting] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<TaskDefinition | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingTaskIds, setDeletingTaskIds] = useState<number[]>([]);
@@ -786,7 +930,6 @@ export default function TaskSchedulePage() {
     [],
   );
 
-  // ── 执行普通任务 ──
   const executeRunTask = useCallback(
     async (task: TaskDefinition, payload: Record<string, unknown> = {}) => {
       actionLoading.set(task.id, 'running');
@@ -807,42 +950,67 @@ export default function TaskSchedulePage() {
     [detailTask?.id, fetchExecutions, fetchTasks],
   );
 
-  // ── 执行采集任务（需要额外 payload 解析）──
-  const executeCollectionTask = useCallback(
+  const openRunTaskDialog = useCallback(
     async (task: TaskDefinition) => {
-      actionLoading.set(task.id, 'running');
-      try {
-        const payload = await resolveCollectionPayload(task);
-        if (!payload) {
-          toast.error('任务缺少 data_source_id/rule_id，请先在采集规则页面触发一次');
-          return;
-        }
-        const result = await shopDashboardApi.triggerShopDashboardCollection(payload);
-        toast.success(`任务 ${task.id} 已触发，执行ID: ${result.execution.id}`);
-        await fetchTasks();
-        if (detailTask?.id === task.id) {
-          await fetchExecutions(task.id);
-        }
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '任务触发失败');
-      } finally {
-        actionLoading.clear(task.id);
+      if (task.task_type !== 'SHOP_DASHBOARD_COLLECTION') {
+        setRunDialog({ task, payload: '{}' });
+        return;
       }
+
+      const payload = await resolveCollectionPayload(task);
+      setRunDialog({
+        task,
+        payload: formatRunPayload(payload ?? {}),
+      });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [detailTask?.id, fetchExecutions, fetchTasks, resolveCollectionPayload],
+    [resolveCollectionPayload],
   );
 
   const handleRunTask = useCallback(
     (task: TaskDefinition) => {
-      if (task.task_type === 'SHOP_DASHBOARD_COLLECTION') {
-        void executeCollectionTask(task);
-      } else {
-        void executeRunTask(task);
-      }
+      void openRunTaskDialog(task);
     },
-    [executeCollectionTask, executeRunTask],
+    [openRunTaskDialog],
   );
+
+  const handleCloseRunTask = useCallback(() => {
+    if (isRunSubmitting) {
+      return;
+    }
+    setRunDialog({ task: null, payload: '{}' });
+  }, [isRunSubmitting]);
+
+  const handleSubmitRunTask = useCallback(async () => {
+    const task = runDialog.task;
+    if (!task) {
+      return;
+    }
+
+    let payload: Record<string, unknown>;
+    try {
+      payload = parseTaskJson(runDialog.payload, 'Payload') ?? {};
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Payload 格式不正确');
+      return;
+    }
+
+    if (task.task_type === 'SHOP_DASHBOARD_COLLECTION') {
+      const dataSourceId = toPositiveInt(payload.data_source_id);
+      const ruleId = toPositiveInt(payload.rule_id);
+      if (!dataSourceId || !ruleId) {
+        toast.error('抖店采集任务必须包含 data_source_id 和 rule_id');
+        return;
+      }
+    }
+
+    setIsRunSubmitting(true);
+    try {
+      await executeRunTask(task, payload);
+      setRunDialog({ task: null, payload: '{}' });
+    } finally {
+      setIsRunSubmitting(false);
+    }
+  }, [executeRunTask, runDialog]);
 
   const handleCancelTask = useCallback(
     async (task: TaskDefinition) => {
@@ -1103,6 +1271,14 @@ export default function TaskSchedulePage() {
         onChange={setEditForm}
         onSubmit={() => void handleSubmitEditTask()}
         onClose={handleCloseEditTask}
+      />
+
+      <RunTaskDialog
+        state={runDialog}
+        isSubmitting={isRunSubmitting}
+        onChange={setRunDialog}
+        onSubmit={() => void handleSubmitRunTask()}
+        onClose={handleCloseRunTask}
       />
 
       <ExecutionsDialog

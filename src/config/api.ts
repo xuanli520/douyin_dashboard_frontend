@@ -36,6 +36,18 @@ export const API_ENDPOINTS = {
   TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
   TASK_CANCEL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/cancel`,
   COLLECTION_JOBS: `${API_BASE_PATH}/collection-jobs`,
+  AGENT_LOGIN_START: `${API_BASE_PATH}/agent-login/start`,
+  AGENT_LOGIN_CODE: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/code`,
+  AGENT_LOGIN_CANCEL: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/cancel`,
+  AGENT_LOGIN_EVENTS: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/events`,
+  AGENT_DISCOVERY: `${API_BASE_PATH}/agent-discovery`,
+  AGENT_DISCOVERY_EVENTS: (run_id: string) => `${API_BASE_PATH}/agent-discovery/${run_id}/events`,
+  AGENT_RECIPE_MARK_STABLE: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/mark-stable`,
+  AGENT_RECIPE_EXPORT: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/export`,
+  AGENT_RECIPE_IMPORT: `${API_BASE_PATH}/agent-discovery/recipes/import`,
+  AGENT_RESULTS: `${API_BASE_PATH}/agent-results`,
+  AGENT_RESULT_DETAIL: (result_id: number) => `${API_BASE_PATH}/agent-results/${result_id}`,
+  AGENT_RESULTS_DOWNLOAD: `${API_BASE_PATH}/agent-results/download`,
 
   DATA_SOURCES: `${API_BASE_PATH}/data-sources`,
   DATA_SOURCE_DETAIL: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}`,
@@ -53,4 +65,3 @@ export const API_ENDPOINTS = {
 
 export const SUCCESS_CODES = [200, 201, 202, 203, 204, 205, 206, 207, 208, 209] as const;
 export const DEFAULT_TIMEOUT = 30000;
-

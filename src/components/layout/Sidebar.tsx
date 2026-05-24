@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, Settings, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow, Activity } from 'lucide-react';
+import { Home, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow, Activity, Bot } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import femaleProfileImage from '@/assets/female.jpg';
 import logoImage from '@/assets/logo.png';
@@ -33,6 +33,9 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: 'compass', label: '罗盘', icon: Home, href: ROUTES.COMPASS },
   { id: 'task-schedule', label: '任务调度', icon: Calendar, href: ROUTES.TASK_SCHEDULE },
+  { id: 'agent-workbench', label: 'Agent 工作台', icon: Bot, href: ROUTES.AGENT_WORKBENCH },
+  { id: 'reports', label: '定期报表', icon: FileText, href: ROUTES.REPORTS },
+  { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: ROUTES.RISK_ALERT },
   { id: 'data-source', label: '数据源管理', icon: Database, href: ROUTES.DATA_SOURCE },
   { id: 'scraping-rule', label: '采集规则', icon: Workflow, href: ROUTES.SCRAPING_RULE },
   // 系统管理
