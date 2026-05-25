@@ -355,7 +355,7 @@ export default function AgentWorkbenchPage() {
 
   return (
     <SecondaryPageLayout
-      breadcrumbs={[{ label: 'Agent 工作台' }]}
+      breadcrumbs={[]}
       title="Agent 工作台"
     >
       <div className="grid gap-4">

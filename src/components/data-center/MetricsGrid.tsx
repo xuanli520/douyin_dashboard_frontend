@@ -4,11 +4,13 @@ import React from 'react';
 import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useThemeStore } from '@/stores/themeStore';
 import { HelpCircle, AlertTriangle, Store, Package, Truck, HeadphonesIcon, ShieldCheck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
 
 interface MetricCardProps {
   title: string;
   value: string | number;
   suffix?: string;
+  description: string;
   change: number;
   icon?: React.ElementType;
   data: any[];
@@ -16,7 +18,7 @@ interface MetricCardProps {
   isPrimary?: boolean;
 }
 
-export function MetricCard({ title, value, suffix = '', change, icon: Icon, data, isWarning, isPrimary }: MetricCardProps) {
+export function MetricCard({ title, value, suffix = '', description, change, icon: Icon, data, isWarning, isPrimary }: MetricCardProps) {
   const { appTheme } = useThemeStore();
   const isEnterprise = appTheme === 'enterprise';
   const chartGradientId = React.useId().replace(/:/g, '');
@@ -69,7 +71,14 @@ export function MetricCard({ title, value, suffix = '', change, icon: Icon, data
       <div className="flex items-center justify-between mb-2">
         <div className={`flex items-center gap-1.5 text-sm ${titleClass}`}>
           <span>{title}</span>
-          <HelpCircle className="w-3.5 h-3.5 opacity-60 cursor-help" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-3.5 h-3.5 opacity-60 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-64 leading-relaxed">
+              {description}
+            </TooltipContent>
+          </Tooltip>
         </div>
         {Icon && (
           <div className={`p-1.5 rounded-full ${isWarning ? (isEnterprise ? 'bg-red-50 text-red-500' : 'bg-red-500/10 text-red-400') : (isEnterprise ? 'bg-blue-50 text-blue-500' : 'text-[#0ea5e9]')}`}>
@@ -148,6 +157,7 @@ export function MetricsGrid() {
       <MetricCard 
         title="综合评分 (店铺平均分)" 
         value="96.8" 
+        description="当前范围内所有监控店铺综合体验分的平均值。"
         change={0.6} 
         data={[]} 
         isPrimary
@@ -155,6 +165,7 @@ export function MetricsGrid() {
       <MetricCard 
         title="商品体验分" 
         value="97.2" 
+        description="衡量商品质量、描述一致性和商品相关售后反馈的体验分。"
         change={0.8} 
         icon={Package} 
         data={generateSparkline()} 
@@ -162,6 +173,7 @@ export function MetricsGrid() {
       <MetricCard 
         title="物流体验分" 
         value="95.6" 
+        description="衡量发货、配送时效和物流服务稳定性的体验分。"
         change={-0.3} 
         icon={Truck} 
         data={generateSparkline()} 
@@ -169,6 +181,7 @@ export function MetricsGrid() {
       <MetricCard 
         title="服务体验分" 
         value="96.4" 
+        description="衡量客服响应、售后处理和服务满意度的体验分。"
         change={0.5} 
         icon={HeadphonesIcon} 
         data={generateSparkline()} 
@@ -177,6 +190,7 @@ export function MetricsGrid() {
         title="差评风险 (差评行为分)" 
         value="1.8" 
         suffix="%" 
+        description="反映差评行为相关问题占比，数值越低风险越小。"
         change={-0.4} 
         icon={AlertTriangle} 
         data={generateSparkline()} 
