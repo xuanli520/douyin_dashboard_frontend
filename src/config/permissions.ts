@@ -128,7 +128,6 @@ export const COMPONENT_PERMISSIONS: Record<string, PermissionCode> = {
   'assign-role': 'user:manage_roles',
   'export-data': 'export:create',
   'import-data': 'data_import:upload',
-  'view-analytics': 'analysis:view',
   'manage-settings': 'system:user_settings',
 };
 
@@ -137,7 +136,6 @@ export const PERMISSION_MODULES = {
   ROLE: 'role',
   PERMISSION: 'permission',
   DATA: 'data',
-  REPORT: 'report',
   SETTINGS: 'settings',
   SYSTEM: 'system',
 } as const;

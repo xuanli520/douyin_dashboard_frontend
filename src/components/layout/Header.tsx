@@ -19,8 +19,6 @@ const menuItems = [
   { id: 'metric-detail', label: '体验详情', href: ROUTES.METRIC_DETAIL },
   { id: 'task-schedule', label: '任务调度', href: ROUTES.TASK_SCHEDULE },
   { id: 'agent-workbench', label: 'Agent 工作台', href: ROUTES.AGENT_WORKBENCH },
-  { id: 'reports', label: '定期报表', href: ROUTES.REPORTS },
-  { id: 'risk-alert', label: '风险预警', href: ROUTES.RISK_ALERT },
   { id: 'data-source', label: '数据源管理', href: ROUTES.DATA_SOURCE },
   { id: 'scraping-rule', label: '采集规则', href: ROUTES.SCRAPING_RULE },
   { id: 'admin-users', label: '用户管理', href: ROUTES.ADMIN_USERS },

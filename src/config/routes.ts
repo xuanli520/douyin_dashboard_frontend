@@ -6,8 +6,6 @@ export const ROUTES = {
   TASK_SCHEDULE: '/task-schedule',
   TASK_SCHEDULE_COLLECTION_JOBS: '/task-schedule/collection-jobs',
   AGENT_WORKBENCH: '/agent-workbench',
-  REPORTS: '/reports',
-  RISK_ALERT: '/risk-alert',
   DATA_SOURCE: '/data-source',
   SCRAPING_RULE: '/scraping-rule',
   USER_PERMISSION: '/user-permission',

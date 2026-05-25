@@ -106,7 +106,6 @@ export default function SystemSettingsPage() {
     // 通知设置
     emailNotification: true,
     pushNotification: true,
-    riskAlert: true,
     taskReminder: true,
     // 安全设置
     twoFactorAuth: false,
@@ -194,14 +193,6 @@ export default function SystemSettingsPage() {
                     <p className="text-xs text-[#64748b] dark:text-slate-400 mt-1">浏览器推送通知</p>
                   </div>
                   <Toggle checked={settings.pushNotification} onChange={(c) => setSettings({ ...settings, pushNotification: c })} />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#16263d] border border-slate-200 dark:border-[#1e293b] rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a2d46] transition-colors">
-                  <div>
-                    <p className="text-sm font-medium text-[#1e3a5a] dark:text-slate-100">风险预警</p>
-                    <p className="text-xs text-[#64748b] dark:text-slate-400 mt-1">P0/P1风险即时预警</p>
-                  </div>
-                  <Toggle checked={settings.riskAlert} onChange={(c) => setSettings({ ...settings, riskAlert: c })} />
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#16263d] border border-slate-200 dark:border-[#1e293b] rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a2d46] transition-colors">
@@ -356,14 +347,6 @@ export default function SystemSettingsPage() {
                    <p className="text-xs text-muted-foreground mt-1">浏览器推送通知</p>
                 </div>
                 <Toggle checked={settings.pushNotification} onChange={(c) => setSettings({ ...settings, pushNotification: c })} />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
-                <div>
-                  <p className="text-sm font-medium text-foreground">风险预警</p>
-                   <p className="text-xs text-muted-foreground mt-1">P0/P1风险即时预警</p>
-                </div>
-                <Toggle checked={settings.riskAlert} onChange={(c) => setSettings({ ...settings, riskAlert: c })} />
               </div>
 
               <div className="flex items-center justify-between p-4 bg-[#f8fffc] dark:bg-white/[0.03] border border-[#d7f5eb] dark:border-white/5 rounded-xl hover:bg-[#f1fcf8] dark:hover:bg-white/[0.05] transition-colors">
