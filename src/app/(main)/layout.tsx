@@ -9,8 +9,13 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { useThemeStore } from '@/stores/themeStore';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { matchRoutePermission } from '@/config/permissions';
+import { RBAC_CONFIG } from '@/config/rbac';
+import { useAuthStore } from '@/stores/authStore';
+import { usePermissionStore } from '@/stores/permissionStore';
 
 export default function MainLayout({
   children,
@@ -19,8 +24,32 @@ export default function MainLayout({
 }) {
   const { appTheme, isHydrated } = useThemeStore();
   const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const {
+    isLoading: permissionLoading,
+    checkAllPermissions,
+    checkRole,
+    checkResourcePermission,
+  } = usePermissionStore();
   const isDataCenterPage = pathname.startsWith('/data-center');
   const [isDataCenterNavOpen, setIsDataCenterNavOpen] = useState(false);
+  const routeConfig = matchRoutePermission(pathname);
+  const hasRequiredPermissions = routeConfig?.requiredPermissions?.length
+    ? checkAllPermissions(routeConfig.requiredPermissions)
+    : true;
+  const hasRequiredRoles = routeConfig?.requiredRoles?.length
+    ? routeConfig.requiredRoles.every(role => checkRole(role))
+    : true;
+  const hasRequiredResources = routeConfig?.requiredResources?.length
+    ? routeConfig.requiredResources.every(resource => checkResourcePermission(resource))
+    : true;
+  const hasPageAccess = !routeConfig || (
+    isAuthenticated &&
+    hasRequiredPermissions &&
+    hasRequiredRoles &&
+    hasRequiredResources
+  );
 
   useEffect(() => {
     if (!isDataCenterPage) {
@@ -28,7 +57,39 @@ export default function MainLayout({
     }
   }, [isDataCenterPage]);
 
-  if (!isHydrated) {
+  useEffect(() => {
+    if (authLoading || permissionLoading) {
+      return;
+    }
+
+    if (!routeConfig) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      const loginUrl = new URL(
+        routeConfig.unauthRedirect || RBAC_CONFIG.ROUTING.DEFAULT_UNAUTH_REDIRECT,
+        window.location.origin,
+      );
+      loginUrl.searchParams.set('redirect', pathname);
+      router.replace(`${loginUrl.pathname}${loginUrl.search}`);
+      return;
+    }
+
+    if (!hasPageAccess) {
+      router.replace(routeConfig.forbiddenRedirect || RBAC_CONFIG.ROUTING.DEFAULT_FORBIDDEN_REDIRECT);
+    }
+  }, [
+    authLoading,
+    hasPageAccess,
+    isAuthenticated,
+    pathname,
+    permissionLoading,
+    routeConfig,
+    router,
+  ]);
+
+  if (!isHydrated || authLoading || permissionLoading || !hasPageAccess) {
     return <div className="flex h-screen bg-background" />;
   }
 

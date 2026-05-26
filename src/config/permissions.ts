@@ -15,6 +15,18 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
     forbiddenRedirect: '/403',
   },
   {
+    route: ROUTES.DATA_CENTER,
+    requiredPermissions: ['analytics:view'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
+    route: ROUTES.METRIC_DETAIL,
+    requiredPermissions: ['metric:view'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
     route: ROUTES.TASK_SCHEDULE,
     requiredPermissions: ['schedule:view'],
     unauthRedirect: '/login',
@@ -35,6 +47,12 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
   {
     route: ROUTES.SCRAPING_RULE,
     requiredPermissions: ['task:view'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
+    route: ROUTES.AGENT_WORKBENCH,
+    requiredPermissions: ['shop_dashboard:trigger'],
     unauthRedirect: '/login',
     forbiddenRedirect: '/403',
   },
@@ -106,15 +124,19 @@ export function matchRoutePermission(pathname: string): RoutePermissionConfig | 
     return null;
   }
 
-  return PAGE_PERMISSIONS.find(config => {
-    if (typeof config.route === 'string') {
-      return config.route === pathname;
-    }
-    if (config.route instanceof RegExp) {
-      return (config.route as RegExp).test(pathname);
-    }
-    return false;
-  }) || null;
+  const matched = PAGE_PERMISSIONS
+    .filter(config => {
+      if (typeof config.route === 'string') {
+        return pathname === config.route || pathname.startsWith(`${config.route}/`);
+      }
+      if (config.route instanceof RegExp) {
+        return (config.route as RegExp).test(pathname);
+      }
+      return false;
+    })
+    .sort((a, b) => String(b.route).length - String(a.route).length);
+
+  return matched[0] || null;
 }
 
 export const COMPONENT_PERMISSIONS: Record<string, PermissionCode> = {

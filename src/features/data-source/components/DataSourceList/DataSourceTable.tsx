@@ -11,6 +11,7 @@ import { getDataSourceTypeLabel } from '@/lib/enums';
 interface DataSourceTableProps {
   data: DataSource[];
   loading: boolean;
+  error?: string | null;
   pagination: { page: number; size: number; total: number };
   onPageChange: (page: number) => void;
   onSizeChange: (size: number) => void;
@@ -18,7 +19,7 @@ interface DataSourceTableProps {
   onDelete: (id: number) => void;
 }
 
-export function DataSourceTable({ data, loading, pagination, onPageChange, onSizeChange, onEdit, onDelete }: DataSourceTableProps) {
+export function DataSourceTable({ data, loading, error, pagination, onPageChange, onSizeChange, onEdit, onDelete }: DataSourceTableProps) {
   const router = useRouter();
 
   const columns: DataTableColumn<DataSource>[] = [
@@ -81,6 +82,7 @@ export function DataSourceTable({ data, loading, pagination, onPageChange, onSiz
       data={data}
       columns={columns}
       isLoading={loading}
+      error={error}
       pagination={pagination}
       onPageChange={onPageChange}
       onSizeChange={onSizeChange}

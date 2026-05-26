@@ -13,16 +13,18 @@ describe('permissionStore', () => {
   });
 
   afterEach(() => {
-    usePermissionStore.setState({
-      permissions: [],
-      allRoles: [],
-      userRoles: [],
-      userPermissions: [],
-      resourcePermissions: [],
-      isSuperuser: false,
-      isLoading: false,
-      error: null,
-      lastFetched: null,
+    act(() => {
+      usePermissionStore.setState({
+        permissions: [],
+        allRoles: [],
+        userRoles: [],
+        userPermissions: [],
+        resourcePermissions: [],
+        isSuperuser: false,
+        isLoading: false,
+        error: null,
+        lastFetched: null,
+      });
     });
   });
 

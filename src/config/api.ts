@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
   TASK_CANCEL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/cancel`,
   COLLECTION_JOBS: `${API_BASE_PATH}/collection-jobs`,
+  COLLECTION_JOB_DETAIL: (job_id: number) => `${API_BASE_PATH}/collection-jobs/${job_id}`,
   AGENT_LOGIN_START: `${API_BASE_PATH}/agent-login/start`,
   AGENT_LOGIN_CODE: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/code`,
   AGENT_LOGIN_CANCEL: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/cancel`,
