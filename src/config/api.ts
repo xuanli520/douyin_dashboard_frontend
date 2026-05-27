@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
   AGENT_LOGIN_EVENTS: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/events`,
   AGENT_DISCOVERY: `${API_BASE_PATH}/agent-discovery`,
   AGENT_DISCOVERY_EVENTS: (run_id: string) => `${API_BASE_PATH}/agent-discovery/${run_id}/events`,
+  AGENT_RECIPES: `${API_BASE_PATH}/agent-discovery/recipes`,
   AGENT_RECIPE_MARK_STABLE: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/mark-stable`,
   AGENT_RECIPE_EXPORT: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/export`,
   AGENT_RECIPE_IMPORT: `${API_BASE_PATH}/agent-discovery/recipes/import`,

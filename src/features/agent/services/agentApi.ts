@@ -11,6 +11,7 @@ import {
   AgentOkResponse,
   AgentRecipeExportPayload,
   AgentRecipeImportResponse,
+  AgentRecipeListResponse,
   AgentRecipeMarkStableRequest,
   AgentRecipeMarkStableResponse,
   AgentResultItem,
@@ -84,6 +85,13 @@ export const agentApi = {
 
   discoveryEventsUrl(runId: string): string {
     return toWsUrl(API_ENDPOINTS.AGENT_DISCOVERY_EVENTS(runId));
+  },
+
+  async listRecipes(): Promise<AgentRecipeListResponse> {
+    const response = await httpClient.get<ApiResponse<AgentRecipeListResponse>>(
+      API_ENDPOINTS.AGENT_RECIPES,
+    );
+    return response.data;
   },
 
   async markRecipeStable(

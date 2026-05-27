@@ -95,6 +95,12 @@ export interface AgentRecipeImportResponse {
   stability: AgentRecipeStability;
 }
 
+export type AgentRecipeListItem = AgentRecipeImportResponse;
+
+export interface AgentRecipeListResponse {
+  items: AgentRecipeListItem[];
+}
+
 export interface AgentResultsParams {
   namespace?: string;
   resource_key?: string;
