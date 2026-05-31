@@ -21,54 +21,7 @@ import {
 import { useThemeStore } from '@/stores/themeStore';
 import { HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
-
-const trendData = [
-  { time: '00:00', score: 89 },
-  { time: '03:00', score: 92 },
-  { time: '06:00', score: 91 },
-  { time: '09:00', score: 95 },
-  { time: '12:00', score: 96 },
-  { time: '15:00', score: 94 },
-  { time: '18:00', score: 96.8 },
-  { time: '21:00', score: 95 },
-  { time: '24:00', score: 93 },
-];
-
-const radarData = [
-  { subject: '商品体验分', A: 97.2, fullMark: 100 },
-  { subject: '物流体验分', A: 95.6, fullMark: 100 },
-  { subject: '服务体验分', A: 96.4, fullMark: 100 },
-  { subject: '差评风险', A: 20, fullMark: 100 },
-];
-
-const rankData = [
-  { name: '旗舰店A', score: 98.6 },
-  { name: '旗舰店B', score: 97.5 },
-  { name: '旗舰店C', score: 97.2 },
-  { name: '专营店D', score: 95.9 },
-  { name: '专营店E', score: 95.3 },
-  { name: '专营店F', score: 94.8 },
-  { name: '专营店G', score: 93.7 },
-  { name: '专营店H', score: 92.5 },
-  { name: '专营店I', score: 91.6 },
-  { name: '专营店J', score: 90.4 },
-];
-
-const pieDataScore = [
-  { name: '优秀 (95分以上)', value: 48, count: 48, percent: '37.5%' },
-  { name: '良好 (90~95分)', value: 38, count: 38, percent: '29.7%' },
-  { name: '一般 (75~90分)', value: 20, count: 20, percent: '15.6%' },
-  { name: '较差 (低于75分)', value: 14, count: 14, percent: '10.9%' },
-  { name: '极差 (低于60分)', value: 8, count: 8, percent: '6.3%' },
-];
-
-const pieDataProblem = [
-  { name: '商品质量问题', value: 102, count: 102, percent: '35.7%' },
-  { name: '物流配送问题', value: 78, count: 78, percent: '27.3%' },
-  { name: '服务态度问题', value: 58, count: 58, percent: '20.3%' },
-  { name: '售后处理问题', value: 30, count: 30, percent: '10.5%' },
-  { name: '其他问题', value: 18, count: 18, percent: '6.3%' },
-];
+import { DashboardChartsData } from '@/types/data-center';
 
 const COLORS_SCORE = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 const COLORS_PROBLEM = ['#6366f1', '#06b6d4', '#f59e0b', '#ec4899', '#8b5cf6'];
@@ -110,9 +63,24 @@ function CardHeader({
   );
 }
 
-export function ChartsSection() {
+function EmptyChart({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-0 flex-1 items-center justify-center rounded-lg border border-dashed border-slate-200 px-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+      {message}
+    </div>
+  );
+}
+
+export function ChartsSection({ charts }: { charts: DashboardChartsData }) {
   const { appTheme } = useThemeStore();
   const isEnterprise = appTheme === 'enterprise';
+  const trendData = charts.trend;
+  const radarData = charts.radar;
+  const rankData = charts.rank;
+  const pieDataScore = charts.scoreDistribution;
+  const pieDataProblem = charts.problemDistribution;
+  const scoreTotal = pieDataScore.reduce((sum, item) => sum + item.count, 0);
+  const problemTotal = pieDataProblem.reduce((sum, item) => sum + item.count, 0);
 
   const cardClass = isEnterprise
     ? 'bg-white dark:bg-[var(--card)] border-slate-100 dark:border-[var(--border)] shadow-sm dark:shadow-[0_20px_45px_-24px_rgba(0,0,0,0.85)]'
@@ -161,27 +129,31 @@ export function ChartsSection() {
             }
           />
           <div className="min-h-0 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                <XAxis dataKey="time" stroke={axisColor} fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis domain={[70, 100]} stroke={axisColor} fontSize={12} tickLine={false} axisLine={false} tickCount={7} />
-                <RechartsTooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: 'var(--popover-foreground)' }}
-                  itemStyle={{ color: primaryLineColor }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke={primaryLineColor}
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: 'var(--card)', strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                  name="店铺平均分"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {trendData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
+                  <XAxis dataKey="time" stroke={axisColor} fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis domain={[0, 100]} stroke={axisColor} fontSize={12} tickLine={false} axisLine={false} tickCount={6} />
+                  <RechartsTooltip
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: 'var(--popover-foreground)' }}
+                    itemStyle={{ color: primaryLineColor }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke={primaryLineColor}
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: 'var(--card)', strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                    name="店铺平均分"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart message="当前时间范围暂无评分趋势，请先完成店铺数据采集。" />
+            )}
           </div>
         </div>
 
@@ -191,25 +163,29 @@ export function ChartsSection() {
             description="对比商品、物流、服务和差评行为维度的当前表现。"
           />
           <div className="min-h-0 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-                <PolarGrid stroke={gridColor} />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: axisColor, fontSize: 11 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar
-                  name="分数"
-                  dataKey="A"
-                  stroke={primaryLineColor}
-                  fill={primaryLineColor}
-                  fillOpacity={isEnterprise ? 0.14 : 0.3}
-                />
-                <RechartsTooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: 'var(--popover-foreground)' }}
-                  itemStyle={{ color: primaryLineColor }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            {radarData.some(item => item.score > 0) ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
+                  <PolarGrid stroke={gridColor} />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: axisColor, fontSize: 11 }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar
+                    name="分数"
+                    dataKey="score"
+                    stroke={primaryLineColor}
+                    fill={primaryLineColor}
+                    fillOpacity={isEnterprise ? 0.14 : 0.3}
+                  />
+                  <RechartsTooltip
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: 'var(--popover-foreground)' }}
+                    itemStyle={{ color: primaryLineColor }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart message="暂无维度评分数据，采集完成后将展示四项评分对比。" />
+            )}
           </div>
         </div>
 
@@ -218,6 +194,7 @@ export function ChartsSection() {
             title="评分结构占比"
             description="按综合评分区间统计店铺数量和占比。"
           />
+          {scoreTotal > 0 ? (
           <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(120px,0.9fr)_minmax(0,1.1fr)]">
             <div className="relative mx-auto h-full min-h-[160px] w-full max-w-[220px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -242,7 +219,7 @@ export function ChartsSection() {
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className={`text-xs ${mutedTextClass}`}>总数</span>
-                <span className={`text-3xl font-bold ${strongTextClass}`}>128</span>
+                <span className={`text-3xl font-bold ${strongTextClass}`}>{scoreTotal}</span>
                 <span className={`text-[10px] ${mutedTextClass}`}>家店铺</span>
               </div>
             </div>
@@ -265,6 +242,9 @@ export function ChartsSection() {
               ))}
             </div>
           </div>
+          ) : (
+            <EmptyChart message="暂无评分结构数据，当前范围内没有可统计的店铺评分。" />
+          )}
         </div>
 
         <div className={`flex min-h-[300px] flex-col rounded-xl border p-4 ${cardClass}`}>
@@ -272,6 +252,7 @@ export function ChartsSection() {
             title="问题分布 (差评行为)"
             description="按问题类型统计差评行为相关记录的数量和占比。"
           />
+          {problemTotal > 0 ? (
           <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(120px,0.9fr)_minmax(0,1.1fr)]">
             <div className="relative mx-auto h-full min-h-[160px] w-full max-w-[220px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -293,7 +274,7 @@ export function ChartsSection() {
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className={`text-xs ${mutedTextClass}`}>问题总数</span>
-                <span className={`text-3xl font-bold ${strongTextClass}`}>286</span>
+                <span className={`text-3xl font-bold ${strongTextClass}`}>{problemTotal}</span>
                 <span className={`text-[10px] ${mutedTextClass}`}>条</span>
               </div>
             </div>
@@ -316,6 +297,9 @@ export function ChartsSection() {
               ))}
             </div>
           </div>
+          ) : (
+            <EmptyChart message="当前范围暂未发现可统计的问题分布。" />
+          )}
         </div>
       </div>
 
@@ -330,7 +314,7 @@ export function ChartsSection() {
           <span className="text-right">综合评分</span>
         </div>
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-2">
-          {rankData.map((item, index) => (
+          {rankData.length > 0 ? rankData.map((item, index) => (
             <div key={item.name} className="min-w-0">
               <div className="mb-1.5 grid grid-cols-[42px_minmax(0,1fr)_70px] items-center gap-0 text-sm">
                 <span>
@@ -360,7 +344,9 @@ export function ChartsSection() {
                 />
               </div>
             </div>
-          ))}
+          )) : (
+            <EmptyChart message="暂无店铺排行数据，采集完成后将展示 TOP10 排名。" />
+          )}
         </div>
       </div>
     </div>

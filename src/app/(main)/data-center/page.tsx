@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LayoutDashboard } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { MetricsGrid, SummaryBar } from '@/components/data-center/MetricsGrid';
 import { ChartsSection } from '@/components/data-center/ChartsSection';
+import { dataCenterService } from '@/services/dataCenterService';
+import { DataCenterResponse } from '@/types/data-center';
 
-// Mock Data
-const MOCK_UPDATE_TIME = '2023-07-05 18:19:00';
 type TimeFilter = 'today' | 'week' | 'month';
 
 const TIME_FILTERS: Array<{ id: TimeFilter; label: string }> = [
@@ -16,9 +16,67 @@ const TIME_FILTERS: Array<{ id: TimeFilter; label: string }> = [
   { id: 'month', label: '本月' },
 ];
 
+const EMPTY_DATA: DataCenterResponse = {
+  updateTime: '暂无数据',
+  metrics: {
+    comprehensiveScore: { title: '综合评分', value: 0, change: 0, trend: [] },
+    productExperience: { title: '商品体验分', value: 0, change: 0, trend: [] },
+    logisticsExperience: { title: '物流体验分', value: 0, change: 0, trend: [] },
+    serviceExperience: { title: '服务体验分', value: 0, change: 0, trend: [] },
+    negativeReviewRisk: { title: '差评风险', value: 0, change: 0, trend: [] },
+  },
+  summary: {
+    monitoredShops: 0,
+    dataCoverage: 0,
+  },
+  charts: {
+    trend: [],
+    radar: [
+      { subject: '商品体验分', score: 0, fullMark: 100 },
+      { subject: '物流体验分', score: 0, fullMark: 100 },
+      { subject: '服务体验分', score: 0, fullMark: 100 },
+      { subject: '差评风险', score: 0, fullMark: 100 },
+    ],
+    rank: [],
+    scoreDistribution: [],
+    problemDistribution: [],
+  },
+};
+
 export default function DataCenterPage() {
   const { appTheme } = useThemeStore();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
+  const [data, setData] = useState<DataCenterResponse>(EMPTY_DATA);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setErrorMessage('');
+
+    dataCenterService.getDashboardData(timeFilter)
+      .then((response) => {
+        if (!cancelled) {
+          setData(response);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setData(EMPTY_DATA);
+          setErrorMessage('当前无法获取店铺评分数据，请稍后刷新或检查后端服务状态。');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [timeFilter]);
   
   // Theme styling helpers
   const isEnterprise = appTheme === 'enterprise';
@@ -62,15 +120,15 @@ export default function DataCenterPage() {
           </div>
 
           {/* Update Time */}
-          <div className={`ml-4 flex items-center gap-1.5 text-sm ${secondaryTextColor}`}>
+          <div className={`flex items-center gap-1.5 text-sm lg:ml-4 ${secondaryTextColor}`}>
             {isEnterprise ? (
               <>
                 <span className="text-lg">↻</span>
-                <span>数据更新时间: {MOCK_UPDATE_TIME}</span>
+                <span>数据更新时间: {data.updateTime}</span>
               </>
             ) : (
               <>
-                <span>数据更新时间: {MOCK_UPDATE_TIME}</span>
+                <span>数据更新时间: {data.updateTime}</span>
                 <span className="text-[#C8FDE6] text-lg ml-1">↻</span>
               </>
             )}
@@ -78,14 +136,26 @@ export default function DataCenterPage() {
         </div>
       </div>
 
+      {(isLoading || errorMessage || data.summary.monitoredShops === 0) && (
+        <div className={`rounded-lg border px-4 py-3 text-sm ${
+          errorMessage
+            ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300'
+            : 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-300'
+        }`}>
+          {isLoading
+            ? '正在读取店铺评分数据...'
+            : errorMessage || '当前时间范围暂无店铺评分数据。请先在任务调度中完成采集，或切换到更长的时间范围查看历史结果。'}
+        </div>
+      )}
+
       {/* 2. Core Metrics Grid */}
-      <MetricsGrid />
+      <MetricsGrid metrics={data.metrics} />
 
       {/* 3. Summary Bar */}
-      <SummaryBar />
+      <SummaryBar summary={data.summary} />
 
       {/* 4. Charts Section */}
-      <ChartsSection />
+      <ChartsSection charts={data.charts} />
     </div>
   );
 }

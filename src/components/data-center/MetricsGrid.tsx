@@ -5,6 +5,7 @@ import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useThemeStore } from '@/stores/themeStore';
 import { HelpCircle, AlertTriangle, Store, Package, Truck, HeadphonesIcon, ShieldCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/tooltip';
+import { CoreMetrics, DataCenterSummary, MetricData } from '@/types/data-center';
 
 interface MetricCardProps {
   title: string;
@@ -13,7 +14,7 @@ interface MetricCardProps {
   description: string;
   change: number;
   icon?: React.ElementType;
-  data: any[];
+  data: MetricData['trend'];
   isWarning?: boolean;
   isPrimary?: boolean;
 }
@@ -66,7 +67,7 @@ export function MetricCard({ title, value, suffix = '', description, change, ico
   const gradientEndOpacity = isWarning ? 0.12 : 0;
 
   return (
-    <div className={`rounded-xl border p-5 flex flex-col relative overflow-hidden transition-all duration-300 hover:shadow-md ${bgClass} ${isPrimary ? (isEnterprise ? 'col-span-2 row-span-2 border-blue-100 bg-blue-50/30 dark:border-[#0ea5e9]/30 dark:bg-[#0f172a]/90' : 'col-span-2 row-span-2 bg-gradient-to-b from-white/90 to-[#0ea5e9]/10 dark:from-[#0a101f]/80 dark:to-[#0ea5e9]/10 border-[#0ea5e9]/30') : ''}`}>
+    <div className={`rounded-xl border p-5 flex flex-col relative overflow-hidden transition-all duration-300 hover:shadow-md ${bgClass} ${isPrimary ? (isEnterprise ? 'sm:col-span-2 lg:col-span-3 2xl:col-span-2 2xl:row-span-2 border-blue-100 bg-blue-50/30 dark:border-[#0ea5e9]/30 dark:bg-[#0f172a]/90' : 'sm:col-span-2 lg:col-span-3 2xl:col-span-2 2xl:row-span-2 bg-gradient-to-b from-white/90 to-[#0ea5e9]/10 dark:from-[#0a101f]/80 dark:to-[#0ea5e9]/10 border-[#0ea5e9]/30') : ''}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className={`flex items-center gap-1.5 text-sm ${titleClass}`}>
@@ -90,7 +91,7 @@ export function MetricCard({ title, value, suffix = '', description, change, ico
       {/* Main Value */}
       <div className={`flex flex-col flex-1 justify-center ${isPrimary ? 'items-center mt-4' : 'items-start mt-2'}`}>
         <div className="flex items-baseline gap-1 z-10">
-          <span className={`${isPrimary ? 'text-6xl tracking-tight' : 'text-4xl'} font-bold ${valueClass}`}>
+          <span className={`${isPrimary ? 'text-5xl sm:text-6xl tracking-tight' : 'text-3xl sm:text-4xl'} font-bold ${valueClass}`}>
             {value}
           </span>
           {suffix && <span className={`${isPrimary ? 'text-2xl' : 'text-xl'} ${valueClass}`}>{suffix}</span>}
@@ -148,59 +149,55 @@ export function MetricCard({ title, value, suffix = '', description, change, ico
   );
 }
 
-// Helper to generate sparkline data
-const generateSparkline = () => Array.from({ length: 10 }, () => ({ value: 40 + Math.random() * 60 }));
-
-export function MetricsGrid() {
+export function MetricsGrid({ metrics }: { metrics: CoreMetrics }) {
   return (
-    <div className="grid grid-cols-6 gap-4 w-full">
-      <MetricCard 
-        title="综合评分 (店铺平均分)" 
-        value="96.8" 
+    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+      <MetricCard
+        title="综合评分 (店铺平均分)"
+        value={metrics.comprehensiveScore.value}
         description="当前范围内所有监控店铺综合体验分的平均值。"
-        change={0.6} 
-        data={[]} 
+        change={metrics.comprehensiveScore.change}
+        data={metrics.comprehensiveScore.trend}
         isPrimary
       />
-      <MetricCard 
-        title="商品体验分" 
-        value="97.2" 
+      <MetricCard
+        title="商品体验分"
+        value={metrics.productExperience.value}
         description="衡量商品质量、描述一致性和商品相关售后反馈的体验分。"
-        change={0.8} 
-        icon={Package} 
-        data={generateSparkline()} 
+        change={metrics.productExperience.change}
+        icon={Package}
+        data={metrics.productExperience.trend}
       />
-      <MetricCard 
-        title="物流体验分" 
-        value="95.6" 
+      <MetricCard
+        title="物流体验分"
+        value={metrics.logisticsExperience.value}
         description="衡量发货、配送时效和物流服务稳定性的体验分。"
-        change={-0.3} 
-        icon={Truck} 
-        data={generateSparkline()} 
+        change={metrics.logisticsExperience.change}
+        icon={Truck}
+        data={metrics.logisticsExperience.trend}
       />
-      <MetricCard 
-        title="服务体验分" 
-        value="96.4" 
+      <MetricCard
+        title="服务体验分"
+        value={metrics.serviceExperience.value}
         description="衡量客服响应、售后处理和服务满意度的体验分。"
-        change={0.5} 
-        icon={HeadphonesIcon} 
-        data={generateSparkline()} 
+        change={metrics.serviceExperience.change}
+        icon={HeadphonesIcon}
+        data={metrics.serviceExperience.trend}
       />
-      <MetricCard 
-        title="差评风险 (差评行为分)" 
-        value="1.8" 
-        suffix="%" 
+      <MetricCard
+        title="差评风险 (差评行为分)"
+        value={metrics.negativeReviewRisk.value}
         description="反映差评行为相关问题占比，数值越低风险越小。"
-        change={-0.4} 
-        icon={AlertTriangle} 
-        data={generateSparkline()} 
+        change={metrics.negativeReviewRisk.change}
+        icon={AlertTriangle}
+        data={metrics.negativeReviewRisk.trend}
         isWarning
       />
     </div>
   );
 }
 
-export function SummaryBar() {
+export function SummaryBar({ summary }: { summary: DataCenterSummary }) {
   const { appTheme } = useThemeStore();
   const isEnterprise = appTheme === 'enterprise';
 
@@ -209,23 +206,23 @@ export function SummaryBar() {
     : 'bg-white/90 dark:bg-[#0a101f]/80 border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none';
   const textClass = isEnterprise ? 'text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300';
   return (
-    <div className={`w-full rounded-xl border p-4 flex items-center justify-center gap-16 ${bgClass}`}>
-      <div className="flex items-center gap-4">
+    <div className={`w-full rounded-xl border p-4 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center sm:gap-16 ${bgClass}`}>
+      <div className="flex items-center justify-center gap-4">
         <div className={`p-2 rounded-full ${isEnterprise ? 'bg-blue-50 text-blue-500' : 'bg-blue-500/10 text-[#0ea5e9]'}`}>
            <Store className="w-5 h-5" />
         </div>
         <span className={`${textClass} font-medium`}>监控店铺数</span>
-        <span className={`text-3xl font-bold ml-2 ${isEnterprise ? 'text-slate-900 dark:text-slate-100' : 'text-slate-900 dark:text-white'}`}>128 <span className={`text-sm font-normal ${textClass}`}>家</span></span>
+        <span className={`text-3xl font-bold ml-2 ${isEnterprise ? 'text-slate-900 dark:text-slate-100' : 'text-slate-900 dark:text-white'}`}>{summary.monitoredShops} <span className={`text-sm font-normal ${textClass}`}>家</span></span>
       </div>
       
-      <div className="w-px h-10 bg-slate-200 dark:bg-white/10"></div>
+      <div className="h-px w-full bg-slate-200 dark:bg-white/10 sm:h-10 sm:w-px"></div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-center gap-4">
         <div className={`p-2 rounded-full ${isEnterprise ? 'bg-blue-50 text-blue-500' : 'bg-blue-500/10 text-[#0ea5e9]'}`}>
           <ShieldCheck className="w-5 h-5" />
         </div>
         <span className={`${textClass} font-medium`}>数据覆盖率</span>
-        <span className={`text-3xl font-bold ml-2 ${isEnterprise ? 'text-slate-900 dark:text-slate-100' : 'text-slate-900 dark:text-white'}`}>98.6%</span>
+        <span className={`text-3xl font-bold ml-2 ${isEnterprise ? 'text-slate-900 dark:text-slate-100' : 'text-slate-900 dark:text-white'}`}>{summary.dataCoverage}%</span>
       </div>
     </div>
   );
