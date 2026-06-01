@@ -16,6 +16,7 @@ export interface AgentEvent {
 export interface AgentLoginStartRequest {
   phone: string;
   account_id: string;
+  data_source_id: number;
 }
 
 export interface AgentLoginStartResponse {

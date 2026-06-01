@@ -7,6 +7,7 @@ import {
   DataSourceCreate,
   DataSourceUpdate,
   DataSourceResponse,
+  ShopDashboardShopCatalog,
   ScrapingRuleListItem,
 } from '@/types';
 
@@ -116,6 +117,17 @@ export const dataSourceApi = {
     await httpClient.delete<ApiResponse<void>>(
       API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(id)
     );
+  },
+
+  getShopDashboardShopCatalog: async (
+    id: number,
+    options?: { forceRefresh?: boolean }
+  ): Promise<ShopDashboardShopCatalog> => {
+    const query = options?.forceRefresh ? '?force_refresh=true' : '';
+    const response = await httpClient.get<ApiResponse<ShopDashboardShopCatalog>>(
+      `${API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_SHOP_CATALOG(id)}${query}`
+    );
+    return response.data;
   },
 
   getScrapingRules: async (id: number): Promise<ScrapingRuleListItem[]> => {

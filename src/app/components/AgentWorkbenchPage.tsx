@@ -470,13 +470,17 @@ export default function AgentWorkbenchPage() {
   const startLogin = useCallback(async () => {
     const phone = loginForm.phone.trim();
     const accountId = selectedAccountId;
-    if (!phone || !accountId) {
+    if (!phone || !accountId || !selectedDataSource) {
       toast.error('请选择数据源并填写手机号');
       return;
     }
     setIsLoginSubmitting(true);
     try {
-      const response = await agentApi.startLogin({ phone, account_id: accountId });
+      const response = await agentApi.startLogin({
+        phone,
+        account_id: accountId,
+        data_source_id: selectedDataSource.id,
+      });
       setLoginSessionId(response.session_id);
       connectLoginEvents(response.session_id);
       toast.success(`登录会话已创建: ${response.session_id}`);
@@ -485,7 +489,7 @@ export default function AgentWorkbenchPage() {
     } finally {
       setIsLoginSubmitting(false);
     }
-  }, [connectLoginEvents, loginForm.phone, selectedAccountId]);
+  }, [connectLoginEvents, loginForm.phone, selectedAccountId, selectedDataSource]);
 
   const submitLoginCode = useCallback(async () => {
     if (!loginSessionId) {

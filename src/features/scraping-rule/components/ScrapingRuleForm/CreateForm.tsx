@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import React from 'react';
-import { useForm, type UseFormReturn } from 'react-hook-form';
+import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useCreateScrapingRule } from '../../hooks/useCreateScrapingRule';
 import { useDataSources } from '@/features/data-source/hooks/useDataSources';
@@ -58,6 +58,7 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
   });
   const { clearErrors } = form;
   const ruleConfigForm = form as unknown as UseFormReturn<RuleConfigFormValues>;
+  const selectedDataSourceId = useWatch({ control: form.control, name: 'data_source_id' });
 
   async function onSubmit(values: CreateRuleFormValues) {
     clearErrors();
@@ -155,7 +156,14 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
             render={({ field }) => (
               <FormItem>
                 <FormLabel>数据源</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={value => {
+                    field.onChange(value);
+                    form.setValue('single_shop_id', '');
+                    form.setValue('shop_ids', []);
+                  }}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="选择数据源" />
@@ -193,7 +201,10 @@ export function CreateForm({ onSuccess, onCancel }: { onSuccess?: () => void; on
           />
         </div>
 
-        <RuleConfigFields form={ruleConfigForm} />
+        <RuleConfigFields
+          form={ruleConfigForm}
+          dataSourceId={selectedDataSourceId ? Number(selectedDataSourceId) : null}
+        />
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel || (() => router.back())}>
