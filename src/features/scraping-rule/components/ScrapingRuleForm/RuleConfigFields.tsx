@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Bot, CalendarDays, RefreshCw, SlidersHorizontal, Store } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Badge } from '@/app/components/ui/badge';
@@ -76,9 +76,24 @@ function recipeLabel(recipe: Pick<AgentRecipeListItem, 'namespace' | 'key' | 've
   return `${recipe.namespace}/${recipe.key} v${recipe.version}`;
 }
 
+function recipeMatches(
+  recipe: Pick<AgentRecipeListItem, 'namespace' | 'key' | 'version'>,
+  current: { namespace: string; key: string; version: string },
+) {
+  const currentVersion = Number(current.version);
+  const hasCurrentVersion = Number.isInteger(currentVersion) && currentVersion > 0;
+  return (
+    recipe.namespace === current.namespace &&
+    recipe.key === current.key &&
+    hasCurrentVersion &&
+    recipe.version === currentVersion
+  );
+}
+
 function buildRecipeOptions(
   recipes: AgentRecipeListItem[],
   current: { namespace: string; key: string; version: string },
+  needsStableRecipe: boolean,
 ): Array<{
   value: string;
   namespace: string;
@@ -87,8 +102,14 @@ function buildRecipeOptions(
   label: string;
   status?: string;
   stability?: string;
+  validationError?: string | null;
+  disabled?: boolean;
 }> {
-  const options = recipes.map(recipe => ({
+  const options = recipes.filter(recipe => (
+    recipe.status === 'active' &&
+    !recipe.validation_error &&
+    (!needsStableRecipe || recipe.stability === 'stable')
+  )).map(recipe => ({
     value: recipeValue(recipe),
     namespace: recipe.namespace,
     key: recipe.key,
@@ -96,31 +117,32 @@ function buildRecipeOptions(
     label: recipeLabel(recipe),
     status: recipe.status,
     stability: recipe.stability,
+    validationError: recipe.validation_error,
+    disabled: false,
   }));
 
   if (!current.namespace || !current.key) {
     return options;
   }
 
-  const currentVersion = Number(current.version);
-  const matched = options.some(option => (
-    option.namespace === current.namespace &&
-    option.key === current.key &&
-    (!current.version || option.version === currentVersion)
-  ));
+  const matched = options.some(option => recipeMatches(option, current));
   if (matched) {
     return options;
   }
 
+  const currentRecipe = recipes.find(recipe => recipeMatches(recipe, current));
+  const currentVersion = Number(current.version);
   return [
     {
-      value: `${current.namespace}::${current.key}::${current.version || 'current'}`,
-      namespace: current.namespace,
-      key: current.key,
-      version: Number.isInteger(currentVersion) && currentVersion > 0 ? currentVersion : 0,
-      label: `${current.namespace}/${current.key}${current.version ? ` v${current.version}` : ''}`,
-      status: 'current',
-      stability: 'current',
+      value: currentRecipe ? recipeValue(currentRecipe) : `${current.namespace}::${current.key}::${current.version || 'current'}`,
+      namespace: currentRecipe?.namespace || current.namespace,
+      key: currentRecipe?.key || current.key,
+      version: currentRecipe?.version || (Number.isInteger(currentVersion) && currentVersion > 0 ? currentVersion : 0),
+      label: currentRecipe ? recipeLabel(currentRecipe) : `${current.namespace}/${current.key}${current.version ? ` v${current.version}` : ''}`,
+      status: currentRecipe?.status || 'missing',
+      stability: currentRecipe?.stability || 'missing',
+      validationError: currentRecipe?.validation_error,
+      disabled: true,
     },
     ...options,
   ];
@@ -193,38 +215,39 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
     };
   }, [dataSourceId]);
 
+  const loadRecipes = useCallback(async (isStale?: () => boolean) => {
+    setRecipesLoading(true);
+    setRecipesError('');
+    try {
+      const response = await agentApi.listRecipes();
+      if (!isStale?.()) {
+        setRecipes(response.items);
+      }
+    } catch (error) {
+      if (!isStale?.()) {
+        setRecipes([]);
+        setRecipesError(errorMessage(error, 'Recipe 读取失败'));
+      }
+    } finally {
+      if (!isStale?.()) {
+        setRecipesLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     let ignore = false;
 
-    async function loadRecipes() {
-      setRecipesLoading(true);
-      setRecipesError('');
-      try {
-        const response = await agentApi.listRecipes();
-        if (!ignore) {
-          setRecipes(response.items);
-        }
-      } catch (error) {
-        if (!ignore) {
-          setRecipes([]);
-          setRecipesError(errorMessage(error, 'Recipe 读取失败'));
-        }
-      } finally {
-        if (!ignore) {
-          setRecipesLoading(false);
-        }
-      }
-    }
-
-    void loadRecipes();
+    void loadRecipes(() => ignore);
 
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [loadRecipes]);
 
+  const needsStableRecipe = shopScope !== 'single';
   const stableRecipes = useMemo(
-    () => recipes.filter(recipe => recipe.status === 'active' && recipe.stability === 'stable'),
+    () => recipes.filter(recipe => recipe.status === 'active' && recipe.stability === 'stable' && !recipe.validation_error),
     [recipes],
   );
   const recipeOptions = useMemo(
@@ -235,27 +258,35 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
         key: agentRecipeKey,
         version: agentRecipeVersion,
       },
+      needsStableRecipe,
     ),
-    [agentRecipeKey, agentRecipeNamespace, agentRecipeVersion, recipes],
+    [agentRecipeKey, agentRecipeNamespace, agentRecipeVersion, needsStableRecipe, recipes],
   );
   const selectedRecipeValue = useMemo(() => {
     if (!agentRecipeNamespace || !agentRecipeKey) {
       return EMPTY_SELECT_VALUE;
     }
     const currentVersion = Number(agentRecipeVersion);
+    const hasCurrentVersion = Number.isInteger(currentVersion) && currentVersion > 0;
     const matched = recipeOptions.find(option => (
       option.namespace === agentRecipeNamespace &&
       option.key === agentRecipeKey &&
-      (!agentRecipeVersion || option.version === currentVersion)
+      hasCurrentVersion &&
+      option.version === currentVersion
     ));
-    return matched?.value || EMPTY_SELECT_VALUE;
+    const unavailable = recipeOptions.find(option => (
+      option.disabled &&
+      option.namespace === agentRecipeNamespace &&
+      option.key === agentRecipeKey
+    ));
+    return matched?.value || unavailable?.value || EMPTY_SELECT_VALUE;
   }, [agentRecipeKey, agentRecipeNamespace, agentRecipeVersion, recipeOptions]);
   const stableRecipeAvailable = stableRecipes.length > 0;
   const selectedRecipe = recipeOptions.find(option => option.value === selectedRecipeValue);
-  const needsStableRecipe = shopScope !== 'single';
+  const selectedRecipeUnavailable = selectedRecipe?.disabled === true;
 
   useEffect(() => {
-    const nextStability = selectedRecipe?.stability || '';
+    const nextStability = selectedRecipe?.disabled ? 'unavailable' : selectedRecipe?.stability || '';
     if (agentRecipeStability !== nextStability) {
       form.setValue('agent_recipe_stability', nextStability, { shouldDirty: false, shouldValidate: true });
     }
@@ -349,7 +380,7 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
       return;
     }
     const recipe = recipeOptions.find(option => option.value === value);
-    if (!recipe) {
+    if (!recipe || recipe.disabled) {
       return;
     }
     form.setValue('agent_recipe_enabled', true, { shouldDirty: true, shouldValidate: true });
@@ -487,7 +518,20 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
       </div>
 
       <div className="space-y-4 rounded-md border bg-background p-4">
-        {sectionTitle(<Bot className="h-4 w-4 text-muted-foreground" />, 'Agent Recipe')}
+        {sectionTitle(
+          <Bot className="h-4 w-4 text-muted-foreground" />,
+          'Agent Recipe',
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={recipesLoading}
+            onClick={() => void loadRecipes()}
+          >
+            <RefreshCw className={cn('mr-2 h-4 w-4', recipesLoading && 'animate-spin')} />
+            刷新
+          </Button>,
+        )}
 
         <FormField
           control={form.control}
@@ -526,9 +570,11 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
                     <SelectContent>
                       <SelectItem value={EMPTY_SELECT_VALUE}>未设置</SelectItem>
                       {recipeOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
+                        <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
                           {option.label}
-                          {option.stability === 'stable' ? ' · stable' : option.stability ? ` · ${option.stability}` : ''}
+                          {option.status ? ` · ${option.status}` : ''}
+                          {option.stability ? `/${option.stability}` : ''}
+                          {option.validationError ? ' · invalid' : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -546,7 +592,7 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
                 <FormItem>
                   <FormLabel>版本</FormLabel>
                   <FormControl>
-                    <Input inputMode="numeric" min={1} step={1} type="number" placeholder="自动" {...field} />
+                    <Input inputMode="numeric" min={1} step={1} type="number" placeholder="选择 Recipe 后自动带出" readOnly {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -558,6 +604,9 @@ export function RuleConfigFields({ form, dataSourceId }: RuleConfigFieldsProps) 
         {recipesError && <p className="text-sm text-destructive">{recipesError}</p>}
         {needsStableRecipe && !stableRecipeAvailable && (
           <p className="text-sm text-amber-700">全店/多店采集需要 stable Recipe；请先在 Agent 工作台标记稳定版本。</p>
+        )}
+        {selectedRecipeUnavailable && (
+          <p className="text-sm text-amber-700">当前规则引用的 Recipe 不可用，请重新选择 active{needsStableRecipe ? ' stable' : ''} 版本。</p>
         )}
         {selectedRecipe && selectedRecipe.stability !== 'stable' && needsStableRecipe && (
           <p className="text-sm text-amber-700">当前 Recipe 不是 stable，批量采集可能被后端拒绝。</p>

@@ -602,8 +602,12 @@ export function buildRuleConfigFromForm(values: RuleConfigFormValues): ScrapingR
       key: values.agent_recipe_key.trim(),
     };
     const version = parseOptionalPositiveInteger(values.agent_recipe_version, 'agent_recipe_version');
-    if (version !== undefined) {
-      recipe.version = version;
+    if (version === undefined) {
+      throwFormError('agent_recipe_version', '请选择带版本的 Agent Recipe');
+    }
+    recipe.version = version;
+    if (values.agent_recipe_stability === 'unavailable') {
+      throwFormError('agent_recipe_namespace', '当前 Agent Recipe 不可用，请重新选择');
     }
     if (values.shop_scope !== 'single' && values.agent_recipe_stability !== 'stable') {
       throwFormError('agent_recipe_namespace', '全店/多店采集只能使用 stable Agent Recipe');

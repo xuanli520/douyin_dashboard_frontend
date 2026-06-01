@@ -126,6 +126,39 @@ describe('scraping rule config form mapping', () => {
     expect(() => buildRuleConfigFromForm(values)).toThrow('全店/多店采集只能使用 stable Agent Recipe');
   });
 
+  it('rejects unavailable recipe selection', () => {
+    const values = {
+      ...buildRuleConfigFormDefaults({
+        filters: { shop_id: ['1001'] },
+        agent_recipe: {
+          namespace: 'douyin_shop_dashboard',
+          key: 'experience_score_single_page',
+          version: 1,
+        },
+      } as ScrapingRuleConfig),
+      agent_recipe_stability: 'unavailable',
+    };
+
+    expect(() => buildRuleConfigFromForm(values)).toThrow('当前 Agent Recipe 不可用，请重新选择');
+  });
+
+  it('rejects enabled recipe without explicit version', () => {
+    const values = {
+      ...buildRuleConfigFormDefaults({
+        filters: { shop_id: ['1001'] },
+        agent_recipe: {
+          namespace: 'douyin_shop_dashboard',
+          key: 'experience_score_single_page',
+        },
+      } as ScrapingRuleConfig),
+      agent_recipe_enabled: true,
+      agent_recipe_version: '',
+      agent_recipe_stability: 'stable',
+    };
+
+    expect(() => buildRuleConfigFromForm(values)).toThrow('请选择带版本的 Agent Recipe');
+  });
+
   it('emits clear values for editable optional config fields', () => {
     const values = {
       ...buildRuleConfigFormDefaults({

@@ -49,6 +49,13 @@ export interface AgentDiscoveryResponse {
   event_sequence: number;
 }
 
+export interface AgentDiscoveryLoginStateResponse {
+  account_id: string;
+  shop_id: string | null;
+  available: boolean;
+  reason?: string;
+}
+
 export interface AgentRecipeRef {
   namespace: string;
   key: string;
@@ -94,6 +101,7 @@ export interface AgentRecipeImportResponse {
   version: number;
   status: AgentRecipeStatus;
   stability: AgentRecipeStability;
+  validation_error?: string | null;
 }
 
 export type AgentRecipeListItem = AgentRecipeImportResponse;

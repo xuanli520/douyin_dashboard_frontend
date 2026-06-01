@@ -122,7 +122,10 @@ export class HttpClient {
           if (contentType && contentType.includes('application/json')) {
             const jsonData = await response.json();
             error.data = jsonData;
-            const msg = (jsonData as Record<string, unknown>).msg || (jsonData as Record<string, unknown>).message;
+            const detail = (jsonData as Record<string, unknown>).detail;
+            const msg = (jsonData as Record<string, unknown>).msg
+              || (jsonData as Record<string, unknown>).message
+              || (typeof detail === 'string' ? detail : undefined);
             if (msg && typeof msg === 'string') {
               error.message = msg;
             }
