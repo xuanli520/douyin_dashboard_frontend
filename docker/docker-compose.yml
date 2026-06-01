@@ -9,6 +9,8 @@ services:
       dockerfile: docker/Dockerfile
       args:
         API_PROXY_TARGET: "http://8.137.84.161:8000"
+        AUTH__JWT_SECRET: "${AUTH__JWT_SECRET:?AUTH__JWT_SECRET is required}"
+        AUTH__JWT_ALGORITHM: "${AUTH__JWT_ALGORITHM:-HS256}"
     image: douyin-frontend:latest
     container_name: douyin-frontend
     ports:
@@ -16,6 +18,8 @@ services:
     environment:
       NODE_ENV: production
       API_PROXY_TARGET: "http://8.137.84.161:8000"
+      AUTH__JWT_SECRET: "${AUTH__JWT_SECRET:?AUTH__JWT_SECRET is required}"
+      AUTH__JWT_ALGORITHM: "${AUTH__JWT_ALGORITHM:-HS256}"
       PORT: "3000"
     restart: unless-stopped
     healthcheck:

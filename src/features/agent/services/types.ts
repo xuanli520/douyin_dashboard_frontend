@@ -16,6 +16,7 @@ export interface AgentEvent {
 export interface AgentLoginStartRequest {
   phone: string;
   account_id: string;
+  data_source_id: number;
 }
 
 export interface AgentLoginStartResponse {
@@ -46,6 +47,13 @@ export interface AgentDiscoveryResponse {
   run_id: string;
   status: AgentRunStatus;
   event_sequence: number;
+}
+
+export interface AgentDiscoveryLoginStateResponse {
+  account_id: string;
+  shop_id: string | null;
+  available: boolean;
+  reason?: string;
 }
 
 export interface AgentRecipeRef {
@@ -93,6 +101,13 @@ export interface AgentRecipeImportResponse {
   version: number;
   status: AgentRecipeStatus;
   stability: AgentRecipeStability;
+  validation_error?: string | null;
+}
+
+export type AgentRecipeListItem = AgentRecipeImportResponse;
+
+export interface AgentRecipeListResponse {
+  items: AgentRecipeListItem[];
 }
 
 export interface AgentResultsParams {

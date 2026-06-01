@@ -5,12 +5,14 @@ import { ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/auth/constants';
 import { verifyAccessCookieToken } from '@/lib/auth/server';
 
 const protectedRoutes = [
+  '/compass',
   '/dashboard',
-  '/data-analysis',
+  '/data-center',
+  '/metric-detail',
   '/data-source',
-  '/reports',
-  '/risk-alert',
+  '/scraping-rule',
   '/task-schedule',
+  '/agent-workbench',
   '/user-permission',
   '/admin',
   '/profile',
@@ -20,7 +22,7 @@ const protectedRoutes = [
 const publicRoutes = ['/login', '/register'];
 
 function isRouteMatch(pathname: string, routes: string[]): boolean {
-  return routes.some((route) => pathname.startsWith(route));
+  return routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 function splitSetCookieHeader(value: string): string[] {
@@ -113,7 +115,7 @@ function buildLoginRedirect(request: NextRequest): NextResponse {
 }
 
 function buildDashboardRedirect(request: NextRequest): NextResponse {
-  return NextResponse.redirect(new URL('/dashboard', request.url));
+  return NextResponse.redirect(new URL('/compass', request.url));
 }
 
 async function recoverSession(request: NextRequest): Promise<{

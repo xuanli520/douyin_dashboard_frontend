@@ -99,7 +99,7 @@ export function EditForm({ id }: EditFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-4xl space-y-8">
         <FormField
           control={form.control}
           name="name"
@@ -166,7 +166,7 @@ export function EditForm({ id }: EditFormProps) {
           />
         </div>
 
-        <RuleConfigFields form={ruleConfigForm} />
+        <RuleConfigFields form={ruleConfigForm} dataSourceId={rule.data_source_id} />
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>

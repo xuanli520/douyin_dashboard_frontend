@@ -26,9 +26,6 @@ export const API_ENDPOINTS = {
 
   PERMISSIONS_ME: `${API_BASE_PATH}/permissions/me`,
 
-  ANALYSIS_OVERVIEW: `${API_BASE_PATH}/analysis`,
-  ALERTS_LIST: `${API_BASE_PATH}/alerts`,
-  REPORTS_OVERVIEW: `${API_BASE_PATH}/reports`,
   SCHEDULES_LIST: `${API_BASE_PATH}/schedules`,
   SCHEDULE_DETAIL: (schedule_id: number) => `${API_BASE_PATH}/schedules/${schedule_id}`,
   SHOPS_LIST: `${API_BASE_PATH}/shops`,
@@ -39,12 +36,15 @@ export const API_ENDPOINTS = {
   TASK_EXECUTIONS: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/executions`,
   TASK_CANCEL: (task_id: number) => `${API_BASE_PATH}/tasks/${task_id}/cancel`,
   COLLECTION_JOBS: `${API_BASE_PATH}/collection-jobs`,
+  COLLECTION_JOB_DETAIL: (job_id: number) => `${API_BASE_PATH}/collection-jobs/${job_id}`,
   AGENT_LOGIN_START: `${API_BASE_PATH}/agent-login/start`,
   AGENT_LOGIN_CODE: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/code`,
   AGENT_LOGIN_CANCEL: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/cancel`,
   AGENT_LOGIN_EVENTS: (session_id: string) => `${API_BASE_PATH}/agent-login/${session_id}/events`,
   AGENT_DISCOVERY: `${API_BASE_PATH}/agent-discovery`,
+  AGENT_DISCOVERY_LOGIN_STATE: `${API_BASE_PATH}/agent-discovery/login-state`,
   AGENT_DISCOVERY_EVENTS: (run_id: string) => `${API_BASE_PATH}/agent-discovery/${run_id}/events`,
+  AGENT_RECIPES: `${API_BASE_PATH}/agent-discovery/recipes`,
   AGENT_RECIPE_MARK_STABLE: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/mark-stable`,
   AGENT_RECIPE_EXPORT: (recipe_id: number) => `${API_BASE_PATH}/agent-discovery/recipes/${recipe_id}/export`,
   AGENT_RECIPE_IMPORT: `${API_BASE_PATH}/agent-discovery/recipes/import`,
@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
   DATA_SOURCE_DEACTIVATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/deactivate`,
   DATA_SOURCE_VALIDATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/validate`,
   DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/shop-dashboard/login-state`,
+  DATA_SOURCE_SHOP_DASHBOARD_SHOP_CATALOG: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/shop-dashboard/shop-catalog`,
   DATA_SOURCE_SCRAPING_RULES: (ds_id: number) => `${API_BASE_PATH}/data-sources/${ds_id}/scraping-rules`,
 
   SCRAPING_RULES: `${API_BASE_PATH}/scraping-rules`,

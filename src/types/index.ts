@@ -107,6 +107,14 @@ export interface DataSourceResponse {
 
 export type PaginatedDataSourceResponse = PaginatedData<DataSourceResponse>;
 
+export interface ShopDashboardShopCatalog {
+  data_source_id: number;
+  account_id: string;
+  shop_ids: string[];
+  catalog_stale: boolean;
+  resolve_source: string;
+}
+
 export type ScrapingRuleGranularity = 'HOUR' | 'DAY' | 'WEEK' | 'MONTH';
 export type ScrapingRuleIncrementalMode = 'BY_DATE' | 'BY_CURSOR';
 export type ScrapingRuleDataLatency = 'REALTIME' | 'T+1' | 'T+2' | 'T+3';
@@ -114,17 +122,17 @@ export type ScrapingRuleDataLatency = 'REALTIME' | 'T+1' | 'T+2' | 'T+3';
 export interface ScrapingRuleConfig {
   granularity?: ScrapingRuleGranularity;
   timezone?: string;
-  time_range?: Record<string, unknown>;
+  time_range?: Record<string, unknown> | null;
   incremental_mode?: ScrapingRuleIncrementalMode;
   backfill_last_n_days?: number;
   filters?: Record<string, unknown>;
-  dimensions?: string[];
-  metrics?: string[];
-  dedupe_key?: string;
-  rate_limit?: Record<string, unknown>;
+  dimensions?: string[] | null;
+  metrics?: string[] | null;
+  dedupe_key?: string | null;
+  rate_limit?: Record<string, unknown> | null;
   data_latency?: ScrapingRuleDataLatency;
-  top_n?: number;
-  sort_by?: string;
+  top_n?: number | null;
+  sort_by?: string | null;
   include_long_tail?: boolean;
   session_level?: boolean;
   [key: string]: unknown;

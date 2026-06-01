@@ -50,7 +50,7 @@ const dataSourceQueryCodec = {
 
 export function DataSourceList() {
   const [query, setQuery] = useQueryState(dataSourceQueryCodec);
-  const { data, loading } = useDataSources({
+  const { data, loading, error } = useDataSources({
     ...query,
     source_type: query.source_type === 'all' ? undefined : query.source_type as DataSourceType,
     status: query.status === 'all' ? undefined : query.status as DataSourceStatus,
@@ -210,6 +210,7 @@ export function DataSourceList() {
       <DataSourceTable
         data={data?.items || []}
         loading={loading || deleting}
+        error={error?.message ?? null}
         pagination={{ page: data?.meta?.page || 1, size: data?.meta?.size || 10, total: data?.meta?.total || 0 }}
         onPageChange={handlePageChange}
         onSizeChange={handleSizeChange}

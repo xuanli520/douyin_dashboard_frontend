@@ -22,6 +22,7 @@ vi.mock('@/config/api', () => ({
     DATA_SOURCE_VALIDATE: (id: number) => `/api/data-sources/${id}/validate`,
     DATA_SOURCE_SCRAPING_RULES: (id: number) => `/api/data-sources/${id}/scraping-rules`,
     DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE: (id: number) => `/api/data-sources/${id}/shop-dashboard/login-state`,
+    DATA_SOURCE_SHOP_DASHBOARD_SHOP_CATALOG: (id: number) => `/api/data-sources/${id}/shop-dashboard/shop-catalog`,
   },
 }));
 
@@ -194,6 +195,42 @@ describe('dataSourceApi', () => {
     });
   });
 
+  describe('getShopDashboardShopCatalog', () => {
+    it('should fetch shop catalog for shop dashboard source', async () => {
+      const mockResponse = {
+        data: {
+          data_source_id: 99,
+          account_id: 'data_source_99',
+          shop_ids: ['shop-1', 'shop-2'],
+          catalog_stale: false,
+          resolve_source: 'cache',
+        },
+      };
+      vi.mocked(httpClient.get).mockResolvedValue(mockResponse);
+
+      const result = await dataSourceApi.getShopDashboardShopCatalog(99);
+
+      expect(httpClient.get).toHaveBeenCalledWith('/api/data-sources/99/shop-dashboard/shop-catalog');
+      expect(result.shop_ids).toEqual(['shop-1', 'shop-2']);
+    });
+
+    it('should request force refresh when asked', async () => {
+      vi.mocked(httpClient.get).mockResolvedValue({
+        data: {
+          data_source_id: 99,
+          account_id: 'data_source_99',
+          shop_ids: [],
+          catalog_stale: false,
+          resolve_source: 'live',
+        },
+      });
+
+      await dataSourceApi.getShopDashboardShopCatalog(99, { forceRefresh: true });
+
+      expect(httpClient.get).toHaveBeenCalledWith('/api/data-sources/99/shop-dashboard/shop-catalog?force_refresh=true');
+    });
+  });
+
   describe('validate', () => {
     it('should validate connection', async () => {
       const mockResponse = {
@@ -249,6 +286,9 @@ describe('dataSourceApi', () => {
       expect(
         actualApi.API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_LOGIN_STATE(7)
       ).toBe('/api/v1/data-sources/7/shop-dashboard/login-state');
+      expect(
+        actualApi.API_ENDPOINTS.DATA_SOURCE_SHOP_DASHBOARD_SHOP_CATALOG(7)
+      ).toBe('/api/v1/data-sources/7/shop-dashboard/shop-catalog');
     });
   });
 });

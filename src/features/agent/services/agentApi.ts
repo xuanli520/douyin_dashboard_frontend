@@ -3,6 +3,7 @@ import { httpClient } from '@/lib/http/client';
 import { ApiResponse } from '@/lib/http/types';
 import {
   AgentDiscoveryRequest,
+  AgentDiscoveryLoginStateResponse,
   AgentDiscoveryResponse,
   AgentEvent,
   AgentLoginCodeRequest,
@@ -11,6 +12,7 @@ import {
   AgentOkResponse,
   AgentRecipeExportPayload,
   AgentRecipeImportResponse,
+  AgentRecipeListResponse,
   AgentRecipeMarkStableRequest,
   AgentRecipeMarkStableResponse,
   AgentResultItem,
@@ -82,8 +84,23 @@ export const agentApi = {
     return response.data;
   },
 
+  async getDiscoveryLoginState(accountId: string, shopId?: string): Promise<AgentDiscoveryLoginStateResponse> {
+    const query = queryString({ account_id: accountId, shop_id: shopId });
+    const response = await httpClient.get<ApiResponse<AgentDiscoveryLoginStateResponse>>(
+      `${API_ENDPOINTS.AGENT_DISCOVERY_LOGIN_STATE}?${query}`,
+    );
+    return response.data;
+  },
+
   discoveryEventsUrl(runId: string): string {
     return toWsUrl(API_ENDPOINTS.AGENT_DISCOVERY_EVENTS(runId));
+  },
+
+  async listRecipes(): Promise<AgentRecipeListResponse> {
+    const response = await httpClient.get<ApiResponse<AgentRecipeListResponse>>(
+      API_ENDPOINTS.AGENT_RECIPES,
+    );
+    return response.data;
   },
 
   async markRecipeStable(

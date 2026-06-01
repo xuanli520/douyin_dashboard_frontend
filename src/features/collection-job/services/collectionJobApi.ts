@@ -102,7 +102,7 @@ export const collectionJobApi = {
   async update(jobId: string | number, payload: CollectionJobUpdate): Promise<CollectionJobResponse> {
     const normalizedId = toCollectionJobId(jobId);
     const response = await httpClient.put<ApiResponse<CollectionJobResponse>>(
-      API_ENDPOINTS.SCHEDULE_DETAIL(normalizedId),
+      API_ENDPOINTS.COLLECTION_JOB_DETAIL(normalizedId),
       normalizeUpdatePayload(payload)
     );
     return normalizeCollectionJob(response.data);
@@ -110,6 +110,6 @@ export const collectionJobApi = {
 
   async remove(jobId: string | number): Promise<void> {
     const normalizedId = toCollectionJobId(jobId);
-    await httpClient.delete<ApiResponse<null>>(API_ENDPOINTS.SCHEDULE_DETAIL(normalizedId));
+    await httpClient.delete<ApiResponse<null>>(API_ENDPOINTS.COLLECTION_JOB_DETAIL(normalizedId));
   },
 };

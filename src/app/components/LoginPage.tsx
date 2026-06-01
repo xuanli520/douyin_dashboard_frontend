@@ -16,9 +16,10 @@ interface LoginPageProps {
 
 // 预生成的粒子配置 (避免 SSR/客户端 hydration 不匹配)
 // 阿里云验证码2.0配置
-const CAPTCHA_REGION = 'cn';
-const CAPTCHA_PREFIX = '1fs7dl';
-const CAPTCHA_SCENE_ID = '71tobb9u';
+const CAPTCHA_ENABLED = process.env.NEXT_PUBLIC_ALIYUN_CAPTCHA_ENABLED !== 'false';
+const CAPTCHA_REGION = process.env.NEXT_PUBLIC_ALIYUN_CAPTCHA_REGION || 'cn';
+const CAPTCHA_PREFIX = process.env.NEXT_PUBLIC_ALIYUN_CAPTCHA_PREFIX || '4mpsog';
+const CAPTCHA_SCENE_ID = process.env.NEXT_PUBLIC_ALIYUN_CAPTCHA_SCENE_ID || 'zp3wnzt8';
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
@@ -39,7 +40,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
   const { login: storeLogin, error: userError } = useUserStore();
 
   const captchaRef = useRef<any>(null);
-  const [isCaptchaReady, setIsCaptchaReady] = useState(false);
+  const [isCaptchaReady, setIsCaptchaReady] = useState(!CAPTCHA_ENABLED);
 
   const formRef = useRef(null);
   const isMountedRef = useRef(true);
@@ -65,6 +66,11 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
   // 阿里云验证码2.0 初始化
   useEffect(() => {
+    if (!CAPTCHA_ENABLED) {
+      setIsCaptchaReady(true);
+      return;
+    }
+
     // 设置验证码配置
     (window as any).AliyunCaptchaConfig = {
       region: CAPTCHA_REGION,
@@ -127,6 +133,11 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
   }, []);
 
   const refreshCaptcha = useCallback(() => {
+    if (!CAPTCHA_ENABLED) {
+      setIsCaptchaReady(true);
+      return;
+    }
+
     if (captchaRef.current) {
       captchaRef.current = null;
     }
@@ -241,18 +252,25 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
       return;
     }
 
+    const credentials = { username, password };
+    pendingCredentialsRef.current = credentials;
+
+    if (!CAPTCHA_ENABLED) {
+      await handleLoginLogic(credentials);
+      return;
+    }
+
     // 必须通过验证码验证才能登录
     if (!captchaRef.current || !isCaptchaReady) {
       toast.error('验证码加载中，请稍候');
       return;
     }
 
-    const credentials = { username, password };
-    pendingCredentialsRef.current = credentials;
-
     // 触发验证码
     captchaRef.current.show();
   };
+
+  const captchaPending = CAPTCHA_ENABLED && !isCaptchaReady;
 
   if (isRegisterMode) {
     return (
@@ -311,12 +329,13 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
               <div className="group relative">
                 <label className="block text-xs font-mono text-cyan-200/60 mb-2 uppercase tracking-wider ml-1">账号 / 邮箱</label>
                 <input
-                  type="email"
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-[#0a0f1e]/60 border border-white/10 rounded-xl px-4 py-4 text-cyan-50 placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-[#0a0f1e]/80 transition-all duration-300 font-light"
-                  placeholder="请输入邮箱账号"
+                  placeholder="请输入账号或邮箱"
                   disabled={loading}
+                  autoComplete="username"
                   required
                 />
                 <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-cyan-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 ease-out origin-left" />
@@ -357,16 +376,16 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
 
             <motion.button
               id="login-button"
-              whileHover={{ scale: loading || !isCaptchaReady ? 1 : 1.01 }}
-              whileTap={{ scale: loading || !isCaptchaReady ? 1 : 0.99 }}
+              whileHover={{ scale: loading || captchaPending ? 1 : 1.01 }}
+              whileTap={{ scale: loading || captchaPending ? 1 : 0.99 }}
               type="submit"
-              disabled={loading || !isCaptchaReady}
+              disabled={loading || captchaPending}
               className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 p-[1px]"
             >
               <div className="relative bg-[#0b1221] group-hover:bg-opacity-90 transition-all rounded-[11px] py-4 flex items-center justify-center gap-2">
                 {loading ? (
                   <Loader2 size={18} className="animate-spin text-cyan-400" />
-                ) : !isCaptchaReady ? (
+                ) : captchaPending ? (
                   <span className="relative z-10 flex items-center justify-center gap-2 text-cyan-200/60 font-medium tracking-widest uppercase text-sm">
                     <Loader2 size={16} className="animate-spin" />
                     验证加载中
@@ -380,7 +399,7 @@ function LoginPageContent({ onLogin }: LoginPageProps) {
                   </>
                 )}
               </div>
-              {!loading && isCaptchaReady && (
+              {!loading && !captchaPending && (
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500" />
               )}
             </motion.button>

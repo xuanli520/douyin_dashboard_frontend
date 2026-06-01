@@ -70,4 +70,29 @@ describe('proxy auth recovery', () => {
       'refresh_token=refresh123; Expires=Wed, 21 Oct 2026 07:28:00 GMT; Path=/; HttpOnly; SameSite=Lax',
     ]);
   });
+
+  it.each([
+    '/compass',
+    '/dashboard',
+    '/data-center',
+    '/metric-detail',
+    '/data-source',
+    '/scraping-rule',
+    '/task-schedule',
+    '/agent-workbench',
+    '/user-permission',
+    '/admin/users',
+    '/profile',
+    '/system-settings',
+  ])('未认证访问 %s 应跳转登录', async (path) => {
+    verifyAccessCookieTokenMock.mockResolvedValue(false);
+
+    const { proxy } = await import('./proxy');
+    const request = new NextRequest(`http://localhost${path}`);
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe(`http://localhost/login?redirect=${encodeURIComponent(path)}`);
+  });
 });

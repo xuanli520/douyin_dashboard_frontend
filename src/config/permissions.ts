@@ -15,8 +15,14 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
     forbiddenRedirect: '/403',
   },
   {
-    route: ROUTES.DATA_ANALYSIS,
-    requiredPermissions: ['analysis:view'],
+    route: ROUTES.DATA_CENTER,
+    requiredPermissions: ['analytics:view'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
+    route: ROUTES.METRIC_DETAIL,
+    requiredPermissions: ['metric:view'],
     unauthRedirect: '/login',
     forbiddenRedirect: '/403',
   },
@@ -33,18 +39,6 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
     forbiddenRedirect: '/403',
   },
   {
-    route: ROUTES.REPORTS,
-    requiredPermissions: ['report:view'],
-    unauthRedirect: '/login',
-    forbiddenRedirect: '/403',
-  },
-  {
-    route: ROUTES.RISK_ALERT,
-    requiredPermissions: ['alert:view'],
-    unauthRedirect: '/login',
-    forbiddenRedirect: '/403',
-  },
-  {
     route: ROUTES.DATA_SOURCE,
     requiredPermissions: ['data_source:view'],
     unauthRedirect: '/login',
@@ -53,6 +47,12 @@ export const PAGE_PERMISSIONS: RoutePermissionConfig[] = [
   {
     route: ROUTES.SCRAPING_RULE,
     requiredPermissions: ['task:view'],
+    unauthRedirect: '/login',
+    forbiddenRedirect: '/403',
+  },
+  {
+    route: ROUTES.AGENT_WORKBENCH,
+    requiredPermissions: ['shop_dashboard:trigger'],
     unauthRedirect: '/login',
     forbiddenRedirect: '/403',
   },
@@ -124,15 +124,19 @@ export function matchRoutePermission(pathname: string): RoutePermissionConfig | 
     return null;
   }
 
-  return PAGE_PERMISSIONS.find(config => {
-    if (typeof config.route === 'string') {
-      return config.route === pathname;
-    }
-    if (config.route instanceof RegExp) {
-      return (config.route as RegExp).test(pathname);
-    }
-    return false;
-  }) || null;
+  const matched = PAGE_PERMISSIONS
+    .filter(config => {
+      if (typeof config.route === 'string') {
+        return pathname === config.route || pathname.startsWith(`${config.route}/`);
+      }
+      if (config.route instanceof RegExp) {
+        return (config.route as RegExp).test(pathname);
+      }
+      return false;
+    })
+    .sort((a, b) => String(b.route).length - String(a.route).length);
+
+  return matched[0] || null;
 }
 
 export const COMPONENT_PERMISSIONS: Record<string, PermissionCode> = {
@@ -146,7 +150,6 @@ export const COMPONENT_PERMISSIONS: Record<string, PermissionCode> = {
   'assign-role': 'user:manage_roles',
   'export-data': 'export:create',
   'import-data': 'data_import:upload',
-  'view-analytics': 'analysis:view',
   'manage-settings': 'system:user_settings',
 };
 
@@ -155,7 +158,6 @@ export const PERMISSION_MODULES = {
   ROLE: 'role',
   PERMISSION: 'permission',
   DATA: 'data',
-  REPORT: 'report',
   SETTINGS: 'settings',
   SYSTEM: 'system',
 } as const;

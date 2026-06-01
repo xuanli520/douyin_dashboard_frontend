@@ -15,7 +15,6 @@ import ShopCard from '@/components/compass/ShopCard';
 import LayoutCustomizer from '@/components/dashboard/LayoutCustomizer';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { useThemeStore } from '@/stores/themeStore';
 import { ShopListItem, ShopScoreResponse, shopDashboardApi } from '@/features/shop-dashboard/services';
 
@@ -40,7 +39,6 @@ type GridItemLayout = {
 
 type GridLayouts = Partial<Record<GridBreakpoint, GridItemLayout[]>>;
 
-type DashboardTimeRange = 'day' | 'week';
 type CompassStatus = 'live' | 'offline' | 'warning' | 'critical';
 
 type ShopSlot = {
@@ -319,10 +317,6 @@ function mapShopCardData(slotId: string, shop: ShopListItem, scoreData?: ShopSco
   };
 }
 
-function toDateRange(range: DashboardTimeRange): string {
-  return range === 'day' ? '1d' : '7d';
-}
-
 // ---------------------------------------------------------------------------
 // UI helpers
 // ---------------------------------------------------------------------------
@@ -377,7 +371,6 @@ export default function CompassPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentPreset, setCurrentPreset] = useState<PresetOption>(DEFAULT_PRESET);
   const [layouts, setLayouts] = useState<GridLayouts>(() => getPresetLayouts(DEFAULT_PRESET, []));
-  const [timeRange, setTimeRange] = useState<DashboardTimeRange>('day');
   // FIX: start as undefined so we can distinguish "not loaded yet" from "all hidden"
   const [visibleShops, setVisibleShops] = useState<Record<string, boolean> | undefined>(undefined);
 
@@ -389,7 +382,7 @@ export default function CompassPage() {
   const lastSlotIdsRef = useRef<string>('');
 
   // ── Data fetching ─────────────────────────────────────────────────────────
-  const dateRange = useMemo(() => toDateRange(timeRange), [timeRange]);
+  const dateRange = '1d';
 
   const shopsQuery = useQuery({
     queryKey: ['shop-dashboard', 'compass', 'shops', dateRange],
@@ -619,41 +612,8 @@ export default function CompassPage() {
             </Select>
           </div>
 
-          {/* Right: time range / customizer / edit / theme */}
+          {/* Right: customizer / edit / theme */}
           <div className="flex items-center gap-4">
-            <Tabs
-              value={timeRange}
-              onValueChange={(v) => {
-                if (v === 'day' || v === 'week') setTimeRange(v);
-              }}
-              className="w-[140px] hidden md:block"
-            >
-              <TabsList className="grid w-full grid-cols-2 h-9 bg-slate-100/80 dark:bg-slate-800/60 rounded-lg p-1 border border-black/5 dark:border-white/5">
-                <TabsTrigger
-                  value="day"
-                  className="rounded-md text-[11px] font-semibold transition-all duration-200
-                             text-slate-500 dark:text-slate-400
-                             data-[state=active]:bg-white data-[state=active]:text-slate-900
-                             data-[state=active]:shadow-sm
-                             dark:data-[state=active]:bg-primary dark:data-[state=active]:text-white"
-                >
-                  本日
-                </TabsTrigger>
-                <TabsTrigger
-                  value="week"
-                  className="rounded-md text-[11px] font-semibold transition-all duration-200
-                             text-slate-500 dark:text-slate-400
-                             data-[state=active]:bg-white data-[state=active]:text-slate-900
-                             data-[state=active]:shadow-sm
-                             dark:data-[state=active]:bg-primary dark:data-[state=active]:text-white"
-                >
-                  本周
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="h-4 w-[1px] bg-border/40 mx-1 hidden md:block" />
-
             <div className="flex items-center gap-1">
               <LayoutCustomizer
                 items={shopSlots.map((s) => ({

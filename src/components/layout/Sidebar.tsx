@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Home, BarChart3, Settings, FileText, AlertTriangle, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow, Activity, Bot } from 'lucide-react';
+import { Home, Settings, Calendar, Database, User, LogOut, ChevronUp, ChevronDown, Users, Shield, Key, Workflow, Activity, Bot } from 'lucide-react';
 import profileImage from '@/assets/male.jpg';
 import femaleProfileImage from '@/assets/female.jpg';
 import logoImage from '@/assets/logo.png';
@@ -32,11 +32,8 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: 'compass', label: '罗盘', icon: Home, href: ROUTES.COMPASS },
-  { id: 'data-analysis', label: '数据分析', icon: BarChart3, href: ROUTES.DATA_ANALYSIS },
   { id: 'task-schedule', label: '任务调度', icon: Calendar, href: ROUTES.TASK_SCHEDULE },
   { id: 'agent-workbench', label: 'Agent 工作台', icon: Bot, href: ROUTES.AGENT_WORKBENCH },
-  { id: 'reports', label: '定期报表', icon: FileText, href: ROUTES.REPORTS },
-  { id: 'risk-alert', label: '风险预警', icon: AlertTriangle, href: ROUTES.RISK_ALERT },
   { id: 'data-source', label: '数据源管理', icon: Database, href: ROUTES.DATA_SOURCE },
   { id: 'scraping-rule', label: '采集规则', icon: Workflow, href: ROUTES.SCRAPING_RULE },
   // 系统管理
@@ -57,6 +54,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isUserMenuRendered, setIsUserMenuRendered] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['system-management']);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -83,6 +81,19 @@ export function Sidebar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (showUserMenu && !isLoading) {
+      setIsUserMenuRendered(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsUserMenuRendered(false);
+    }, 180);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showUserMenu, isLoading]);
 
   // 鼠标移出侧边栏时收起子菜单（但保持在子菜单内时不收起）- 仅赛博朋克主题
   useEffect(() => {
@@ -124,6 +135,10 @@ export function Sidebar() {
     if (currentUser?.username) return currentUser.username;
     return '用户';
   };
+  const shouldRenderUserMenu = isUserMenuRendered && !isLoading;
+  const userMenuAnimationClass = showUserMenu
+    ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+    : 'opacity-0 translate-y-1 scale-[0.98] pointer-events-none';
 
   // 等待权限和主题加载完成 - 使用固定的企业主题样式避免水合不匹配
   if (permissionLoading || !isHydrated) {
@@ -281,8 +296,11 @@ href={subItem.href || '#'}
           </button>
 
           {/* 用户菜单弹窗 */}
-          {showUserMenu && !isLoading && (
-            <div className="absolute bottom-20 left-4 w-[180px] bg-white dark:bg-[#0f172a] rounded-lg shadow-lg dark:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-[#1e293b] overflow-hidden z-50">
+          {shouldRenderUserMenu && (
+            <div
+              aria-hidden={!showUserMenu}
+              className={`ui-fade-transform-200 absolute bottom-20 left-4 w-[180px] origin-bottom-left bg-white dark:bg-[#0f172a] rounded-lg shadow-lg dark:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-[#1e293b] overflow-hidden z-50 ${userMenuAnimationClass}`}
+            >
               <div className="px-4 py-3 border-b border-slate-100 dark:border-[#1e293b]">
                 <div className="text-sm font-medium text-[#1e3a5a] dark:text-slate-100">
                   {currentUser?.username || '未知用户'}
@@ -474,8 +492,11 @@ href={subItem.href || '#'}
         </button>
 
         {/* 用户菜单弹窗 */}
-        {showUserMenu && !isLoading && (
-          <div className="absolute bottom-full left-0 w-[220px] mb-2 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-[0_0_30px_-5px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-white/10 overflow-hidden z-50">
+        {shouldRenderUserMenu && (
+          <div
+            aria-hidden={!showUserMenu}
+            className={`ui-fade-transform-200 absolute bottom-full left-0 w-[220px] mb-2 origin-bottom-left bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-[0_0_30px_-5px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-white/10 overflow-hidden z-50 ${userMenuAnimationClass}`}
+          >
             <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5">
               <div className="text-sm font-medium text-slate-700 dark:text-gray-200">
                 {currentUser?.username || '未知用户'}
